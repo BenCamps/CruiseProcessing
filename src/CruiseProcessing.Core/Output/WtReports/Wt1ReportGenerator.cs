@@ -103,7 +103,7 @@ namespace CruiseProcessing.Output
                 }
 
                 var weightFactor = DataLayer.GetWeightFactor(group.Species, group.PrimaryProduct, group.LiveDead, VolumeLibrary);
-                var percentRemoved = DataLayer.GetPercentRemoved(group.Species, group.SecondaryProduct);
+                var percentRemoved = DataLayer.GetPercentRemoved(group.Species, group.PrimaryProduct);
 
                 double tonsRemovedPrimary = 0.0;
                 double tonsRemovedSecondary = 0.0;
