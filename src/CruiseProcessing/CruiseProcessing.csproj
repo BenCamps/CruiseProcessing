@@ -321,11 +321,11 @@
 		<ProjectReference Include="..\CruiseProcessing.ReferenceImplmentation\CruiseProcessing.ReferenceImplmentation.csproj" />
 	</ItemGroup>
 
-	<Target Name="GenerateSecrets" BeforeTargets="CoreBuild">
+	<!--<Target Name="GenerateSecrets" BeforeTargets="CoreBuild">
 		<ItemGroup>
 			<TemplateFile Include="Secrets.cst" />
 		</ItemGroup>
 
 		<ProcessCodeTemplate TemplateFiles="@(TemplateFile)" />
-	</Target>
+	</Target>-->
 </Project>
