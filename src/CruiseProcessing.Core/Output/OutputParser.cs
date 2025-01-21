@@ -10,8 +10,14 @@ namespace CruiseProcessing.Output
 {
     public class OutputParser
     {
-        protected static Regex REPORT_PAGE_REGEX = new Regex(@"(^(?<reportID>[\w\d]{2,4}): (?<reportTitle>([\w\p{P}]+ )+)? *PAGE (?<pageNumber>\d+)(?:\r\n?|\n))(?<reportSubtitle>(^( ?[\w\(\)\d]+ ?)+(?:\r\n?|\n)){0,2})(^CRUISE#: (?<cruiseNumber>\d+) +SALE#: (?<saleNumber>\d+)(?:\r\n?|\n))(^SALENAME: (?<saleName>[\w\d _-]+) +VERSION: (?<cpVersion>(\d+\.\d+\.\d+)|(DRAFT\.\d+))(?:\r\n?|\n))(RUN DATE & TIME: (?<runDateTime>\d+\/\d+\/\d+\s\d+:\d+:\d+\s\w+) +VOLUME LIBRARY VERSION: (?<volLibVersion>[\w\d\. ]+(?:\r\n?|\n)))(?:\r\n?|\n)+(?<reportContent>([ \d\w\t\p{P}\p{S}]*(?:\r\n?|\n))+)"
-                , RegexOptions.Multiline | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+        protected static readonly Regex REPORT_PAGE_REGEX = new Regex(
+@"(^(?<reportID>[\w\d]{2,4}):\ (?<reportTitle>([\w\p{P}]+\ )+)?\ *PAGE\ (?<pageNumber>\d+)(?:\r\n?|\n))# Header Line 1
+(?<reportSubtitle>(^(\ ?[\w\(\)\d]+\ ?)+(?:\r\n?|\n)){0,2})# Optional Subtitle
+(^CRUISE\#:\ (?<cruiseNumber>\d+)\ +SALE\#:\ (?<saleNumber>\d+)(?:\r\n?|\n))(^SALENAME:\ (?<saleName>[\w\d\ _-]+)\ +VERSION:\ (?<cpVersion>(\d+\.\d+\.\d+)|(DRAFT\.\d+))(?:\r\n?|\n))# Cruise and Sale number
+(RUN\ DATE\ &\ TIME:\ (?<runDateTime>\d+\/\d+\/\d+\s\d+:\d+:\d+\s\w+)\ +VOLUME\ LIBRARY\ VERSION:\ (?<volLibVersion>[\w\d\.\ :]+)?(?:\r\n?|\n))# Run Date and Time
+(?:\r\n?|\n)+# Non-Captured Blank Lines
+(?<reportContent>([\ \d\w\t\p{P}\p{S}]*(?:\r\n?|\n))+)# Report Content"
+                , RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace, TimeSpan.FromSeconds(1));
 
 
         public static IEnumerable<ReportPage> ExtractReportPages(string text)
