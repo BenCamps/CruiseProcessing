@@ -32,18 +32,25 @@ namespace CruiseProcessing.Output
                     Console.WriteLine(content);
                 }
                 if (match != null && match.Success)
+                {
+                    yield return new ReportPage
                     {
-                        yield return new ReportPage
-                        {
-                            ReportID = match.Groups["reportID"].Value,
-                            ReportTitle = match.Groups["reportTitle"].Value,
-                            PageNumber = match.Groups["pageNumber"].Value,
-                            ReportSubtitle = match.Groups["reportSubtitle"].Value,
-                            ReportContent = match.Groups["reportContent"].Value,
-                            PageContent = content,
-                        };
-                    }
-               
+                        ReportID = match.Groups["reportID"].Value,
+                        ReportTitle = match.Groups["reportTitle"].Value,
+                        PageNumber = match.Groups["pageNumber"].Value,
+                        ReportSubtitle = match.Groups["reportSubtitle"].Value,
+                        ReportContent = match.Groups["reportContent"].Value,
+                        PageContent = content,
+                    };
+                }
+                else
+                {
+                    yield return new ReportPage
+                    {
+                        PageContent = content,
+                    };
+                }
+
             }
 
             //var matchs = REPORT_PAGE_REGEX.Matches(text);
@@ -64,7 +71,7 @@ namespace CruiseProcessing.Output
 
         public static IEnumerable<Page> SplitPages(string text)
         {
-            var pages = text.Split('\f');
+            var pages = text.Trim('\f').Split('\f');
 
             for (int i = 0; i < pages.Length; i++)
             {
