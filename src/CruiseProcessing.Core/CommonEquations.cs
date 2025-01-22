@@ -9,10 +9,27 @@ namespace CruiseProcessing
     public static class CommonEquations
     {
 
-        public static int CalculateDiameterClass(float diameterValue)
+        public static int CalculateOneInchDiameterClass(double diameterValue)
         {
-            return (int)Math.Round(diameterValue);
-        }   //  end CalculateDiameterClass
+            // catch all: if value negative or less than one tenth default to 0 
+            if (diameterValue < 0.09d) return 0;
+
+            // multiply by ten and truncate any decimal
+            var value = Math.Truncate(diameterValue * 10.0d);
+            // shift decimal back over to the right and get whole number value
+            var wholeValue = (int)(value / 10);
+
+            // get the value that would be in the tenths place and see if we need to round up or down
+            var tenth = value % 10;
+            if (tenth < 6) // round down
+            {
+                return wholeValue;
+            }
+            else // round up
+            {
+                return wholeValue + 1;
+            }
+        }
 
 
         public static double ExpandedValue(float value1, float value2, float value3)
@@ -90,7 +107,7 @@ namespace CruiseProcessing
         }   //  end PointSampleFrequency
 
 
-        public static double CalcTreeFactor(double firstStageTrees, double treesMeasured, double treesTallied, 
+        public static double CalcTreeFactor(double firstStageTrees, double treesMeasured, double treesTallied,
                                         int order1, int order2)
         {
             //  Calculates the tree factor
@@ -133,7 +150,7 @@ namespace CruiseProcessing
             //  Business layer function -- go to stratum look up CN for currentStratum, pull all CN from trees
             //  rework as this is no longer a valid method
             List<TreeDO> plotTrees = treeList.FindAll(
-                delegate(TreeDO td)
+                delegate (TreeDO td)
                 {
                     return td.TreeNumber == 0 && td.CountOrMeasure == "M";
                 });

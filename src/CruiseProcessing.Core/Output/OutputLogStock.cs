@@ -4,6 +4,7 @@ using CruiseProcessing.Output;
 using CruiseProcessing.OutputModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace CruiseProcessing
 {
     public class OutputLogStock : OutputFileReportGeneratorBase
     {
+        const string OneToThreeDiaClass = "1-3";
 
         //  L2 report
         public static readonly string[] L2columns = new string[3] {" LOG    ********************************* NET VOLUMES **********************************    TOTAL                        TOTAL NET",
@@ -81,9 +83,7 @@ namespace CruiseProcessing
 
                 case "L10":
                     fieldLengths = new int[] { 1, 6, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 7, 2, 6 };
-                    string joinedLine = reportConstants.FCTO;
-                    joinedLine += " - ";
-                    joinedLine += reportConstants.B1DC;
+                    string joinedLine = reportConstants.FCTO + " - " + reportConstants.B1DC; // for cut trees only - By 1" Diameter Class
                     SetReportTitles(currentTitle, 6, 0, 0, joinedLine, reportConstants.oneInchDC);
                     LoadAndPrintByLength(justCutLogs, sList, strWriteOut, ref pageNumb);
                     break;
@@ -636,35 +636,39 @@ namespace CruiseProcessing
         private void loadDIBclasses(List<LogStockDO> justCutLogs, List<ReportSubtotal> listToLoad)
         {
             //  loads classes into specified list to load
-            int maxDBH = (int)Math.Floor(justCutLogs.Max(j => j.SmallEndDiameter));
+            int maxDBH = CommonEquations.CalculateOneInchDiameterClass(justCutLogs.Max(j => j.SmallEndDiameter));
             if (maxDBH > 48) maxDBH = 48;
-            int numClasses = (int)(Math.Floor((maxDBH - 3) + 0.5));
+
             // load classes into list to load
-            if (numClasses < 0)
+            if (maxDBH <= 0)
             {
-                ReportSubtotal rs = new ReportSubtotal();
-                numClasses = 0;
-                rs.Value1 = "0";
-                listToLoad.Add(rs);
+                listToLoad.Add(new ReportSubtotal()
+                {
+                    Value1 = "0",
+                });
             }
             else
             {
-                //  otherwise load list up to number of classes
-                for (int k = 4; k <= maxDBH; k++)
+                foreach(var i in Enumerable.Range(1, maxDBH))
                 {
-                    ReportSubtotal rs = new ReportSubtotal();
-                    if (k == 4)
+                    if (i == 1)
                     {
-                        ReportSubtotal r = new ReportSubtotal();
-                        r.Value1 = "1-3";
-                        listToLoad.Add(r);
-                    }   //  endif
-                    rs.Value1 = k.ToString();
-                    listToLoad.Add(rs);
-                }   //  end for k loop
-            }   //  endif
-            return;
-        }   //  end loadDIBclasses
+                        listToLoad.Add(new ReportSubtotal()
+                        {
+                            Value1 = OneToThreeDiaClass,
+                        });
+                    }
+                    else if (i < 4) { continue; }
+                    else
+                    {
+                        listToLoad.Add(new ReportSubtotal()
+                        {
+                            Value1 = i.ToString(),
+                        });
+                    }
+                }
+            } 
+        }
 
         private void clearOutputList(List<ReportSubtotal> listToClear)
         {
@@ -687,19 +691,19 @@ namespace CruiseProcessing
                 lto.Value15 = 0;
                 lto.Value16 = 0;
             }   //  end foreach loop
-            return;
         }   //  end clearOutputList
 
         public static int FindDIBindex(List<ReportSubtotal> ListToOutput, float SmEndDiam)
         {
-            string DIBtoFind = (Math.Floor(SmEndDiam + 0.5)).ToString();
-            int rowToLoad = ListToOutput.FindIndex(
-                delegate (ReportSubtotal r)
-                {
-                    return r.Value1 == DIBtoFind;
-                });
+            var diaClass = CommonEquations.CalculateOneInchDiameterClass(SmEndDiam);
+            string diaClassStr = (diaClass <= 3) ? OneToThreeDiaClass : diaClass.ToString();
+            int rowToLoad = ListToOutput.FindIndex(x => x.Value1 == diaClassStr);
+
+            Debug.Assert(rowToLoad != -1, "Could Not Find DIB group");
             if (rowToLoad < 0)
+            {
                 rowToLoad = 0;
+            }
             return rowToLoad;
         }   //  end FindDIBindex
     }   //  end OutputLogStock
