@@ -31,7 +31,7 @@ namespace CruiseProcessing.Output
             {
                 SaleName = sale.Name,
                 SaleNumber = sale.SaleNumber,
-                Region = int.Parse(sale.Forest),
+                Region = int.Parse(sale.Region),
                 Forest = int.Parse(sale.Forest),
                 District = int.Parse(sale.District),
             };
