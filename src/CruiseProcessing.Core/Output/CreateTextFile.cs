@@ -476,6 +476,19 @@ namespace CruiseProcessing
                                 OutputLeave olt = new OutputLeave(DataLayer, headerData, rdo.ReportID);
                                 olt.createLeaveTreeReports(strWriteOut, ref reportPageNum);
                                 break;
+                            case "TEA":
+                                {
+                                    string cruiseDir = System.IO.Path.GetDirectoryName(DataLayer.FilePath);
+                                    var cruiseFileName = Path.GetFileNameWithoutExtension(DataLayer.FilePath);
+                                    var teaFilePath = Path.Combine(cruiseDir, cruiseFileName + ".tea");
+
+
+                                    var teaReportBuilder = Services.GetRequiredService<OutputTea>();
+                                    using var fileWriter = File.OpenWrite(teaFilePath);
+                                    using var teaFileStream = new StreamWriter(fileWriter);
+                                    teaReportBuilder.GenerateReport(teaFileStream, headerData, 0);
+                                    break;
+                                }
                         }
                     }
 

@@ -492,7 +492,9 @@ namespace CruiseProcessing
                                                  {"WT3","Slash Loading Summary by Unit"},
                                                  {"WT4","Weight by Species and Product by Unit"},
                                                  {"WT5","Biomass Sale Summary"},
-                                                 {"IDL1","Idaho Dept of Lands Summary of Cruise Data"}};
+                                                 {"IDL1","Idaho Dept of Lands Summary of Cruise Data"},
+                                                 {"TEA", "(Alpha) Report Used to Pass Cruise Data to TEA" }
+        };
 
         public static readonly ReportsDO[] REPORT_OBJECT_ARRAY = new[]
         {
@@ -685,6 +687,7 @@ namespace CruiseProcessing
             new ReportsDO{ReportID="WT4", Title="Weight by Species and Product by Unit" },
             new ReportsDO{ReportID="WT5", Title="Biomass Sale Summary" },
             new ReportsDO{ReportID="IDL1", Title="Idaho Dept of Lands Summary of Cruise Data" },
+            new ReportsDO{ReportID="TEA", Title="(Alpha) Report Used to Pass Cruise Data to TEA"},
         };
 
         public static readonly string[][] GRAPH_REPORTS = new string[11][]

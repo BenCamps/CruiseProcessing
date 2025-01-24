@@ -19,6 +19,8 @@ namespace CruiseProcessing.Output
             serviceProvider.AddTransient<Wt4ReportGenerator>();
             serviceProvider.AddTransient<Wt5ReportGenerator>();
 
+            serviceProvider.AddTransient<OutputTea>();
+
             return serviceProvider;
         }
     }

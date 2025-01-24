@@ -25,6 +25,15 @@ namespace CruiseProcessing.Data
             return DAL.QueryScalar<string>("SELECT st.Code FROM CuttingUnitStratum AS cust JOIN CuttingUnit AS cu USING (CuttingUnit_CN) JOIN Stratum AS st USING (Stratum_CN) WHERE cu.Code = @p1", currUnit);
         }
 
+        public IReadOnlyCollection<StratumDO> GetStrataByUnit(string unitCode)
+        {
+            return DAL.From<StratumDO>()
+                .Join("CuttingUnitStratum", "USING (Stratum_CN)")
+                .Join("CuttingUnit", "USING (CuttingUnit_CN)")
+                .Where("CuttingUnit.Code = @p1")
+                .Query(unitCode).ToArray();
+        }
+
         public StratumDO GetStratum(string stratumCode)
         {
             return DAL.From<StratumDO>().Where("Code = @p1").Read(stratumCode).FirstOrDefault();

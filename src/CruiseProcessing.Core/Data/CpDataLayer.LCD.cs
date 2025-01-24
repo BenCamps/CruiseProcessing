@@ -20,6 +20,13 @@ namespace CruiseProcessing.Data
             return DAL.From<LCDDO>().Where("Stratum = @p1").Read(stratum).ToList();
         }
 
+        public IReadOnlyCollection<LCDDO> GetLcds(string stratumCode, string sampleGroupCode)
+        {
+            return DAL.From<LCDDO>()
+                .Where("Stratum = @p1 AND SampleGroup = @p2")
+                .Query(stratumCode, sampleGroupCode).ToArray();
+        }
+
         public List<LCDDO> getLCDOrdered(string searchString, string orderBy, string currCutLeave,
                                     string currST, string currPP)
         {

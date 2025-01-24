@@ -25,6 +25,15 @@ namespace CruiseProcessing.Data
 
         }   //  end getSampleGroups
 
+        public IReadOnlyCollection<SampleGroupDO> GetSampleGroups(string stratumCode)
+        {
+            return DAL.From<SampleGroupDO>()
+                .Join("Stratum", "USING (Stratum_CN)")
+                .Where("Stratum.Code = @p1")
+                .Query(stratumCode)
+                .ToArray();
+        }
+
         public IEnumerable<string> GetDistinctSampleGroupCodes()
         {
             // rewritten Dec 2020 - Ben

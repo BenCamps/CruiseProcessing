@@ -201,7 +201,8 @@
             "VSM--Volume Summary reports",
             "VPA--Volume Per Acre Summary reports",
             "VAL--Dollar Value reports",
-            "WT--Weight reports"});
+            "WT--Weight reports",
+            "TEA--Tea reports"});
             this.reportGroups.Location = new System.Drawing.Point(22, 26);
             this.reportGroups.Name = "reportGroups";
             this.reportGroups.Size = new System.Drawing.Size(287, 21);
