@@ -12,7 +12,7 @@ namespace CruiseProcessing
     public partial class PasswordProtect : Form
     {
         #region
-        public string passwordResponse;
+        public string response;
         #endregion
 
         public PasswordProtect()
@@ -22,15 +22,15 @@ namespace CruiseProcessing
 
         private void onOK(object sender, EventArgs e)
         {
-            if (passwordEntered.Text != "DENALI")
+            if (pwTextBox.Text != "DENALI")
             {
                 MessageBox.Show("WRONG!  Please try again.", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                passwordEntered.Clear();
-                passwordEntered.Focus();
+                pwTextBox.Clear();
+                pwTextBox.Focus();
             }
             else
             {
-                passwordResponse = "OK";
+                response = "OK";
                 Close();
                 return;
             }   //  endif

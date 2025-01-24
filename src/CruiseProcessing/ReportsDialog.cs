@@ -241,7 +241,7 @@ namespace CruiseProcessing
                 //  get correct password before continuing
                 PasswordProtect pp = Services.GetRequiredService<PasswordProtect>();
                 pp.ShowDialog();
-                if (pp.passwordResponse != "OK")
+                if (pp.response != "OK")
                 {
                     Close();
                     return;

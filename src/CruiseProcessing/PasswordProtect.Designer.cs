@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PasswordProtect));
             this.label1 = new System.Windows.Forms.Label();
-            this.passwordEntered = new System.Windows.Forms.TextBox();
+            this.pwTextBox = new System.Windows.Forms.TextBox();
             this.okButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -46,11 +46,11 @@
             // 
             // passwordEntered
             // 
-            this.passwordEntered.Location = new System.Drawing.Point(80, 63);
-            this.passwordEntered.Name = "passwordEntered";
-            this.passwordEntered.PasswordChar = '*';
-            this.passwordEntered.Size = new System.Drawing.Size(100, 20);
-            this.passwordEntered.TabIndex = 1;
+            this.pwTextBox.Location = new System.Drawing.Point(80, 63);
+            this.pwTextBox.Name = "passwordEntered";
+            this.pwTextBox.PasswordChar = '*';
+            this.pwTextBox.Size = new System.Drawing.Size(100, 20);
+            this.pwTextBox.TabIndex = 1;
             // 
             // okButton
             // 
@@ -69,7 +69,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 141);
             this.Controls.Add(this.okButton);
-            this.Controls.Add(this.passwordEntered);
+            this.Controls.Add(this.pwTextBox);
             this.Controls.Add(this.label1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "PasswordProtect";
@@ -83,7 +83,7 @@
         #endregion
 
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox passwordEntered;
+        private System.Windows.Forms.TextBox pwTextBox;
         private System.Windows.Forms.Button okButton;
     }
 }
