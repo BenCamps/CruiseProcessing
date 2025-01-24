@@ -11,8 +11,14 @@ namespace CruiseProcessing.Processing
 {
     public class CalculateNetVolume2 : CalculateNetVolume
     {
-        public void CalculateNetVolume(string cType, string region, string pProd, VolLibNVBoutput volOutput, IReadOnlyList<LogStockDO> logStockList, TreeDO tree, float minTopDIBprimary)
+        public void CalculateNetVolume(string cType, string region, string pProd,
+            VolLibNVBoutput volOutput,
+            IReadOnlyList<LogStockDO> logStockList,
+            TreeDO tree,
+            float minTopDIBprimary,
+            out bool volumesDirtyFlag)
         {
+            volumesDirtyFlag = false;
             var defectLogic = 1;
 
             float tempHidden = 0;
@@ -86,7 +92,7 @@ namespace CruiseProcessing.Processing
                                     tree.RecoverablePrimary, soundDefault);
 
                     if (region == "07" || region == "10")
-                    { LogUtil(region, pProd, volOutput, logStockList, noLogsPrimary); }
+                    { LogUtil(region, pProd, volOutput, logStockList, noLogsPrimary, out volumesDirtyFlag); }
 
                     if (region == "05" || region == "10")
                         SetDiameterClass(region, logStockList, volOutput.TotalLogs);
@@ -102,7 +108,7 @@ namespace CruiseProcessing.Processing
                                     tdv.CullSecondary, tdv.HiddenSecondary,
                                     tree.SeenDefectSecondary, noLogsPrimary, noLogsSecondary, volOutput.TotalLogs,
                                     tree.RecoverablePrimary, soundDefault);
-                    LogUtil(region, pProd, volOutput, logStockList, noLogsPrimary);
+                    LogUtil(region, pProd, volOutput, logStockList, noLogsPrimary, out volumesDirtyFlag);
                     SetDiameterClass(region, logStockList, volOutput.TotalLogs);
                 }
             }
@@ -526,29 +532,38 @@ namespace CruiseProcessing.Processing
         }
 
         private static void LogUtil(string currRegn, string currPP, VolLibNVBoutput volOutput,
-                                    IReadOnlyList<LogStockDO> logStockList, int numPPlogs)
+                                    IReadOnlyList<LogStockDO> logStockList, int numPPlogs, out bool volumesDirtyFlag)
         {
+            volumesDirtyFlag = false;
+
             Volumes VOL = volOutput.Volumes;
+            //  Zero out volumes
+
+            // leave TotalCubic unchanged
+            VOL.GrossBdFt = 0;
+            VOL.NetBdFt = 0;
+            VOL.GrossCuFt = 0;
+            VOL.NetCuFt = 0;
+            // leave Merchantable Cords
+            VOL.GrossSecondaryCuFt = 0;
+            VOL.NetSecondaryCuFt = 0;
+            VOL.SecondaryCords = 0;
+            VOL.GrossInernationalBdFt = 0;
+            VOL.NetInternationalBdFt = 0;
+            VOL.GrossSecondaryBdFt = 0;
+            VOL.NetSecondaryBdFt = 0;
+            // because of change to profile models leave stump and tip unchanged
+
             IReadOnlyList<LogVolume> LOGVOL = volOutput.LogVolumes;
             int TLOGS = volOutput.TotalLogs;
-
-            //  Zero out volumes
-            //  Start index needs to be 1 instead of zero
-            //   because of change to profile models, last two position should not be set to zero
-            //  position 13 is stump and 14 is tip
-            //for (int n = 1; n < 15; n++)
-            for (int n = 1; n < 13; n++)
-            {
-                if (n != 5)
-                    VOL[n] = 0;
-            } 
-
             //  Primary volume
             for (int n = 0; n < numPPlogs; n++)
             {
                 var logVol = LOGVOL[n];
                 var logStockGrade = logStockList[n].Grade;
 
+                // if there are any grade 7 or 8 logs we need to move the volume from them
+                // into our secondary
                 if ((currRegn == "06" && (logStockGrade == "7" || logStockGrade == "8") && currPP == "01"))
                 //  January 2017 --  Region 10 no longer sells utility volume
                 //  so no log grade 7 and this check doesn't apply
@@ -558,6 +573,9 @@ namespace CruiseProcessing.Processing
                     VOL[7] += logVol[5];
                     VOL[11] += logVol[0];
                     VOL[12] += logVol[2];
+
+                    // set flag to indicate that volumes are being changed
+                    volumesDirtyFlag = true;
                 }
                 else
                 {

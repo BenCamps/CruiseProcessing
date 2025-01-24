@@ -311,7 +311,7 @@ namespace CruiseProcessing.Processing
             logStockList.AddRange(GetLogStockList(treeLogs, (int)tree.Tree_CN, volLibOutput));
 
             //  Next, calculate net volumes
-            NetVolumeCalculator.CalculateNetVolume(CTYPE, Region, primaryProduct, volLibOutput, logStockList, tree, MTOPP);
+            NetVolumeCalculator.CalculateNetVolume(CTYPE, Region, primaryProduct, volLibOutput, logStockList, tree, MTOPP, out var volumesDirtyFlag);
 
             //  Update number of logs
             if (Region != "10" && Region != "06" && Region != "6")
@@ -336,7 +336,25 @@ namespace CruiseProcessing.Processing
 
             if(volEq.CalcBiomass == 1)
             {
-                _ = DataLayer.GetWeightFactor(volEq.Species, volEq.PrimaryProduct, tree.LiveDead, VolLib);
+                // get the weight factor. This will also load the weight factor into the cache which will
+                // be use later when writing the biomass equation report in the out file
+                var wf = DataLayer.GetWeightFactor(volEq.Species, volEq.PrimaryProduct, tree.LiveDead, VolLib);
+
+                // volumes might have changed when calling CalculateNetVolume
+                // if so we need to recalculate the main stem and top biomass values from the updated Gross Cuft
+                if (volumesDirtyFlag)
+                {
+                    var volumes = volLibOutput.Volumes;
+
+                    var newMainStemWt = volumes.GrossCuFt * wf;
+                    var newTopWoodWt = volumes.GrossSecondaryCuFt * wf;
+
+                    var bioValues = volLibOutput.GreenBio;
+                    bioValues.SawWood = newMainStemWt;
+                    bioValues.TopwoodWood = newTopWoodWt;
+                    bioValues.SawBark = 0;
+                    bioValues.TopwoodBark = 0;
+                }
             }
 
             //  Store volumes in tree calculated values
