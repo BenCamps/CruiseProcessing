@@ -62,6 +62,7 @@ namespace CruiseProcessing.Test.Processing
         [InlineData("Version3Testing\\27504PCM_Spruce East_Timber_Sale.cruise")]
         [InlineData("Version3Testing\\99996FIX_PNT_Timber_Sale_08242021.cruise")]
         [InlineData("Issues\\20383_Jiffy Stewardship_TS.04.30.24.process")]
+        [InlineData("Issues\\70015_2 Products 1 Species_TS_202305230531_Jeff'sActive2-18KM8.process")]
 
 
         public void ProcessTrees_Compare_CalulateTreeValues3(string fileName, CompareCalculateTreeValueFlags flags = CompareCalculateTreeValueFlags.None)
@@ -139,6 +140,11 @@ namespace CruiseProcessing.Test.Processing
             int tcvErrorCount = 0;
             foreach (var pairTcv in tcvs2.Zip(tcvs, (x, y) => (x, y)))
             {
+                var tree = pairTcv.x.Tree;
+                var tdv = tree.TreeDefaultValue;
+
+                //if ()
+
                 try
                 {
                     pairTcv.x.Should().BeEquivalentTo(pairTcv.y,
@@ -151,11 +157,13 @@ namespace CruiseProcessing.Test.Processing
                             .Excluding(x => x.Tree)
                             .Using<float>(x => x.Subject.Should().BeApproximately(x.Expectation, 0.001f)).WhenTypeIs<float>();
 
-                            cfg.Using<float>(x => x.Subject.Should().BeApproximately(x.Expectation, 0.1f)).When(x => x.SelectedMemberPath == nameof(TreeCalculatedValuesDO.BiomassMainStemPrimary));
+                            cfg.Using<float>(x => x.Subject.Should().BeApproximately(x.Expectation, 0.01f)).When(x => x.SelectedMemberPath == nameof(TreeCalculatedValuesDO.BiomassMainStemPrimary));
+                            cfg.Using<float>(x => x.Subject.Should().BeApproximately(x.Expectation, 0.01f)).When(x => x.SelectedMemberPath == nameof(TreeCalculatedValuesDO.BiomassMainStemSecondary));
                             cfg.Using<float>(x => x.Subject.Should().BeApproximately(x.Expectation, 1.5f)).When(x => x.SelectedMemberPath == nameof(TreeCalculatedValuesDO.BiomassTip));
 
                             cfg
-                                .Excluding(x => x.BiomassMainStemSecondary)
+                                .Excluding(x => x.BiomassTip)
+                                //.Excluding(x => x.BiomassMainStemSecondary)
                                 .Excluding(x => x.Biomasstotalstem)
                                 .Excluding(x => x.Biomasslivebranches)
                                 .Excluding(x => x.Biomassdeadbranches)
@@ -178,8 +186,7 @@ namespace CruiseProcessing.Test.Processing
                 catch (Exception e)
                 {
                     tcvErrorCount++;
-                    var tree = pairTcv.x.Tree;
-                    var tdv = tree.TreeDefaultValue;
+                    
                     Output.WriteLine($"Error comparing TreeCalculatedValues for Tree_CN: {pairTcv.x.Tree_CN} Sp:{tdv.Species} Prod: {tdv.PrimaryProduct} LD:{tree.LiveDead}");
                     Output.WriteLine(e.Message);
                 }

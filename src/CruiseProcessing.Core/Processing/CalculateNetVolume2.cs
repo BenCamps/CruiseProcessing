@@ -534,7 +534,13 @@ namespace CruiseProcessing.Processing
         private static void LogUtil(string currRegn, string currPP, VolLibNVBoutput volOutput,
                                     IReadOnlyList<LogStockDO> logStockList, int numPPlogs, out bool volumesDirtyFlag)
         {
-            volumesDirtyFlag = false;
+            //volumesDirtyFlag = false;
+            // HACK originaly I thought we would only set this flag in
+            // the if statment inside the loop that loops the primary logs
+            // because thats where we are moving volumes from primary to secondary
+            // however that doesn't work, but setting it here does 🤷‍
+            volumesDirtyFlag = true;
+
 
             Volumes VOL = volOutput.Volumes;
             //  Zero out volumes
@@ -575,7 +581,7 @@ namespace CruiseProcessing.Processing
                     VOL[12] += logVol[2];
 
                     // set flag to indicate that volumes are being changed
-                    volumesDirtyFlag = true;
+                    //volumesDirtyFlag = true;
                 }
                 else
                 {
