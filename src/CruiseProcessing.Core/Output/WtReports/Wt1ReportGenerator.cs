@@ -110,20 +110,23 @@ namespace CruiseProcessing.Output
 
                 if (grossCuFtPrimary > 0)
                 {
+                    grossCuFtPrimary = Math.Round(grossCuFtPrimary, MidpointRounding.AwayFromZero);
+
                     WriteReportHeading(strWriteOut, reportTitles[0], reportTitles[1], reportTitles[2],
                                WT1columns, 3, ref pageNumb, "");
 
-                    var poundsStanding = Math.Round(grossCuFtPrimary, 0, MidpointRounding.AwayFromZero) * weightFactor;
+                    var poundsStanding = grossCuFtPrimary * weightFactor;
                     var poundsRemoved = poundsStanding * (percentRemoved / 100);
                     tonsRemovedPrimary = poundsRemoved / 2000;
                     WriteWT1Group(strWriteOut, group, CompnentType.Primary, grossCuFtPrimary, weightFactor, poundsStanding, percentRemoved, poundsRemoved, tonsRemovedPrimary);
                 }
                 if (grossCuFtSecondary > 0)
                 {
+                    grossCuFtSecondary = Math.Round(grossCuFtSecondary, MidpointRounding.AwayFromZero);
                     WriteReportHeading(strWriteOut, reportTitles[0], reportTitles[1], reportTitles[2],
                                WT1columns, 3, ref pageNumb, "");
 
-                    var poundsStanding = Math.Round(grossCuFtSecondary, 0, MidpointRounding.AwayFromZero) * weightFactor;
+                    var poundsStanding = grossCuFtSecondary * weightFactor;
                     var poundsRemoved = poundsStanding * (percentRemoved / 100);
                     tonsRemovedSecondary = poundsRemoved / 2000;
                     WriteWT1Group(strWriteOut, group, CompnentType.Secondary, grossCuFtSecondary, weightFactor, poundsStanding, percentRemoved, poundsRemoved, tonsRemovedSecondary);
@@ -193,7 +196,7 @@ namespace CruiseProcessing.Output
                 product.PadLeft(2, '0'),
                 componentIndicator,
                 group.LiveDead.PadLeft(1, ' '),
-                String.Format("{0,8:F0}", Math.Ceiling(grossCuFt)).PadLeft(8, ' '),
+                String.Format("{0,8:F0}", grossCuFt).PadLeft(8, ' '),
                 String.Format("{0,8:F2}", weightFactor).PadLeft(8, ' '),
                 String.Format("{0,11:F0}", poundsStanding).PadLeft(11, ' '),
                 String.Format("{0,6:F2}", percentRemoved).PadLeft(6, ' '),
@@ -259,7 +262,6 @@ namespace CruiseProcessing.Output
             for (int k = 0; k < 5; k++)
                 strWriteOut.WriteLine(WT1footer[k]);
 
-            return;
         }   //  end WriteSubtotal
     }
 }
