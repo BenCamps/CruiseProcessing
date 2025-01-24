@@ -84,7 +84,7 @@ namespace CruiseProcessing.Data
             }
 
             // get weight factor from biomass equations
-            // cahece it
+            // cache it
             // and return it
             var fiaCode = GetFIACode(species);
             var region = int.Parse(getRegion());
