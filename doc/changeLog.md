@@ -1,3 +1,11 @@
+# Version 01.24.2024
+
+## Fixes
+ - Fixed WT1 report using secondary product to lookup percent removed values
+ - Fixed L 2, 8, 10 reports using incorrect rounding for diameter classes
+ - Fixed L 2, 8, 10 moving largest diameter class logs to 1-3 diameter class
+
+
 # Version 12.18.2024
 
 ## Fixes 
