@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <!--<ImplicitUsings>enable</ImplicitUsings>-->
+    <Nullable>enable</Nullable>
+    <!--<RootNamespace>CruiseProcessing.Processing</RootNamespace>
+    <NodeApiAssemblyJSModuleType>commonjs</NodeApiAssemblyJSModuleType>-->
+    <LangVersion>10</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.JavaScript.NodeApi.Generator" Version="0.8.20" />
+  </ItemGroup>
+
+</Project>
