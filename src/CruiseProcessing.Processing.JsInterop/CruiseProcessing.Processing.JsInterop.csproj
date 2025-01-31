@@ -15,4 +15,8 @@
     <PackageReference Include="Microsoft.JavaScript.NodeApi.Generator" Version="0.8.20" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CruiseProcessing.Core\CruiseProcessing.Core.csproj" />
+  </ItemGroup>
+
 </Project>
