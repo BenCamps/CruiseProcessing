@@ -22,6 +22,8 @@ namespace CruiseProcessing.OutputModels
         public double EstNumberTrees { get; set; }
         public double SumDbhOb {  get; set; }
 
+        public double SumDbhObSqrd { get; set; }
+
         // should we include average heights?
         // sometimes cruiser might cruise multiple heights
         // not all trees will use a given height
@@ -29,7 +31,7 @@ namespace CruiseProcessing.OutputModels
 
         public double SumTotalHeight { get; set; }
         public double SumMerchHeight { get; set; }
-        public int SumLogs {  get; set; }
+        public double SumLogs {  get; set; }
         public double SumGrossBdFt { get; set; }
         public double SumNetBdFt { get; set; }
         public double SumGrossBdFtRemv { get; set; }

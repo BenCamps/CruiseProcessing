@@ -75,7 +75,8 @@ namespace CruiseProcessing.Output
 
                         var lcdGroups = lcds.GroupBy(x => (x.Species, x.LiveDead));
 
-                        foreach(var group in lcdGroups)
+                        // lcds grouped by species, livedead
+                        foreach (var group in lcdGroups)
                         {
                             var sp = group.Key.Species;
                             var ld = group.Key.LiveDead;
@@ -85,40 +86,30 @@ namespace CruiseProcessing.Output
                             {
                                 SpeciesFia = fia.ToString(),
                                 LiveDead = ld,
-                                // TODO set the volumes, and do any additional calculations if needed 
                             };
 
-                            double sumExpansionFactor = 0;
-                            int estNumberTrees = 0;
-                            double sumDbhOb = 0;
-                            double sumDbhObSqrd = 0;
-                            double sumTotalHeight = 0;
-                            double sumMerchHeight = 0;
-                            double sumLogs = 0;
-                            double sumGrossBdft = 0;
-                            double sumNetBdft = 0;
-                            double sumGrossBdftRem = 0;
-                            double sumGrossCuft = 0;
-                            double sumNetCuft = 0;
-                            double sumGrossCuftRem = 0;
-                            double sumCords = 0;
-                            double sumWeight = 0;
-
+                            // accumilate totals by stm
                             foreach (var lcd in group)
                             {
                                 var pro = DataLayer.GetPro(unit.Code, lcd.Stratum, lcd.SampleGroup, lcd.STM);
                                 var proFactor = pro.ProrationFactor;
 
                                 appraisalGroup.SumExpansionFactors += lcd.SumExpanFactor * proFactor;
-                                appraisalGroup.EstNumberTrees += pro.ProratedEstimatedTrees;
-
+                                appraisalGroup.EstNumberTrees += pro.ProratedEstimatedTrees; // this is already prorated and uses existing processing logic that uses ExpFactors or TalliedTrees based on cruise method
+                                appraisalGroup.SumDbhOb += lcd.SumDBHOB * proFactor;
+                                appraisalGroup.SumDbhObSqrd += lcd.SumDBHOBsqrd * proFactor; // DbhObSqrd wasn't in the original json schema but I noticed it was missing so added it
+                                appraisalGroup.SumTotalHeight += lcd.SumTotHgt * proFactor;
+                                appraisalGroup.SumMerchHeight += lcd.SumMerchHgtPrim * proFactor;
+                                appraisalGroup.SumLogs += lcd.SumLogsMS * proFactor;
+                                appraisalGroup.SumGrossBdFt += (lcd.SumGBDFT + lcd.SumGBDFTtop) * proFactor;
+                                appraisalGroup.SumNetBdFt += (lcd.SumNBDFT + lcd.SumNBDFTtop) * proFactor;
+                                appraisalGroup.SumGrossBdFtRemv += lcd.SumGBDFTremv * proFactor;
+                                appraisalGroup.SumGrossCuFt += (lcd.SumGCUFT + lcd.SumGCUFTtop) * proFactor;
+                                appraisalGroup.SumNetCuFt += (lcd.SumNCUFT + lcd.SumNCUFTtop) * proFactor;
+                                appraisalGroup.SumGrossCuFtRemv += lcd.SumGCUFTremv * proFactor;
+                                appraisalGroup.SumCords += (lcd.SumCords + lcd.SumCordsTop) * proFactor;
+                                appraisalGroup.SumWeight += (lcd.SumWgtMSP + lcd.SumWgtMSS) * proFactor; // do we want the total weight of tree or just main and secondary?
                             }
-
-                            
-
-                            
-
-                            
 
                             sgVolumes.Add(appraisalGroup);
                         }
