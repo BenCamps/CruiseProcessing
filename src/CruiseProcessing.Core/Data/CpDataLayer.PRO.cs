@@ -24,6 +24,14 @@ namespace CruiseProcessing.Data
                 .ToList();
         }
 
+        public PRODO GetPro(string cuttingUnitCode, string stratumCode, string sampleGroupCode, string stm)
+        {
+            return DAL.From<PRODO>()
+                .Where("CuttingUnit = @p1 AND Stratum = @p2 AND SampleGroup = @p3 AND STM = @p4")
+                .Query(cuttingUnitCode, stratumCode, sampleGroupCode, stm)
+                .SingleOrDefault();
+        }
+
         public List<PRODO> getPROunit(string currCU)
         {
             return DAL.From<PRODO>().Where("CuttingUnit = @p1").Read(currCU).ToList();

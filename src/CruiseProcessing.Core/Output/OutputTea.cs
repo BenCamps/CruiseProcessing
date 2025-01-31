@@ -79,7 +79,6 @@ namespace CruiseProcessing.Output
                         {
                             var sp = group.Key.Species;
                             var ld = group.Key.LiveDead;
-
                             var fia = DataLayer.GetFIACode(sp);
 
                             var appraisalGroup = new TeaAppraisalVolume()
@@ -88,6 +87,36 @@ namespace CruiseProcessing.Output
                                 LiveDead = ld,
                                 // TODO set the volumes, and do any additional calculations if needed 
                             };
+
+                            double sumExpansionFactor = 0;
+                            int estNumberTrees = 0;
+                            double sumDbhOb = 0;
+                            double sumDbhObSqrd = 0;
+                            double sumTotalHeight = 0;
+                            double sumMerchHeight = 0;
+                            double sumLogs = 0;
+                            double sumGrossBdft = 0;
+                            double sumNetBdft = 0;
+                            double sumGrossBdftRem = 0;
+                            double sumGrossCuft = 0;
+                            double sumNetCuft = 0;
+                            double sumGrossCuftRem = 0;
+                            double sumCords = 0;
+                            double sumWeight = 0;
+
+                            foreach (var lcd in group)
+                            {
+                                var pro = DataLayer.GetPro(unit.Code, lcd.Stratum, lcd.SampleGroup, lcd.STM);
+                                var proFactor = pro.ProrationFactor;
+
+                                appraisalGroup.SumExpansionFactors += lcd.SumExpanFactor * proFactor;
+                                appraisalGroup.EstNumberTrees += pro.ProratedEstimatedTrees;
+
+                            }
+
+                            
+
+                            
 
                             
 

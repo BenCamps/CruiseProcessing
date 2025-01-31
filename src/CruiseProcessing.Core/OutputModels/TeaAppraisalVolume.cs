@@ -18,8 +18,8 @@ namespace CruiseProcessing.OutputModels
         [JsonRequired]
         public string LiveDead {  get; set; }
 
-        public int SumExpansionFactors { get; set; }
-        public int EstNumberTrees { get; set; }
+        public double SumExpansionFactors { get; set; }
+        public double EstNumberTrees { get; set; }
         public double SumDbhOb {  get; set; }
 
         // should we include average heights?
