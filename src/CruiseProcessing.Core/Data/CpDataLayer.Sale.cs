@@ -71,10 +71,11 @@ namespace CruiseProcessing.Data
         {
             var sg = DAL.From<SampleGroupDO>()
                 .Where("Stratum_CN = @p1")
-                .Read(currStratumCN)
+                .Query(currStratumCN)
                 .FirstOrDefault();
 
-            return sg.UOM;
+            var sgUOM = sg?.UOM ?? "";
+            return sgUOM;
         }
 
         public bool saleWithNullSpecies()

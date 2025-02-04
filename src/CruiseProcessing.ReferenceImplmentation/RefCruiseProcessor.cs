@@ -96,7 +96,7 @@ namespace CruiseProcessing.ReferenceImplmentation
                 DataLayer.IsProcessed = false;
 
                 //  show volume calculation is finished
-                progress.Report("Processing Error");
+                progress?.Report("Processing Error");
                 throw;
             }
 

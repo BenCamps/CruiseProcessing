@@ -728,6 +728,8 @@ namespace CruiseProcessing
         }   //  end writeTotalLine
 
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Bug", "S4143:Collection elements should not be replaced unconditionally",
+            Justification = "in header template XX replaced by BF or CF, ZZZ replaced by MBF or CCF")]
         private string[] createCompleteHeader()
         {
             string[] finnishHeader = new string[7];

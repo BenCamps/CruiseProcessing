@@ -600,7 +600,7 @@ namespace CruiseProcessing
             //  need to do overall average first or the total becomes the average for the individual line
             //  total columns and put overall average in defectData
             StandTables s = new StandTables();
-            for (int j = 1; j < 9; j++)
+            for (int j = 1; j <= 9; j++)
             {
                 switch (j)
                 {
@@ -661,10 +661,10 @@ namespace CruiseProcessing
                         break;
 
                     case 9:
-                        columnTotal = defectData.Sum(d => d.species8);
-                        treeTotal = treeCounts.Sum(t => t.species8);
+                        columnTotal = defectData.Sum(d => d.species9);
+                        treeTotal = treeCounts.Sum(t => t.species9);
                         if (treeTotal > 0)
-                            s.species8 = columnTotal / treeTotal;
+                            s.species9 = columnTotal / treeTotal;
                         break;
                 }   //  end switch
             }   //  end for j loop on columns
@@ -675,7 +675,7 @@ namespace CruiseProcessing
             {
                 //  loops by rows
                 //  then by each column
-                for (int j = 1; j < 9; j++)
+                for (int j = 1; j <= 9; j++)
                 {
                     switch (j)
                     {
@@ -726,8 +726,6 @@ namespace CruiseProcessing
                     }   //  end switch on column
                 }   // end for j loop
             }   //  end for k loop
-
-            return;
         }   //  end updateAverages
 
         private void WriteCurrentGroup(TextWriter strWriteOut, ref int pageNumb)

@@ -2,7 +2,9 @@
 using CruiseDAL.DataObjects;
 using CruiseProcessing.Data;
 using CruiseProcessing.Interop;
+using CruiseProcessing.Output;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System;
@@ -19,6 +21,13 @@ namespace CruiseProcessing.Test.Output
     {
         public CreateTextFileTest(ITestOutputHelper output) : base(output)
         {
+        }
+
+        protected override void ConfigureServices(IServiceCollection services)
+        {
+            base.ConfigureServices(services);
+
+            services.AddOutputReportGenerators();
         }
 
         [Theory]
@@ -59,11 +68,16 @@ namespace CruiseProcessing.Test.Output
         [InlineData("Version3Testing\\99996FIX_PNT_Timber_Sale_08242021.cruise")]
         public void CreateOutFile(string testFileName)
         {
-            var host = ImplicitHost;
+            
             var filePath = GetTestFile(testFileName);
             using var dal = new DAL(filePath);
 
             var dataLayer = new CpDataLayer(dal, CreateLogger<CpDataLayer>(), biomassOptions: null);
+
+            var host = CreateTestHost((sc) =>
+            {
+                sc.AddSingleton<CpDataLayer>(dataLayer);
+            });
 
             List<TreeDO> tList = dataLayer.getTrees();
             double summedEF = tList.Sum(t => t.ExpansionFactor);
