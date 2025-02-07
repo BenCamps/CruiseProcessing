@@ -23,19 +23,23 @@ namespace CruiseProcessing.Test.Output
         [Fact]
         public void OutputReportMatrix()
         {
-            var fileNameColumnWidth = 80;
+            var fileNameColumnWidth = 80 + 50;
             var reportMatrixColumnWidth = 5;
 
-            var testCruiseFiles = Directory.EnumerateFiles(base.TestFilesDirectory, "*.cruise", SearchOption.AllDirectories)
-                .Union(Directory.EnumerateFiles(base.TestFilesDirectory, "*.crz3", SearchOption.AllDirectories)).ToArray();
+            var fileExtentions = new[] { ".crz3", ".cruise" };
+
+            var testCruiseFiles = Directory.EnumerateFiles(base.TestFilesDirectory, "*.*", SearchOption.AllDirectories)
+                .Where(x => fileExtentions.Contains(Path.GetExtension(x)));
 
             // output header
-            Output.WriteLine("".PadRight(fileNameColumnWidth) + string.Join(",", ReportsDataservice.REPORT_OBJECT_ARRAY.Select(x => x.ReportID.PadRight(reportMatrixColumnWidth)).ToArray()));
+            Output.WriteLine("".PadRight(fileNameColumnWidth) +","+ string.Join(",", ReportsDataservice.REPORT_OBJECT_ARRAY.Select(x => x.ReportID.PadRight(reportMatrixColumnWidth)).ToArray()));
 
             List<string> errors = new List<string>();
 
             foreach (var file in testCruiseFiles)
             {
+                
+
                 var reportMatrix = ReportsDataservice.REPORT_OBJECT_ARRAY.Select(x => new ReportEntry { ReportID = x.ReportID, IsSelected = false })
                     .ToArray();
 
@@ -63,7 +67,7 @@ namespace CruiseProcessing.Test.Output
                 }
                 catch (Exception e)
                 {
-                    errors.Add($"Failed to open file: {file}::::{e.Message}");
+                    errors.Add($"Failed to open file: {file}::::{e.GetType().Name + e.Message.Substring(0, Math.Min(80, e.Message.Length))}");
 
                     //Output.WriteLine($"Failed to open file: {file}");
                     //Output.WriteLine(e.Message);
@@ -76,9 +80,9 @@ namespace CruiseProcessing.Test.Output
                     reportMatrix.First(x => x.ReportID == report.ReportID).IsSelected = true;
                 }
 
-
-                var fileName = Path.GetFileName(file);
-                Output.WriteLine(fileName.PadRight(fileNameColumnWidth) + string.Join(",", reportMatrix.Select(x => (x.IsSelected ? "X" : " ").PadRight(reportMatrixColumnWidth)).ToArray()));
+                var fileName = file.Remove(0, base.TestFilesDirectory.Length);
+                //var fileName = Path.GetFileName(file);
+                Output.WriteLine(fileName.PadRight(fileNameColumnWidth) + "," + string.Join(",", reportMatrix.Select(x => (x.IsSelected ? "X" : " ").PadRight(reportMatrixColumnWidth)).ToArray()));
             }
 
             foreach (var error in errors)
