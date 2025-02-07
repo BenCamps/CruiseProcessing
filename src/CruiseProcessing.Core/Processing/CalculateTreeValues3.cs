@@ -558,10 +558,11 @@ namespace CruiseProcessing.Processing
                     LargeEndDiameter = dia.DIB,
                     Length = (long)len,
                     GrossBoardFoot = vol.GrossBoardFoot,
-                    BoardFootRemoved = vol.GrossRemovedBoardFoot,
                     NetBoardFoot = vol.NetBoardFoot,
-                    CubicFootRemoved = vol.GrossRemovedCubicFoot,
+                    BoardFootRemoved = vol.GrossRemovedBoardFoot,
+                    GrossCubicFoot = vol.GrossCubicFoot,
                     NetCubicFoot = vol.NetCubicFoot,
+                    CubicFootRemoved = vol.GrossRemovedCubicFoot,
                     DIBClass = nextLogDia.ScallingDIB,
                 };
 
