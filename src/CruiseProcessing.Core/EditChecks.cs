@@ -438,13 +438,15 @@ namespace CruiseProcessing
                             errors.AddError("VolumeEquation", "E", "3", volEq.rowID.Value, "VolumeFlags");
                         }
 
+                        //  check for same equation number with different primary top diameters (DVE only)
                         if (volList.Any(x =>
                             x.rowID != volEq.rowID
                             && x.VolumeEquationNumber == volEq.VolumeEquationNumber
                             && x.PrimaryProduct == volEq.PrimaryProduct
-                            && x.TopDIBPrimary == volEq.TopDIBPrimary))
+                            && !x.TopDIBPrimary.ApproximatelyEquals(volEq.TopDIBPrimary)))
                         {
-                            errors.AddError("VolumeEquation", "E", "6", volEq.rowID.Value, "TopDIBPrimary");
+                            //errors.AddError("VolumeEquation", "E", "6", volEq.rowID.Value, "TopDIBPrimary");
+                            errors.AddError("VolumeEquation", "E", $"For DVE equations TopDIB should be the the same Prod:{volEq.PrimaryProduct} {volEq.VolumeEquationNumber}", volEq.rowID.Value, "TopDibPrimary");
                         }
                     }
 
