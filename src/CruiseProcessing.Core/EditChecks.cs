@@ -423,6 +423,18 @@ namespace CruiseProcessing
 
                 }
 
+                //  check for same equation number with different primary top diameters (DVE only)
+                var dissimmilarTopDIBs = volList.Where(x => x.VolumeEquationNumber.Contains("DVE"))
+                    .GroupBy(x => (x.VolumeEquationNumber, x.PrimaryProduct))
+                    .Where(grp => grp.Select(x => x.TopDIBPrimary.RoundDiameter()).Distinct().Count() > 1)
+                    .SelectMany(grp => grp).ToArray();
+
+                foreach (var volEq in dissimmilarTopDIBs)
+                {
+                    //errors.AddError("VolumeEquation", "E", "6", volEq.rowID.Value, "TopDIBPrimary");
+                    errors.AddError("VolumeEquation", "E", $"DVE equation TopDIB should be the the same Prod:{volEq.PrimaryProduct} {volEq.VolumeEquationNumber}", volEq.rowID.Value, "TopDibPrimary");
+                }
+
                 foreach (var volEq in volList)
                 {
                     if (volEq.VolumeEquationNumber.Length > 10)
@@ -438,16 +450,16 @@ namespace CruiseProcessing
                             errors.AddError("VolumeEquation", "E", "3", volEq.rowID.Value, "VolumeFlags");
                         }
 
-                        //  check for same equation number with different primary top diameters (DVE only)
-                        if (volList.Any(x =>
-                            x.rowID != volEq.rowID
-                            && x.VolumeEquationNumber == volEq.VolumeEquationNumber
-                            && x.PrimaryProduct == volEq.PrimaryProduct
-                            && !x.TopDIBPrimary.ApproximatelyEquals(volEq.TopDIBPrimary)))
-                        {
-                            //errors.AddError("VolumeEquation", "E", "6", volEq.rowID.Value, "TopDIBPrimary");
-                            errors.AddError("VolumeEquation", "E", $"For DVE equations TopDIB should be the the same Prod:{volEq.PrimaryProduct} {volEq.VolumeEquationNumber}", volEq.rowID.Value, "TopDibPrimary");
-                        }
+                        //    //  check for same equation number with different primary top diameters (DVE only)
+                        //    if (volList.Any(x =>
+                        //        x.rowID != volEq.rowID
+                        //        && x.VolumeEquationNumber == volEq.VolumeEquationNumber
+                        //        && x.PrimaryProduct == volEq.PrimaryProduct
+                        //        && !x.TopDIBPrimary.ApproximatelyEquals(volEq.TopDIBPrimary)))
+                        //    {
+                        //        //errors.AddError("VolumeEquation", "E", "6", volEq.rowID.Value, "TopDIBPrimary");
+                        //        errors.AddError("VolumeEquation", "E", $"For DVE equations TopDIB should be the the same Prod:{volEq.PrimaryProduct} {volEq.VolumeEquationNumber}", volEq.rowID.Value, "TopDibPrimary");
+                        //    }
                     }
 
                     if (volEq.TopDIBSecondary > volEq.TopDIBPrimary)
