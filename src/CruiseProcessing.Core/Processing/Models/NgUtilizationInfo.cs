@@ -41,10 +41,10 @@ namespace CruiseProcessing.Processing.Models
         // more merch rules fields. currently these are't in the utilization table. ignore for now
         public int EvenOddSegment { get; set; }
         public int SegmentationLogic { get; set; }
-        public double MaxLogLengthPrimary { get; set; }
-        public double MinLogLengthPrimary { get; set; }
-        public double MinMerchLength {  get; set; }
-        public double Trim {  get; set; }
+        public double MaxLogLengthNonSaw { get; set; }
+        public double MinLogLengthNonSaw { get; set; }
+        public double MinMerchLengthNonSaw {  get; set; }
+        public double TrimNonSaw {  get; set; }
 
         // additional un-used field
         public bool MerchModFlag { get; set; }
