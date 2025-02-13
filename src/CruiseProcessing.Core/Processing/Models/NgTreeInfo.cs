@@ -13,6 +13,9 @@ namespace CruiseProcessing.Processing.Models
         public long TreeNumber { get; set; }
         public string TreeID { get; set; }
 
+        // stratum fields
+        public string CruiseMethod { get; set; }
+
         // sample group fields
         public string PrimaryProduct { get; set; }
         
@@ -56,12 +59,12 @@ namespace CruiseProcessing.Processing.Models
 
 
         // more likely Tree Default Value table fields
-        // but these aren't in the new tree table. 
-        public int MerchHeightLogLength { get; set; }
-        public string MerchHeightType { get; set; }
-        public double AverageZ { get; set; }
-        public double ReferenceHeightPercent { get; set; }
-        public double BarkThicknessRatio { get; set; }
+        // but these aren't in the new tree table.
+        public int MerchHeightLogLength { get; set; } 
+        public string MerchHeightType { get; set; } //alway F now
+        public double AverageZ { get; set; } // not used anymore
+        public double ReferenceHeightPercent { get; set; } // not used anymore
+        public double BarkThicknessRatio { get; set; } // not used anymore
 
         // fields that now come from utilizaton table 
         //public double CullPrimary {  get; set; }
