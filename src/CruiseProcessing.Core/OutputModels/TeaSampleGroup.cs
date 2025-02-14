@@ -25,7 +25,7 @@ namespace CruiseProcessing.OutputModels
 
         [Required]
         [JsonRequired]
-        public IReadOnlyCollection<TeaAppraisalVolume> AppraisalVolumes { get; set; }
+        public IReadOnlyCollection<TeaSubPopulation> SubPopulations { get; set; }
 
     }
 }

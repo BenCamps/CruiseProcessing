@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CruiseProcessing.OutputModels
 {
-    public class TeaAppraisalVolume
+    public class TeaSubPopulation
     {
         [Required]
         [JsonRequired]
@@ -17,6 +17,12 @@ namespace CruiseProcessing.OutputModels
         [Required]
         [JsonRequired]
         public string LiveDead {  get; set; }
+
+        [Required]
+        [JsonRequired]
+        public string TreeGrade { get; set; }
+
+        
 
         public double SumExpansionFactors { get; set; }
         public double EstNumberTrees { get; set; }
@@ -32,14 +38,11 @@ namespace CruiseProcessing.OutputModels
         public double SumTotalHeight { get; set; }
         public double SumMerchHeight { get; set; }
         public double SumLogs {  get; set; }
-        public double SumGrossBdFt { get; set; }
-        public double SumNetBdFt { get; set; }
+
         public double SumGrossBdFtRemv { get; set; }
-        public double SumGrossCuFt { get; set; }
-        public double SumNetCuFt {  get; set; }
         public double SumGrossCuFtRemv { get; set; }
-        public double SumCords {  get; set; }
-        public double SumWeight { get; set; }
+
+        public IReadOnlyCollection<TeaProductVolume> Products { get; set; }
 
     }
 }

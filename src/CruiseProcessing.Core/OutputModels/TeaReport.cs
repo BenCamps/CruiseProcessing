@@ -32,15 +32,15 @@ namespace CruiseProcessing.OutputModels
 
         [Required]
         [JsonRequired]
-        public int Region { get; set; }
+        public string Region { get; set; }
 
         [Required]
         [JsonRequired]
-        public int Forest { get; set; }
+        public string Forest { get; set; }
 
         [Required]
         [JsonRequired]
-        public int District {  get; set; }
+        public string District {  get; set; }
 
         public IReadOnlyCollection<TeaCuttingUnit> CuttingUnits { get; set; }
 

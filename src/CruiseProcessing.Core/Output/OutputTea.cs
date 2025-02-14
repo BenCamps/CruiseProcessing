@@ -31,9 +31,9 @@ namespace CruiseProcessing.Output
             {
                 SaleName = sale.Name,
                 SaleNumber = sale.SaleNumber,
-                Region = int.Parse(sale.Region),
-                Forest = int.Parse(sale.Forest),
-                District = int.Parse(sale.District),
+                Region = sale.Region,
+                Forest = sale.Forest,
+                District = sale.District,
             };
 
             var teaUnits = new List<TeaCuttingUnit>();
@@ -61,6 +61,7 @@ namespace CruiseProcessing.Output
 
                     foreach(var sg in sampleGroups)
                     {
+                        var subPopulations = new List<TeaSubPopulation>();
                         var teaSg = new TeaSampleGroup()
                         {
                             SampleGroupCode = sg.Code,
@@ -68,24 +69,39 @@ namespace CruiseProcessing.Output
                             UOM = sg.UOM ?? sale.DefaultUOM,
                         };
 
-                        var sgVolumes = new List<TeaAppraisalVolume>();
-
-
                         var lcds = DataLayer.GetLcds(st.Code, sg.Code);
 
-                        var lcdGroups = lcds.GroupBy(x => (x.Species, x.LiveDead));
+                        var lcdGroups = lcds.GroupBy(x => (x.Species, x.LiveDead, x.TreeGrade));
 
-                        // lcds grouped by species, livedead
+                        // lcds grouped by species, livedead, tree grade
                         foreach (var group in lcdGroups)
                         {
                             var sp = group.Key.Species;
                             var ld = group.Key.LiveDead;
+                            var treeGrade = group.Key.TreeGrade;
                             var fia = DataLayer.GetFIACode(sp);
 
-                            var appraisalGroup = new TeaAppraisalVolume()
+                            var products = new List<TeaProductVolume>();
+                            TeaProductVolume primaryProduct = new TeaProductVolume{ Product = sg.PrimaryProduct };
+                            products.Add(primaryProduct);
+
+                            TeaProductVolume secondaryProduct = null;
+                            if (primaryProduct.Product == sg.SecondaryProduct)
+                            {
+                                secondaryProduct = primaryProduct;
+                            }
+                            else
+                            {
+                                secondaryProduct = new TeaProductVolume { Product = sg.SecondaryProduct };
+                                products.Add(primaryProduct);
+                            }
+
+                            var subPopulation = new TeaSubPopulation()
                             {
                                 SpeciesFia = fia.ToString(),
                                 LiveDead = ld,
+                                TreeGrade = treeGrade,
+                                Products = products,
                             };
 
                             // accumilate totals by stm
@@ -94,27 +110,70 @@ namespace CruiseProcessing.Output
                                 var pro = DataLayer.GetPro(unit.Code, lcd.Stratum, lcd.SampleGroup, lcd.STM);
                                 var proFactor = pro.ProrationFactor;
 
-                                appraisalGroup.SumExpansionFactors += lcd.SumExpanFactor * proFactor;
-                                appraisalGroup.EstNumberTrees += pro.ProratedEstimatedTrees; // this is already prorated and uses existing processing logic that uses ExpFactors or TalliedTrees based on cruise method
-                                appraisalGroup.SumDbhOb += lcd.SumDBHOB * proFactor;
-                                appraisalGroup.SumDbhObSqrd += lcd.SumDBHOBsqrd * proFactor; // DbhObSqrd wasn't in the original json schema but I noticed it was missing so added it
-                                appraisalGroup.SumTotalHeight += lcd.SumTotHgt * proFactor;
-                                appraisalGroup.SumMerchHeight += lcd.SumMerchHgtPrim * proFactor;
-                                appraisalGroup.SumLogs += lcd.SumLogsMS * proFactor;
-                                appraisalGroup.SumGrossBdFt += (lcd.SumGBDFT + lcd.SumGBDFTtop) * proFactor;
-                                appraisalGroup.SumNetBdFt += (lcd.SumNBDFT + lcd.SumNBDFTtop) * proFactor;
-                                appraisalGroup.SumGrossBdFtRemv += lcd.SumGBDFTremv * proFactor;
-                                appraisalGroup.SumGrossCuFt += (lcd.SumGCUFT + lcd.SumGCUFTtop) * proFactor;
-                                appraisalGroup.SumNetCuFt += (lcd.SumNCUFT + lcd.SumNCUFTtop) * proFactor;
-                                appraisalGroup.SumGrossCuFtRemv += lcd.SumGCUFTremv * proFactor;
-                                appraisalGroup.SumCords += (lcd.SumCords + lcd.SumCordsTop) * proFactor;
-                                appraisalGroup.SumWeight += (lcd.SumWgtMSP + lcd.SumWgtMSS) * proFactor; // do we want the total weight of tree or just main and secondary?
+                                subPopulation.SumExpansionFactors += lcd.SumExpanFactor * proFactor;
+                                subPopulation.EstNumberTrees += pro.ProratedEstimatedTrees; // this is already prorated and uses existing processing logic that uses ExpFactors or TalliedTrees based on cruise method
+                                subPopulation.SumDbhOb += lcd.SumDBHOB * proFactor;
+                                subPopulation.SumDbhObSqrd += lcd.SumDBHOBsqrd * proFactor; // DbhObSqrd wasn't in the original json schema but I noticed it was missing so added it
+                                subPopulation.SumTotalHeight += lcd.SumTotHgt * proFactor;
+                                subPopulation.SumMerchHeight += lcd.SumMerchHgtPrim * proFactor;
+                                subPopulation.SumLogs += lcd.SumLogsMS * proFactor;
+
+                                subPopulation.SumGrossCuFtRemv += lcd.SumGCUFTremv * proFactor;
+                                subPopulation.SumGrossBdFtRemv += lcd.SumGBDFTremv * proFactor;
+
+                                // accumilate primary and secondary products.
+                                // if products are the same then primaryProduct and secondaryProduct
+                                // reference the same object. 
+                                primaryProduct.SumGrossBdFt += (lcd.SumGBDFT) * proFactor;
+                                primaryProduct.SumNetBdFt += (lcd.SumNBDFT) * proFactor;
+
+                                primaryProduct.SumGrossCuFt += (lcd.SumGCUFT) * proFactor;
+                                primaryProduct.SumNetCuFt += (lcd.SumNCUFT) * proFactor;
+
+                                primaryProduct.SumCords += (lcd.SumCords) * proFactor;
+                                primaryProduct.SumWeight += (lcd.SumWgtMSP) * proFactor;
+
+                                secondaryProduct.SumGrossBdFt += (lcd.SumGBDFTtop) * proFactor;
+                                secondaryProduct.SumNetBdFt += (lcd.SumNBDFTtop) * proFactor;
+
+                                secondaryProduct.SumGrossCuFt += (lcd.SumGCUFTtop) * proFactor;
+                                secondaryProduct.SumNetCuFt += (lcd.SumNCUFTtop) * proFactor;
+
+                                secondaryProduct.SumCords += (lcd.SumCordsTop + lcd.SumCordsRecv) * proFactor;
+                                secondaryProduct.SumWeight += (lcd.SumWgtMSS) * proFactor;
+
+                                //foreach (var prod in products)
+                                //{
+                                //    if(prod.Product == "01")
+                                //    {
+                                //        prod.SumGrossBdFt += (lcd.SumGBDFT) * proFactor;
+                                //        prod.SumNetBdFt += (lcd.SumNBDFT) * proFactor;
+
+                                //        prod.SumGrossCuFt += (lcd.SumGCUFT) * proFactor;
+                                //        prod.SumNetCuFt += (lcd.SumNCUFT) * proFactor;
+
+                                //        prod.SumCords += (lcd.SumCords) * proFactor;
+                                //        prod.SumWeight += (lcd.SumWgtMSP) * proFactor;
+                                //    }
+                                //    else
+                                //    {
+                                //        prod.SumGrossBdFt += (lcd.SumGBDFTtop) * proFactor;
+                                //        prod.SumNetBdFt += (lcd.SumNBDFTtop) * proFactor;
+
+                                //        prod.SumGrossCuFt += (lcd.SumGCUFTtop) * proFactor;
+                                //        prod.SumNetCuFt += (lcd.SumNCUFTtop) * proFactor;
+
+                                //        prod.SumCords += (lcd.SumCordsTop + lcd.SumCordsRecv) * proFactor;
+                                //        prod.SumWeight += (lcd.SumWgtMSS) * proFactor;
+                                //    }
+                                //}
+
                             }
 
-                            sgVolumes.Add(appraisalGroup);
+                            subPopulations.Add(subPopulation);
                         }
 
-                        teaSg.AppraisalVolumes = sgVolumes;
+                        teaSg.SubPopulations = subPopulations;
                         teaSgs.Add(teaSg);
                     }
                 }
