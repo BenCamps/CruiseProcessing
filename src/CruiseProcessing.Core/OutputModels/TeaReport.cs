@@ -44,5 +44,7 @@ namespace CruiseProcessing.OutputModels
 
         public IReadOnlyCollection<TeaCuttingUnit> CuttingUnits { get; set; }
 
+        public IReadOnlyCollection<TeaSampleGroup> SampleGroups { get; set; }
+
     }
 }

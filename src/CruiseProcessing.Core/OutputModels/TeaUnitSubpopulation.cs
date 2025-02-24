@@ -8,8 +8,13 @@ using System.Threading.Tasks;
 
 namespace CruiseProcessing.OutputModels
 {
-    public class TeaSubPopulation
+    public class TeaUnitSubpopulation
     {
+        [Required]
+        [JsonRequired]
+        public string CuttingUnitCode { get; set; }
+
+
         [Required]
         [JsonRequired]
         public string SpeciesFia {  get; set; }
@@ -21,8 +26,6 @@ namespace CruiseProcessing.OutputModels
         [Required]
         [JsonRequired]
         public string TreeGrade { get; set; }
-
-        
 
         public double SumExpansionFactors { get; set; }
         public double EstNumberTrees { get; set; }

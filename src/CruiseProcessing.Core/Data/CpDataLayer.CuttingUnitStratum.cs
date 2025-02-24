@@ -38,5 +38,13 @@ namespace CruiseProcessing.Data
             }   //  end foreach loop on strata
             return unitAcres;
         }   //  end GetStrataUnits
+
+        public IReadOnlyCollection<CuttingUnitDO> GetStratumUnits(string stratumCode)
+        {
+            return DAL.From<CuttingUnitDO>()
+                .Join("CuttingUnitStratum", "USING (CuttingUnit_CN)")
+                .Join("Stratum", "USING (Stratum_CN)")
+                .Where("Stratum.Code = @p1").Query(stratumCode).ToList();
+        }
     }
 }

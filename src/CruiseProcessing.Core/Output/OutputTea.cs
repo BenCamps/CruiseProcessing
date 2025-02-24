@@ -1,7 +1,10 @@
-﻿using CruiseProcessing.Data;
+﻿using CruiseDAL.Schema;
+using CruiseDAL.V3.Models;
+using CruiseProcessing.Data;
 using CruiseProcessing.OutputModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -36,43 +39,48 @@ namespace CruiseProcessing.Output
                 District = sale.District,
             };
 
-            var teaUnits = new List<TeaCuttingUnit>();
-            // build tea units
+            
             
 
             var cuttingUnits = DataLayer.getCuttingUnits();
-
-            foreach (var unit in cuttingUnits)
+            var teaUnits = cuttingUnits.Select(x =>
             {
-                var teaUnit = new TeaCuttingUnit()
+                return new TeaCuttingUnit()
                 {
-                    CuttingUnitCode = unit.Code,
-                    Area = unit.Area,
-                    LoggingMethod = unit.LoggingMethod,
+                    CuttingUnitCode = x.Code,
+                    Area = x.Area,
+                    LoggingMethod = x.LoggingMethod,
                 };
+            }).ToList();
 
-                var teaSgs = new List<TeaSampleGroup>();
-                // populate sample groups
+            teaReport.CuttingUnits = teaUnits;
 
-                var strata = DataLayer.GetStrataByUnit(unit.Code);
-                foreach (var st in strata)
+
+            var teaSgs = new List<TeaSampleGroup>();
+            // populate sample groups
+
+            var strata = DataLayer.GetStrata();
+            foreach (var st in strata)
+            {
+                var sampleGroups = DataLayer.GetSampleGroups(st.Code);
+
+                foreach(var sg in sampleGroups)
                 {
-                    var sampleGroups = DataLayer.GetSampleGroups(st.Code);
-
-                    foreach(var sg in sampleGroups)
+                    var teaSg = new TeaSampleGroup()
                     {
-                        var subPopulations = new List<TeaSubPopulation>();
-                        var teaSg = new TeaSampleGroup()
-                        {
-                            SampleGroupCode = sg.Code,
-                            Product = sg.PrimaryProduct,
-                            UOM = sg.UOM ?? sale.DefaultUOM,
-                        };
+                        StratumCode = st.Code,
+                        SampleGroupCode = sg.Code,
+                        //Product = sg.PrimaryProduct,
+                        UOM = sg.UOM ?? sale.DefaultUOM,
+                    };
 
-                        var lcds = DataLayer.GetLcds(st.Code, sg.Code);
+                    var lcds = DataLayer.GetLcds(st.Code, sg.Code);
+                    var lcdGroups = lcds.GroupBy(x => (x.Species, x.LiveDead, x.TreeGrade));
 
-                        var lcdGroups = lcds.GroupBy(x => (x.Species, x.LiveDead, x.TreeGrade));
-
+                    var units = DataLayer.GetStratumUnits(st.Code);
+                    var unitSubPopulations = new List<TeaUnitSubpopulation>();
+                    foreach (var unit in units)
+                    {
                         // lcds grouped by species, livedead, tree grade
                         foreach (var group in lcdGroups)
                         {
@@ -81,28 +89,43 @@ namespace CruiseProcessing.Output
                             var treeGrade = group.Key.TreeGrade;
                             var fia = DataLayer.GetFIACode(sp);
 
-                            var products = new List<TeaProductVolume>();
-                            TeaProductVolume primaryProduct = new TeaProductVolume{ Product = sg.PrimaryProduct };
-                            products.Add(primaryProduct);
-
-                            TeaProductVolume secondaryProduct = null;
-                            if (primaryProduct.Product == sg.SecondaryProduct)
+                            var subPopulation = new TeaUnitSubpopulation()
                             {
-                                secondaryProduct = primaryProduct;
-                            }
-                            else
-                            {
-                                secondaryProduct = new TeaProductVolume { Product = sg.SecondaryProduct };
-                                products.Add(primaryProduct);
-                            }
-
-                            var subPopulation = new TeaSubPopulation()
-                            {
+                                CuttingUnitCode = unit.Code,
                                 SpeciesFia = fia.ToString(),
                                 LiveDead = ld,
                                 TreeGrade = treeGrade,
-                                Products = products,
                             };
+
+                            // create containers for primary, secondary and biomass products if defined
+                            // if secondary or biomass are not defined we will sum their respective values into
+                            // one of the defined products
+                            var products = new List<TeaProductVolume>();
+                            TeaProductVolume primaryProduct = new TeaProductVolume { Product = sg.PrimaryProduct };
+                            products.Add(primaryProduct);
+
+                            TeaProductVolume secondaryProduct = null;
+                            if (!string.IsNullOrEmpty(sg.SecondaryProduct) && primaryProduct.Product != sg.SecondaryProduct)
+                            {
+                                secondaryProduct = new TeaProductVolume { Product = sg.SecondaryProduct };
+                                products.Add(secondaryProduct);
+                            }
+                            else
+                            {
+                                secondaryProduct = primaryProduct;
+                            }
+
+                            TeaProductVolume bioVolume = null;
+                            if (!string.IsNullOrEmpty(sg.BiomassProduct) && sg.SecondaryProduct != sg.BiomassProduct)
+                            {
+                                bioVolume = new TeaProductVolume { Product = sg.BiomassProduct };
+                                products.Add(bioVolume);
+                            }
+                            else
+                            {
+                                bioVolume = secondaryProduct;
+                            }
+
 
                             // accumilate totals by stm
                             foreach (var lcd in group)
@@ -142,6 +165,8 @@ namespace CruiseProcessing.Output
                                 secondaryProduct.SumCords += (lcd.SumCordsTop + lcd.SumCordsRecv) * proFactor;
                                 secondaryProduct.SumWeight += (lcd.SumWgtMSS) * proFactor;
 
+                                bioVolume.SumWeight += (lcd.SumWgtBBD + lcd.SumWgtBBL + lcd.SumWgtBFT + lcd.SumWgtTip) * proFactor;
+
                                 //foreach (var prod in products)
                                 //{
                                 //    if(prod.Product == "01")
@@ -169,20 +194,19 @@ namespace CruiseProcessing.Output
                                 //}
 
                             }
+                            subPopulation.Products = products;
 
-                            subPopulations.Add(subPopulation);
+                            Debug.Assert(primaryProduct.SumGrossCuFt > 0 || primaryProduct.SumGrossBdFt > 0);
+
+                            unitSubPopulations.Add(subPopulation);
                         }
-
-                        teaSg.SubPopulations = subPopulations;
-                        teaSgs.Add(teaSg);
                     }
+
+                    teaSg.SubPopulations = unitSubPopulations;
+                    teaSgs.Add(teaSg);
                 }
-
-                teaUnit.SampleGroups = teaSgs;
-                teaUnits.Add(teaUnit);
             }
-            teaReport.CuttingUnits = teaUnits;
-
+            teaReport.SampleGroups = teaSgs;
 
             var reportText = System.Text.Json.JsonSerializer.Serialize(teaReport);
 

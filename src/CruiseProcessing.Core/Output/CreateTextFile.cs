@@ -480,7 +480,7 @@ namespace CruiseProcessing
                                 {
                                     string cruiseDir = System.IO.Path.GetDirectoryName(DataLayer.FilePath);
                                     var cruiseFileName = Path.GetFileNameWithoutExtension(DataLayer.FilePath);
-                                    var teaFilePath = Path.Combine(cruiseDir, cruiseFileName + ".tea");
+                                    var teaFilePath = Path.Combine(cruiseDir, cruiseFileName + ".tea.json");
 
 
                                     var teaReportBuilder = Services.GetRequiredService<OutputTea>();

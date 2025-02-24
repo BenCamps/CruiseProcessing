@@ -12,7 +12,15 @@ namespace CruiseProcessing.OutputModels
     {
         [Required]
         [JsonRequired]
+        public string StratumCode { get; set; }
+
+        [Required]
+        [JsonRequired]
         public string SampleGroupCode { get; set; }
+
+        //[Required]
+        //[JsonRequired]
+        //public string SampleGroupID { get; set; }
 
         [Required]
         [JsonRequired]
@@ -21,11 +29,7 @@ namespace CruiseProcessing.OutputModels
 
         [Required]
         [JsonRequired]
-        public string Product { get; set; }
-
-        [Required]
-        [JsonRequired]
-        public IReadOnlyCollection<TeaSubPopulation> SubPopulations { get; set; }
+        public IReadOnlyCollection<TeaUnitSubpopulation> SubPopulations { get; set; }
 
     }
 }

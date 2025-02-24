@@ -16,7 +16,6 @@ namespace CruiseProcessing.OutputModels
         public double SumGrossCuFt { get; set; }
         public double SumNetCuFt { get; set; }
 
-
         public double SumCords { get; set; }
         public double SumWeight { get; set; }
     }
