@@ -208,7 +208,13 @@ namespace CruiseProcessing.Output
             }
             teaReport.SampleGroups = teaSgs;
 
-            var reportText = System.Text.Json.JsonSerializer.Serialize(teaReport);
+            var jsonOptions = new JsonSerializerOptions
+            {
+#if DEBUG
+                WriteIndented = true,
+#endif
+            };
+            var reportText = System.Text.Json.JsonSerializer.Serialize(teaReport, jsonOptions);
 
             strWriteOut.Write(reportText);
 
