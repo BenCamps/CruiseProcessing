@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace CruiseProcessing.Output
@@ -30,57 +31,59 @@ namespace CruiseProcessing.Output
 
             var sale = DataLayer.GetSale();
 
+            string cruiseID = null;
+            var v3dal = DataLayer.DAL_V3;
+            if(v3dal != null)
+            {
+                cruiseID = DataLayer.CruiseID;
+            }
+            
+
             var teaReport = new TeaReport()
             {
                 SaleName = sale.Name,
                 SaleNumber = sale.SaleNumber,
+                CruiseID = cruiseID,
                 Region = sale.Region,
                 Forest = sale.Forest,
                 District = sale.District,
+                Purpose = GetPurposeDomainValue(sale.Purpose),
             };
 
             
             
 
             var cuttingUnits = DataLayer.getCuttingUnits();
-            var teaUnits = cuttingUnits.Select(x =>
+            var teaUnits = new List<TeaCuttingUnit>();
+            foreach(var unit in cuttingUnits)
             {
-                return new TeaCuttingUnit()
+                var teaUnit = new TeaCuttingUnit()
                 {
-                    CuttingUnitCode = x.Code,
-                    Area = x.Area,
-                    LoggingMethod = x.LoggingMethod,
+                    CuttingUnitCode = unit.Code,
+                    Area = unit.Area,
+                    LoggingMethod = unit.LoggingMethod,
                 };
-            }).ToList();
 
-            teaReport.CuttingUnits = teaUnits;
-
-
-            var teaSgs = new List<TeaSampleGroup>();
-            // populate sample groups
-
-            var strata = DataLayer.GetStrata();
-            foreach (var st in strata)
-            {
-                var sampleGroups = DataLayer.GetSampleGroups(st.Code);
-
-                foreach(var sg in sampleGroups)
+                var teaSgs = new List<TeaSampleGroup>();
+                // populate sample groups
+                var strata = DataLayer.GetStrataByUnit(unit.Code);
+                foreach (var st in strata)
                 {
-                    var teaSg = new TeaSampleGroup()
+                    var sampleGroups = DataLayer.GetSampleGroups(st.Code);
+                    
+                    foreach (var sg in sampleGroups)
                     {
-                        StratumCode = st.Code,
-                        SampleGroupCode = sg.Code,
-                        //Product = sg.PrimaryProduct,
-                        UOM = sg.UOM ?? sale.DefaultUOM,
-                    };
+                        var teaSg = new TeaSampleGroup()
+                        {
+                            StratumCode = st.Code,
+                            SampleGroupCode = sg.Code,
+                            UOM = sg.UOM ?? sale.DefaultUOM,
+                        };
 
-                    var lcds = DataLayer.GetLcds(st.Code, sg.Code);
-                    var lcdGroups = lcds.GroupBy(x => (x.Species, x.LiveDead, x.TreeGrade));
+                        var lcds = DataLayer.GetLcds(st.Code, sg.Code);
+                        var lcdGroups = lcds.GroupBy(x => (x.Species, x.LiveDead, x.TreeGrade));
 
-                    var units = DataLayer.GetStratumUnits(st.Code);
-                    var unitSubPopulations = new List<TeaUnitSubpopulation>();
-                    foreach (var unit in units)
-                    {
+                        var teaSubpops = new List<TeaSubpopulation>();
                         // lcds grouped by species, livedead, tree grade
                         foreach (var group in lcdGroups)
                         {
@@ -89,9 +92,8 @@ namespace CruiseProcessing.Output
                             var treeGrade = group.Key.TreeGrade;
                             var fia = DataLayer.GetFIACode(sp);
 
-                            var subPopulation = new TeaUnitSubpopulation()
+                            var subPopulation = new TeaSubpopulation()
                             {
-                                CuttingUnitCode = unit.Code,
                                 SpeciesFia = fia.ToString(),
                                 LiveDead = ld,
                                 TreeGrade = treeGrade,
@@ -130,6 +132,11 @@ namespace CruiseProcessing.Output
                             // accumilate totals by stm
                             foreach (var lcd in group)
                             {
+                                //Debug.Assert(lcd.SumHgtUpStem > 0
+                                //    || lcd.SumMerchHgtPrim > 0
+                                //    || lcd.SumMerchHgtSecond > 0
+                                //    || lcd.SumTotHgt > 0);
+
                                 var pro = DataLayer.GetPro(unit.Code, lcd.Stratum, lcd.SampleGroup, lcd.STM);
                                 var proFactor = pro.ProrationFactor;
 
@@ -140,7 +147,6 @@ namespace CruiseProcessing.Output
                                 subPopulation.SumTotalHeight += lcd.SumTotHgt * proFactor;
                                 subPopulation.SumMerchHeight += lcd.SumMerchHgtPrim * proFactor;
                                 subPopulation.SumLogs += lcd.SumLogsMS * proFactor;
-
                                 subPopulation.SumGrossCuFtRemv += lcd.SumGCUFTremv * proFactor;
                                 subPopulation.SumGrossBdFtRemv += lcd.SumGBDFTremv * proFactor;
 
@@ -196,17 +202,24 @@ namespace CruiseProcessing.Output
                             }
                             subPopulation.Products = products;
 
-                            Debug.Assert(primaryProduct.SumGrossCuFt > 0 || primaryProduct.SumGrossBdFt > 0);
+                            // assert that we are returning volumes
+                            //Debug.Assert(primaryProduct.SumGrossCuFt > 0 || primaryProduct.SumGrossBdFt > 0 || primaryProduct.SumCords > 0);
+                            //Debug.Assert(secondaryProduct.SumGrossCuFt > 0 || secondaryProduct.SumGrossBdFt > 0 || secondaryProduct.SumCords > 0);
 
-                            unitSubPopulations.Add(subPopulation);
+                            teaSubpops.Add(subPopulation);
                         }
-                    }
 
-                    teaSg.SubPopulations = unitSubPopulations;
-                    teaSgs.Add(teaSg);
+                        teaSg.SubPopulations = teaSubpops;
+                        teaSgs.Add(teaSg);
+                    }
                 }
+
+                teaUnit.SampleGroups = teaSgs;
+                teaUnits.Add(teaUnit);
             }
-            teaReport.SampleGroups = teaSgs;
+
+
+            teaReport.CuttingUnits = teaUnits;
 
             var jsonOptions = new JsonSerializerOptions
             {
@@ -219,6 +232,25 @@ namespace CruiseProcessing.Output
             strWriteOut.Write(reportText);
 
             return 0;
+        }
+
+        /// <summary>
+        /// Maps old prupose values to modernization coded domain values
+        /// </summary>
+        /// <param name="purpose"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        private string GetPurposeDomainValue(string purpose)
+        {
+            return purpose.ToLowerInvariant() switch
+            {
+                "timber sale" or "ts" => "1",
+                "check cruise" or "check" => "2",
+                "right of way" or "row" => "3",
+                "recon" => "4",
+                "other" => "5",
+                _ => throw new ArgumentException("Invalid Sale Purpose Code," + purpose)
+            };
         }
     }
 }

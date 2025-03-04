@@ -25,9 +25,9 @@ namespace CruiseProcessing.OutputModels
         // currently it doesn't look like we enforce that this is greater than 0
         public double Area { get; set; }
 
-        //[Required]
-        //[JsonRequired]
-        //public IReadOnlyCollection<TeaSampleGroup> SampleGroups { get; set; }
+        [Required]
+        [JsonRequired]
+        public IReadOnlyCollection<TeaSampleGroup> SampleGroups { get; set; }
 
     }
 }

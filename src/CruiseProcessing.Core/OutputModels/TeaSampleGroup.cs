@@ -29,7 +29,7 @@ namespace CruiseProcessing.OutputModels
 
         [Required]
         [JsonRequired]
-        public IReadOnlyCollection<TeaUnitSubpopulation> SubPopulations { get; set; }
+        public IReadOnlyCollection<TeaSubpopulation> SubPopulations { get; set; }
 
     }
 }

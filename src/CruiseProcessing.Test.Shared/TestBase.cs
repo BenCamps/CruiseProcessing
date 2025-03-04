@@ -31,8 +31,15 @@ public class TestBase
     public TestBase(ITestOutputHelper output)
     {
         Output = output;
-        Output.WriteLine($"CodeBase: {System.Reflection.Assembly.GetExecutingAssembly().CodeBase}");
         Rand = new Randomizer(this.GetType().Name.GetHashCode()); // make the randomizer fixed based on the test class
+
+        var testType = this.GetType();
+        TestName = testType.Name;
+        TestNamespace = testType.Namespace;
+        TestAssemblyName = testType.Assembly.GetName().Name;
+
+        Output.WriteLine($"Test {TestName}");
+        Output.WriteLine($"Test Assembly {TestAssemblyName}");
         //LoggerFactory = new TestLoggerFactory
         //{
         //    Output = output,
@@ -68,7 +75,8 @@ public class TestBase
         }
     }
 
-    public string TestTempPath => _testTempPath ??= Path.Combine(Path.GetTempPath(), "TestTemp", Assembly.GetExecutingAssembly().GetName().Name, this.GetType().FullName);
+    public string TestTempPath => _testTempPath ??= Path.Combine(Path.GetTempPath(), "TestTemp",
+        TestAssemblyName, TestNamespace, TestName);
 
     protected IHost CreateTestHost(Action<IServiceCollection> configureServices = null)
     {
@@ -99,14 +107,11 @@ public class TestBase
         loggingBuilder.AddProvider(testLoggerProvider);
     }
 
-    protected string GetTestTempPath()
-    {
-        var testType = this.GetType();
-        var assName = testType.Assembly.FullName;
-        return Path.Combine(Path.GetTempPath(), "TestTemp", this.GetType().FullName);
-    }
-
     public string TestFilesDirectory => Path.Combine(TestExecutionDirectory, "TestFiles");
+
+    public string TestName { get; }
+    public string TestNamespace { get; }
+    public string TestAssemblyName { get; }
 
     public void StartTimer()
     {
@@ -165,10 +170,13 @@ public class TestBase
         {
             var migrator = new DownMigrator();
             var v3Db = new CruiseDatastore_V3(filePath);
-            var v2Db = new DAL();
+            var processPath = filePath + ".process";
+            var v2Db = new DAL(processPath, true);
             var cruiseID = v3Db.QueryScalar<string>("SELECT CruiseID FROM Cruise").First();
             migrator.MigrateFromV3ToV2(cruiseID, v3Db, v2Db);
-            return new CpDataLayer(v2Db, Substitute.For<ILogger<CpDataLayer>>(), biomassOptions: null);
+            Output.WriteLine("Migrated V3 file to: " + processPath);
+            RegesterFileForCleanUp(processPath);
+            return new CpDataLayer(v2Db, v3Db, cruiseID, Substitute.For<ILogger<CpDataLayer>>(), biomassOptions: null);
         }
         else
         {

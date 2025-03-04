@@ -8,13 +8,8 @@ using System.Threading.Tasks;
 
 namespace CruiseProcessing.OutputModels
 {
-    public class TeaUnitSubpopulation
+    public class TeaSubpopulation
     {
-        [Required]
-        [JsonRequired]
-        public string CuttingUnitCode { get; set; }
-
-
         [Required]
         [JsonRequired]
         public string SpeciesFia {  get; set; }

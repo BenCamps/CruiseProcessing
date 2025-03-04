@@ -1,5 +1,6 @@
 ﻿using CruiseProcessing.Data;
 using CruiseProcessing.Output;
+using CruiseProcessing.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace CruiseProcessing.Test.Output
 
         [Theory]
         [InlineData("SteveTest\\Region8\\BreadCreek.M.cruise")]
+        [InlineData("SteveTest\\Region8\\V3_02363_Bonnerdale DXP_TS_CRZ.crz3")]
         public void GenerateReport(string testFileName)
         {
             var filePath = GetTestFile(testFileName);
@@ -28,9 +30,13 @@ namespace CruiseProcessing.Test.Output
             {
                 sc.AddOutputReportGenerators();
                 sc.AddSingleton<CpDataLayer>(dataLayer);
+                sc.AddTransient<ICruiseProcessor, CruiseProcessor3>();
             });
 
             var services = host.Services;
+            var processor = services.GetRequiredService<ICruiseProcessor>();
+            processor.ProcessCruise(null);
+
             var reprortGenerator = services.GetRequiredService<OutputTea>();
 
             var writer = new StringWriter();
