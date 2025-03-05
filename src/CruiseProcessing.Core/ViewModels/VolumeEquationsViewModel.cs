@@ -63,7 +63,7 @@ namespace CruiseProcessing.ViewModels
                 if (!string.IsNullOrEmpty(value))
                 {
                     var volEqList = volumeLists.GetVolumeEquationsByRegion(value);
-                    ForestOptions = volEqList.Select(x => x.vForest).Distinct().ToArray();
+                    ForestOptions = volEqList.Select(x => x.Forest).Distinct().ToArray();
                 }
             }
         }
@@ -336,12 +336,12 @@ namespace CruiseProcessing.ViewModels
             var region = Region;
             var volEqList = volumeLists.GetVolumeEquationsByRegion(region);
 
-            var volEqDefaults = volEqList.Where(x => x.vEquation == veq.VolumeEquationNumber).FirstOrDefault();
+            var volEqDefaults = volEqList.Where(x => x.Equation == veq.VolumeEquationNumber).FirstOrDefault();
 
             if (volEqDefaults != null)
             {
-                veq.CommonSpeciesName = volEqDefaults.vCommonName;
-                veq.Model = volEqDefaults.vModelName;
+                veq.CommonSpeciesName = volEqDefaults.CommonName;
+                veq.Model = volEqDefaults.ModelName;
             }
 
         }
@@ -353,9 +353,9 @@ namespace CruiseProcessing.ViewModels
             if (!string.IsNullOrEmpty(region) && !string.IsNullOrEmpty(forest))
             {
                 var volEqList = volumeLists.GetVolumeEquationsByRegion(region);
-                var forestEqList = volEqList.Where(x => x.vForest == forest).ToArray();
+                var forestEqList = volEqList.Where(x => x.Forest == forest).ToArray();
 
-                VolumeEquationNumbers = forestEqList.Select(x => x.vEquation).ToArray();
+                VolumeEquationNumbers = forestEqList.Select(x => x.Equation).ToArray();
             }
             else
             {

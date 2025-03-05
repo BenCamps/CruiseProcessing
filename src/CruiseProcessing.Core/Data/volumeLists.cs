@@ -332,6 +332,7 @@ namespace CruiseProcessing
             new VolEqList("18",     "Noble fir",                "I00FW2W108", "Flewelling 2 Point"),
             new VolEqList("18",     "Western hemlock",          "F03FW2W263", "Flewelling 2 Point"),
             new VolEqList("18",     "Grand fir",                "I00FW2W017", "INGY 2 Point"),
+            new VolEqList("18",     "Incense Cedar",            "I00FW2W073", "INGY 2 Point"),
             new VolEqList("21",     "Douglas/Alpine fir",       "I11FW2W202", "INGY 2 Point"),
             new VolEqList("21",     "Lodgepole pine",           "I11FW2W108", "INGY 2 Point"),
             new VolEqList("21",     "Western larch",            "I11FW2W073", "INGY 2 Point"),

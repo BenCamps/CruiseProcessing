@@ -78,11 +78,11 @@ namespace CruiseProcessing
         {
             var currentEquation = volEq.VolumeEquationNumber;
 
-            var eq = arrayToUse.FirstOrDefault(x => x.vEquation == currentEquation);
+            var eq = arrayToUse.FirstOrDefault(x => x.Equation == currentEquation);
             if(eq != null)
             {
-                volEq.CommonSpeciesName = eq.vCommonName;
-                volEq.Model = eq.vModelName;
+                volEq.CommonSpeciesName = eq.CommonName;
+                volEq.Model = eq.ModelName;
             }
             else
             {

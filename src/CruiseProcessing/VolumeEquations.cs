@@ -180,7 +180,7 @@ namespace CruiseProcessing
             volList = volumeLists.GetVolumeEquationsByRegion(selectedRegion);
 
             //  find unique forests to generate list
-            var distinctForests = volList.Select(x => x.vForest).Distinct().ToArray();
+            var distinctForests = volList.Select(x => x.Forest).Distinct().ToArray();
 
             volForest.Items.Clear();
             volForest.Items.AddRange(distinctForests);
@@ -200,8 +200,8 @@ namespace CruiseProcessing
             volEquation.Items.Clear();
             for (int k = 0; k < volList.Count; k++)
             {
-                if (selectedForest == volList[k].vForest)
-                    volEquation.Items.Add(volList[k].vEquation.ToString());
+                if (selectedForest == volList[k].Forest)
+                    volEquation.Items.Add(volList[k].Equation.ToString());
             }   //  end for k loop
 
             volEquation.Enabled = true;
@@ -282,13 +282,13 @@ namespace CruiseProcessing
                 int nthRow = volList.FindIndex(
                     delegate (VolEqList vel)
                     {
-                        return vel.vEquation == volEquation.SelectedItem.ToString() &&
-                                vel.vForest == selectedForest;
+                        return vel.Equation == volEquation.SelectedItem.ToString() &&
+                                vel.Forest == selectedForest;
                     });
                 if (nthRow >= 0)
                 {
-                    equationList[trackRow].CommonSpeciesName = volList[nthRow].vCommonName;
-                    equationList[trackRow].Model = volList[nthRow].vModelName;
+                    equationList[trackRow].CommonSpeciesName = volList[nthRow].CommonName;
+                    equationList[trackRow].Model = volList[nthRow].ModelName;
                 }   //  endif nthRow
             }
             else if (trackRow >= equationList.Count)
@@ -299,12 +299,12 @@ namespace CruiseProcessing
                 int nthRow = volList.FindIndex(
                     delegate (VolEqList vel)
                     {
-                        return vel.vEquation == ved.VolumeEquationNumber;
+                        return vel.Equation == ved.VolumeEquationNumber;
                     });
                 if (nthRow >= 0)
                 {
-                    ved.CommonSpeciesName = volList[nthRow].vCommonName;
-                    ved.Model = volList[nthRow].vModelName;
+                    ved.CommonSpeciesName = volList[nthRow].CommonName;
+                    ved.Model = volList[nthRow].ModelName;
                 }   //  endif nthRow
                 if (templateFlag == 0)
                 {
