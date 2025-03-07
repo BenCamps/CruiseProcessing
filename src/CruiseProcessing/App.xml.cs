@@ -105,9 +105,7 @@ namespace CruiseProcessing
             //services.AddKeyedTransient<ICalculateTreeValues, RefCalculateTreeValues>(nameof(RefCalculateTreeValues));
 
             // register volume libraries
-            services.AddSingleton<IVolumeLibrary, VolumeLibrary_20241118>();
-            //services.AddKeyedSingleton<IVolumeLibrary, VolumeLibrary_20240626>(nameof(VolumeLibrary_20240626));
-            //services.AddKeyedSingleton<IVolumeLibrary, VolumeLibrary_20241118>(nameof(VolumeLibrary_20241118));
+            services.AddSingleton<IVolumeLibrary, VolumeLibrary>();
 
             // register WPF views
             services.AddSingleton<MainWindow>();

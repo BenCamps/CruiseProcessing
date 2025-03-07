@@ -22,11 +22,11 @@ namespace CruiseProcessing.Test.ViewModels
 {
     public class VolumeEquationsViewModel_Test : TestBase
     {
-        public VolumeLibrary_20241118 VolumeLibrary { get; }
+        public VolumeLibrary VolumeLibrary { get; }
 
         public VolumeEquationsViewModel_Test(ITestOutputHelper output) : base(output)
         {
-            VolumeLibrary = new VolumeLibrary_20241118();
+            VolumeLibrary = new VolumeLibrary();
 
         }
 

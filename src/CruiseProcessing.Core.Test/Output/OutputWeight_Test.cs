@@ -162,7 +162,7 @@ namespace CruiseProcessing.Test.Output
                 dataLayer.GetSelectedReports().Select(x => x.ReportID).Should().Contain(reportID);
             }
 
-            var volumeLibrary = new VolumeLibrary_20241118();
+            var volumeLibrary = new VolumeLibrary();
 
             //if(updateBio)
             //{

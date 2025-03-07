@@ -1,4 +1,6 @@
-﻿using CruiseProcessing.Services.Logging;
+﻿using CruiseProcessing.Interop.Native;
+using CruiseProcessing.Services.Logging;
+using FMSC.ORM.Core;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -9,143 +11,130 @@ using System.Threading.Tasks;
 
 namespace CruiseProcessing.Interop
 {
-    public class VolumeLibrary_20241118 : VolumeLibraryInterop, IVolumeLibrary
+    public class VolumeLibrary : IVolumeLibrary
     {
-        private const string DLL_NAME = "vollib_20241118.dll";
+        private static readonly IReadOnlyCollection<int> R5_Prod20_WF_FIAcodes = new int[] { 122, 116, 117, 015, 020, 202, 081, 108 };
+        public static int CROWN_FACTOR_WEIGHT_ARRAY_LENGTH = 7;
 
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void VERNUM2(out int a);
+        public const int CRZSPDFTCS_STRINGLENGTH = 256;
+        public const int STRING_BUFFER_SIZE = 256;
+        public const int CHARLEN = 1;
 
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void VOLLIBCSNVB(ref int regn,
-                    StringBuilder forst,
-                    StringBuilder voleq,
-                    ref float mtopp,
-                    ref float mtops,
+        public const int VOLLIBNVB_VOL_SIZE = 15;
+        public const int VOLLIBNVB_LOGLEN_SIZE = 20;
+        public const int VOLLIBNVB_BOLHT_SIZE = 21;
+        public const int VOLLIBNVB_LOGVOL_SIZE_X = 20;
+        public const int VOLLIBNVB_LOGVOL_SIZE_Y = 7;
+        public const int VOLLIBNVB_LOGDIA_SIZE_X = 3;
+        public const int VOLLIBNVB_LOGDIA_SIZE_Y = 21;
 
-                    ref float stump,
-                    ref float dbhob,
-                    ref float drcob,
-                    StringBuilder httype,
-                    ref float httot,
+        public const int VOLLIBNVB_BIO_SIZE = 15;
+        public const int DRYBIO_ARRAY_SIZE = VOLLIBNVB_BIO_SIZE;
+        public const int GRNBIO_ARRAY_SIZE = VOLLIBNVB_BIO_SIZE;
 
-                    ref int htlog,
-                    ref float ht1prd,
-                    ref float ht2prd,
-                    ref float upsht1,
-                    ref float upsht2,
+        public const int I3 = 3;
+        public const int I7 = 7;
+        public const int I15 = 15;
+        public const int I20 = 20;
+        public const int I21 = 21;
 
-                    ref float upsd1,
-                    ref float upsd2,
-                    ref int htref,
-                    ref float avgz1,
-                    ref float avgz2,
+        public const int CRZBIOMASSCS_BMS_SIZE = 8;
 
-                    ref int fclass,
-                    ref float dbtbh,
-                    ref float btr,
-                    float[] vol,
-                    float[,] logvol,
 
-                    float[,] logdia,
-                    float[] loglen,
-                    float[] bohlt,
-                    ref int tlogs,
-                    ref float nologp,
+        protected ILogger Log { get; }
+        VolumeLibraryNativeMethods NativeMethods { get; }
 
-                    ref float nologs,
-                    ref int cutflg,
-                    ref int bfpflg,
-                    ref int cupflg,
-                    ref int cdpflg,
+        public VolumeLibrary() : this(CurrentVolLibMethodProvider.GetNativeMethods())
+        { /* do nothing */ }
 
-                    ref int spflg,
-                    StringBuilder conspec,
-                    StringBuilder prod,
-                    ref int httfll,
-                    StringBuilder live,
-
-                    ref int ba,
-                    ref int si,
-                    StringBuilder ctype,
-                    ref int errflg,
-                    ref int pmtflg,
-
-                    ref MRules mRules,
-                    ref int dist,
-
-                    ref float brkht,
-                    ref float brkhtd,
-                    ref int fiaspcd,
-                    float[] drybio,
-                    float[] grnbio,
-
-                    ref float cr,
-                    ref float cull,
-                    ref int decaycd,
-
-                    int ll1,
-                    int ll2,
-                    int ll3,
-                    int ll4,
-                    int ll5,
-                    int ll6,
-                    int ll7,
-                    int charLen);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CRZBIOMASSCS(ref int regn,
-                    StringBuilder forst,
-                    ref int spcd,
-                    ref float dbhob,
-                    ref float drcob,
-                    ref float httot,
-                    ref int fclass,
-                    float[] vol,
-                    float[] wf,
-                    float[] bms,
-                    ref int errflg,
-                    StringBuilder prod,
-                    int i1,
-                    int i2);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void CRZSPDFTCS(ref int regn, StringBuilder forst, ref int spcd, float[] wf, StringBuilder agteq, StringBuilder lbreq,
-    StringBuilder dbreq, StringBuilder foleq, StringBuilder tipeq, StringBuilder wf1ref, StringBuilder wf2ref, StringBuilder mcref,
-    StringBuilder agtref, StringBuilder lbrref, StringBuilder dbrref, StringBuilder folref, StringBuilder tipref,
-    int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10, int i11, int i12, int i13, int i14);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void GETREGNWFCS(ref int regin, StringBuilder forest, ref int fiaCode, StringBuilder prod, out float greenWf, out float deadWf, int i1, int i2);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void BROWNCROWNFRACTION(ref int SPCD, ref float DBH, ref float THT, ref float CR, float[] CFWT);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void BROWNTOPWOOD(ref int SPN, ref float GCUFTS, ref float WT);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void BROWNCULLLOG(ref int SPN, ref float GCUFTS, ref float WT);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void BROWNCULLCHUNK(ref int SPN, ref float GCUFT, ref float NCUFT, ref float FLIW, ref float WT);
-
-        [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void MRULESCS(ref int regn, StringBuilder voleq, StringBuilder prod, out float trim,
-                                    out float minlen, out float maxlen, out int opt, out float merchl,
-                                    int l1, int l2);
-
-        public VolumeLibrary_20241118()
-            : base(LoggerProvider.CreateLogger<VolumeLibrary_20241118>())
-        { }
-
-        public override int GetVersionNumber()
+        public VolumeLibrary(VolumeLibraryNativeMethods nativeMethods, ILogger<VolumeLibrary> logger = null)
         {
-            VERNUM2(out var i);
+            Log = logger ?? LoggerProvider.CreateLogger<VolumeLibrary>();
+            NativeMethods = nativeMethods ;
+        }
+
+        public float[] LookupWeightFactorsCRZSPDFT(int region, string forest, string product, int fiaCode)
+        {
+            var wf = LookupWeightFactorsCRZSPDFTRaw(region, forest, fiaCode);
+
+            if (wf[1] > 0)
+            {
+                if ((region == 5 && product == "20" && R5_Prod20_WF_FIAcodes.Any(x => x == fiaCode))
+                   || (region == 1 && product != "01"))
+                {
+                    wf[0] = wf[1];
+                }
+            }
+
+            return wf;
+        }
+
+        public int GetVersionNumber()
+        {
+            NativeMethods.VERNUM2(out var i);
             return i;
         }
 
-        public override void CalculateVolumeNVB(
+        public VolLibNVBoutput CalculateVolumeNVB(
+int regn, string forst, string voleq, float mtopp, float mtops,
+float stump, float dbhob, float drcob, string httype, float httot,
+int htlog, float ht1prd, float ht2prd, float upsht1, float upsht2,
+float upsd1, float upsd2, int htref, float avgz1, float avgz2,
+int fclass, float dbtbh, float btr, int cutflg, int bfpflg, int cupflg, int cdpflg,
+int spflg, string conspec, string prod, int httfll, string live,
+int ba, int si, string ctype, int pmtflg,
+MRules mRules, int idist,
+float brkht, float brkhtd, int fiaspcd,
+float cr, float cull, int decaycd)
+        {
+            CalculateVolumeNVB(regn, forst, voleq, mtopp, mtops,
+                stump, dbhob, drcob, httype, httot,
+                htlog, ht1prd, ht2prd, upsht1, upsht2,
+                upsd1, upsd2, htref, avgz1, avgz2,
+                fclass, dbtbh, btr, out var vol, out var logvol,
+                out var logdia, out var loglen, out var bolht, out var tlogs, out var nologp,
+                out var nologs, cutflg, bfpflg, cupflg, cdpflg,
+                spflg, conspec, prod, httfll, live,
+                ba, si, ctype, out var errflg, pmtflg,
+                mRules, idist,
+                brkht, brkhtd, fiaspcd, out var drybio, out var grnbio,
+                cr, cull, decaycd);
+
+            var volumes = new Volumes(vol);
+            var logVolumes = new LogVolume[VOLLIBNVB_LOGVOL_SIZE_X];
+            for (var i = 0; i < VOLLIBNVB_LOGVOL_SIZE_X; i++)
+            {
+                logVolumes[i] = new LogVolume().FromArray(logvol, i);
+            }
+
+            var logDiameters = new LogDiameter[VOLLIBNVB_LOGDIA_SIZE_Y];
+            for (var i = 0; i < VOLLIBNVB_LOGDIA_SIZE_Y; i++)
+            {
+                logDiameters[i] = new LogDiameter().FromArray(logdia, i);
+            }
+
+            var greenBio = new VolLibNVBCalculatedBiomass().FromArray(grnbio);
+            var dryBio = new VolLibNVBCalculatedBiomass().FromArray(drybio);
+
+            var output = new VolLibNVBoutput
+            {
+                Volumes = volumes,
+                LogVolumes = logVolumes,
+                LogDiameters = logDiameters,
+                LogLengths = loglen,
+                BottomOfLogHeights = bolht,
+                TotalLogs = tlogs,
+                NoLogsPrimary = nologp,
+                NoLogsSecondary = nologs,
+                GreenBio = greenBio,
+                DryBio = dryBio,
+                ErrorCode = errflg,
+            };
+
+            return output;
+        }
+
+        public void CalculateVolumeNVB(
             int regn, string forst, string voleq, float mtopp, float mtops,
             float stump, float dbhob, float drcob, string httype, float httot,
             int htlog, float ht1prd, float ht2prd, float upsht1, float upsht2,
@@ -205,7 +194,7 @@ namespace CruiseProcessing.Interop
                 brkht, brkhtd, fiaspcd,
                 cr, cull, decaycd);
 
-            VOLLIBCSNVB(ref regn, FORST, VOLEQ, ref mtopp, ref mtops,
+            NativeMethods.VOLLIBCSNVB(ref regn, FORST, VOLEQ, ref mtopp, ref mtops,
                ref stump, ref dbhob, ref drcob, HTTYPE, ref httot,
                ref htlog, ref ht1prd, ref ht2prd, ref upsht1, ref upsht2,
                ref upsd1, ref upsd2, ref htref, ref avgz1, ref avgz2,
@@ -228,14 +217,17 @@ namespace CruiseProcessing.Interop
             }
         }
 
-        public override CrzBiomassResult CalculateBiomass(int regn, string forst, int spcd, float dbhob, float drcob, float httot, int fclass, float[] vol, float[] wf, out int errflg, string prod)
+
+
+
+        public CrzBiomassResult CalculateBiomass(int regn, string forst, int spcd, float dbhob, float drcob, float httot, int fclass, float[] vol, float[] wf, out int errflg, string prod)
         {
             var calculatedBiomass = new float[CRZBIOMASSCS_BMS_SIZE];
             StringBuilder FORST = new StringBuilder(STRING_BUFFER_SIZE).Append(forst);
             StringBuilder PROD = new StringBuilder(STRING_BUFFER_SIZE).Append(prod);
             errflg = 0;
 
-            CRZBIOMASSCS(ref regn, FORST, ref spcd, ref dbhob, ref drcob, ref httot, ref fclass, vol, wf,
+            NativeMethods.CRZBIOMASSCS(ref regn, FORST, ref spcd, ref dbhob, ref drcob, ref httot, ref fclass, vol, wf,
                                     calculatedBiomass, ref errflg, PROD, STRING_BUFFER_SIZE, STRING_BUFFER_SIZE);
 
             if (errflg > 0)
@@ -246,7 +238,35 @@ namespace CruiseProcessing.Interop
             return CrzBiomassResult.FromArray(calculatedBiomass);
         }
 
-        public override float[] LookupWeightFactorsCRZSPDFTRaw(int region, string forest, int fiaCode)
+        public string LookupVolumeEquation(int region, string forest, string district, int fiaCode, string product, out int error)
+        {
+            var sbForest = new StringBuilder(STRING_BUFFER_SIZE).Append(forest);
+            var sbDistrict = new StringBuilder(STRING_BUFFER_SIZE).Append(district);
+            var sbProd = new StringBuilder(STRING_BUFFER_SIZE).Append(product);
+
+            var sbVolEq = new StringBuilder(STRING_BUFFER_SIZE);
+
+            NativeMethods.GETVOLEQ3(ref region, sbForest, sbDistrict, ref fiaCode, sbProd, sbVolEq, out error,
+                STRING_BUFFER_SIZE, STRING_BUFFER_SIZE, STRING_BUFFER_SIZE, STRING_BUFFER_SIZE);
+
+            return sbVolEq.ToString();
+        }
+
+
+        public string LookupVolumeEquationNVB(int region, string forest, string district, int fiaCode, out int error)
+        {
+            var sbForest = new StringBuilder(STRING_BUFFER_SIZE).Append(forest);
+            var sbDistrict = new StringBuilder(STRING_BUFFER_SIZE).Append(district);
+
+            var sbVolEq = new StringBuilder(STRING_BUFFER_SIZE);
+
+            NativeMethods.GETNVBEQ(ref region, sbForest, sbDistrict, ref fiaCode, sbVolEq, out error,
+                STRING_BUFFER_SIZE, STRING_BUFFER_SIZE, STRING_BUFFER_SIZE);
+
+            return sbVolEq.ToString();
+        }
+
+        public float[] LookupWeightFactorsCRZSPDFTRaw(int region, string forest, int fiaCode)
         {
             float[] WF = new float[3];
             var FORST = new StringBuilder(CRZSPDFTCS_STRINGLENGTH).Append(forest);
@@ -265,7 +285,7 @@ namespace CruiseProcessing.Interop
             var TIPREF = new StringBuilder(CRZSPDFTCS_STRINGLENGTH);
             int REGN = region;
             int SPCD = fiaCode;
-            CRZSPDFTCS(ref REGN,
+            NativeMethods.CRZSPDFTCS(ref REGN,
                        FORST,
                        ref fiaCode,
                        WF,
@@ -301,50 +321,50 @@ namespace CruiseProcessing.Interop
             return WF;
         }
 
-        public override void LookupWeightFactorsNVB(int regin, string forest, int fiaCode, string prod, out float greenWf, out float deadWf)
+        public void LookupWeightFactorsNVB(int regin, string forest, int fiaCode, string prod, out float greenWf, out float deadWf)
         {
             var FORST = new StringBuilder(STRING_BUFFER_SIZE).Append(forest);
             var PROD = new StringBuilder(STRING_BUFFER_SIZE).Append(prod);
 
-            GETREGNWFCS(ref regin, FORST, ref fiaCode, PROD, out greenWf, out deadWf, STRING_BUFFER_SIZE, STRING_BUFFER_SIZE);
+            NativeMethods.GETREGNWFCS(ref regin, FORST, ref fiaCode, PROD, out greenWf, out deadWf, STRING_BUFFER_SIZE, STRING_BUFFER_SIZE);
         }
 
-        public override void BrownCrownFraction(int fiaCode, float DBH, float THT, float CR, float[] crownFractionWGT)
+        public void BrownCrownFraction(int fiaCode, float DBH, float THT, float CR, float[] crownFractionWGT)
         {
-            BROWNCROWNFRACTION(ref fiaCode, ref DBH, ref THT, ref CR, crownFractionWGT);
+            NativeMethods.BROWNCROWNFRACTION(ref fiaCode, ref DBH, ref THT, ref CR, crownFractionWGT);
         }
 
-        public override CrownFractionWeight BrownCrownFraction(int fiaCode, float DBH, float THT, float CR)
+        public CrownFractionWeight BrownCrownFraction(int fiaCode, float DBH, float THT, float CR)
         {
-            var crownFractionWGT = new float[VolumeLibraryInterop.CROWN_FACTOR_WEIGHT_ARRAY_LENGTH];
-            BROWNCROWNFRACTION(ref fiaCode, ref DBH, ref THT, ref CR, crownFractionWGT);
+            var crownFractionWGT = new float[CROWN_FACTOR_WEIGHT_ARRAY_LENGTH];
+            NativeMethods.BROWNCROWNFRACTION(ref fiaCode, ref DBH, ref THT, ref CR, crownFractionWGT);
             return CrownFractionWeight.FromArray(crownFractionWGT);
         }
 
-        public override void BrownTopwood(int fiaCode, float grsVol, out float topwoodWGT)
+        public void BrownTopwood(int fiaCode, float grsVol, out float topwoodWGT)
         {
             topwoodWGT = 0;
-            BROWNTOPWOOD(ref fiaCode, ref grsVol, ref topwoodWGT);
+            NativeMethods.BROWNTOPWOOD(ref fiaCode, ref grsVol, ref topwoodWGT);
         }
 
-        public override void BrownCullLog(int fiaCode, float GCUFTS, out float cullLogWGT)
+        public void BrownCullLog(int fiaCode, float GCUFTS, out float cullLogWGT)
         {
             cullLogWGT = 0;
-            BROWNCULLLOG(ref fiaCode, ref GCUFTS, ref cullLogWGT);
+            NativeMethods.BROWNCULLLOG(ref fiaCode, ref GCUFTS, ref cullLogWGT);
         }
 
-        public override void BrownCullChunk(int fiaCode, float GCUFT, float NCUFT, float FLIW, out float cullChunkWGT)
+        public void BrownCullChunk(int fiaCode, float GCUFT, float NCUFT, float FLIW, out float cullChunkWGT)
         {
             cullChunkWGT = 0;
-            BROWNCULLCHUNK(ref fiaCode, ref GCUFT, ref NCUFT, ref FLIW, ref cullChunkWGT);
+            NativeMethods.BROWNCULLCHUNK(ref fiaCode, ref GCUFT, ref NCUFT, ref FLIW, ref cullChunkWGT);
         }
 
-        public override MRules GetMRules(int region, string volEq, string product)
+        public MRules GetMRules(int region, string volEq, string product)
         {
             StringBuilder VOLEQ = new StringBuilder(STRING_BUFFER_SIZE).Append(volEq);
             StringBuilder PROD = new StringBuilder(STRING_BUFFER_SIZE).Append(product);
 
-            MRULESCS(ref region, VOLEQ, PROD, out float trim,
+            NativeMethods.MRULESCS(ref region, VOLEQ, PROD, out float trim,
                                     out float minlen, out float maxlen, out int opt, out float merchl,
                                     STRING_BUFFER_SIZE, STRING_BUFFER_SIZE);
 

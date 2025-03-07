@@ -30,9 +30,7 @@ namespace CruiseProcessing.Test.Data
             base.LogLevel = LogLevel.None;
             var filePath = GetTestFile(fileName);
 
-            var mockLogger = CreateLogger<CpDataLayer>();
-            var dal = new DAL(filePath);
-            var dataLayer = new CpDataLayer(dal, mockLogger, biomassOptions: null);
+            var dataLayer = GetCpDataLayer(filePath);
 
             var volEqs = dataLayer.getVolumeEquations();
             if (volEqs.Any(x => x.CalcBiomass == 1) == false)
@@ -40,7 +38,7 @@ namespace CruiseProcessing.Test.Data
                 throw new Exception("Skipping test, no biomass equations found");// we are primarily interested in checking for changes in biomass calculation
             }
 
-            var volLib = new VolumeLibrary_20241118();
+            var volLib = new VolumeLibrary();
             var sale = dataLayer.GetSale();
             foreach (var veq in volEqs)
             {

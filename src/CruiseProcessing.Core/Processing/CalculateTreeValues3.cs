@@ -40,12 +40,12 @@ namespace CruiseProcessing.Processing
 
         public CalculateTreeValues3(CpDataLayer dataLayer)
             : this(dataLayer,
-                  new VolumeLibrary_20241118(),
+                  new VolumeLibrary(),
                   LoggerProvider.CreateLogger<CalculateTreeValues3>())
         { }
 
         public CalculateTreeValues3(CpDataLayer dataLayer,
-                                            [FromKeyedServices(nameof(VolumeLibrary_20241118))] IVolumeLibrary volLib,
+                                            [FromKeyedServices(nameof(VolumeLibrary))] IVolumeLibrary volLib,
                                             ILogger<CalculateTreeValues3> log)
         {
             NetVolumeCalculator = new CalculateNetVolume2();

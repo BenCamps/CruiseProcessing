@@ -28,7 +28,7 @@ namespace CruiseProcessing.Processing
         public List<VolumeEquationDO> VolumeEquations { get; }
 
         public CalculateTreeValues2(CpDataLayer dataLayer)
-            : this(dataLayer, new VolumeLibrary_20241118(), LoggerProvider.CreateLogger<CalculateTreeValues2>())
+            : this(dataLayer, new VolumeLibrary(), LoggerProvider.CreateLogger<CalculateTreeValues2>())
         { }
 
         public CalculateTreeValues2(CpDataLayer dataLayer, IVolumeLibrary volumeLibrary, ILogger<CalculateTreeValues2> log)
@@ -380,7 +380,7 @@ namespace CruiseProcessing.Processing
         private List<TreeCalculatedValuesDO> CalculateVolumesFixCNT(List<TreeDO> treeList)
         {
             List<TreeCalculatedValuesDO> tcList = new List<TreeCalculatedValuesDO>();
-            float[] VOL = new float[VolumeLibraryInterop.I15];
+            float[] VOL = new float[VolumeLibrary.I15];
 
             //  pull all trees
             foreach (TreeDO td in treeList)

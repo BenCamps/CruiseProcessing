@@ -15,18 +15,20 @@ using Xunit.Abstractions;
 
 namespace CruiseProcessing.Test;
 
-public class TestBase
+public class TestBase : IDisposable
 {
     protected ITestOutputHelper Output { get; }
-    protected DbProviderFactory DbProvider { get; private set; }
     protected Randomizer Rand { get; }
     protected Stopwatch _stopwatch;
     private string _testTempPath;
-    private IHost _implicitHost;
+    private IHost? _implicitHost;
+    private bool disposedValue;
 
     protected LogLevel LogLevel { get; set; } = LogLevel.Information;
 
     private List<string> FilesToBeDeleted { get; } = new List<string>();
+
+    private List<IDisposable>? ObjectsToBeDisposed { get; set; } = new List<IDisposable>();
 
     public TestBase(ITestOutputHelper output)
     {
@@ -46,25 +48,9 @@ public class TestBase
         //    MinLogLevel = minLogLevel
         //};
         //CruiseProcessing.Services.Logging.LoggerProvider.DefaultLoggerFactory = LoggerFactory;
-
     }
 
     public IHost ImplicitHost => _implicitHost ??= CreateTestHost();
-
-    ~TestBase()
-    {
-        foreach (var file in FilesToBeDeleted)
-        {
-            try
-            {
-                File.Delete(file);
-            }
-            catch
-            {
-                // do nothing
-            }
-        }
-    }
 
     public string TestExecutionDirectory
     {
@@ -84,7 +70,7 @@ public class TestBase
             .ConfigureServices(ConfigureServices)
             .ConfigureLogging(ConfigureLogging);
 
-        if(configureServices != null)
+        if (configureServices != null)
         {
             builder.ConfigureServices(configureServices);
         }
@@ -98,7 +84,7 @@ public class TestBase
     protected virtual void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton<IDialogService>((x) => Substitute.For<IDialogService>());
-        services.AddTransient<IVolumeLibrary, VolumeLibrary_20241118>();
+        services.AddTransient<IVolumeLibrary, VolumeLibrary>();
     }
 
     protected virtual void ConfigureLogging(ILoggingBuilder loggingBuilder)
@@ -170,24 +156,34 @@ public class TestBase
         {
             var migrator = new DownMigrator();
             var v3Db = new CruiseDatastore_V3(filePath);
+            RegisterObjectForDisposal(v3Db);
+
             var processPath = filePath + ".process";
             var v2Db = new DAL(processPath, true);
+            RegisterObjectForDisposal(v2Db);
+            RegesterFileForCleanUp(processPath);
+
             var cruiseID = v3Db.QueryScalar<string>("SELECT CruiseID FROM Cruise").First();
             migrator.MigrateFromV3ToV2(cruiseID, v3Db, v2Db);
             Output.WriteLine("Migrated V3 file to: " + processPath);
-            RegesterFileForCleanUp(processPath);
-            return new CpDataLayer(v2Db, v3Db, cruiseID, Substitute.For<ILogger<CpDataLayer>>(), biomassOptions: null);
+            return new CpDataLayer(v2Db, v3Db, cruiseID, CreateLogger<CpDataLayer>(), biomassOptions: null);
         }
         else
         {
             var db = new DAL(filePath);
-            return new CpDataLayer(db, Substitute.For<ILogger<CpDataLayer>>(), biomassOptions: null);
+            RegisterObjectForDisposal(db);
+            return new CpDataLayer(db, CreateLogger<CpDataLayer>(), biomassOptions: null);
         }
     }
 
     public void RegesterFileForCleanUp(string path)
     {
         FilesToBeDeleted.Add(path);
+    }
+
+    protected void RegisterObjectForDisposal(IDisposable obj)
+    {
+        ObjectsToBeDisposed.Add(obj);
     }
 
     /// <summary>
@@ -198,5 +194,67 @@ public class TestBase
     public ILogger<T> CreateLogger<T>()
     {
         return ImplicitHost.Services.GetRequiredService<ILogger<T>>();
+    }
+
+    ~TestBase()
+    {
+        Dispose(false);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            foreach (var file in FilesToBeDeleted)
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    // do nothing
+                }
+            }
+            FilesToBeDeleted.Clear();
+
+            foreach (var obj in ObjectsToBeDisposed)
+            {
+                try
+                {
+                    obj.Dispose();
+                }
+                catch
+                {
+                    // do nothing
+                }
+            }
+            ObjectsToBeDisposed = null;
+
+            _implicitHost?.Dispose();
+            _implicitHost = null;
+
+            if (disposing)
+            {
+                
+            }
+            
+            // TODO: set large fields to null
+            disposedValue = true;
+        }
+    }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    // ~TestBase()
+    // {
+    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //     Dispose(disposing: false);
+    // }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

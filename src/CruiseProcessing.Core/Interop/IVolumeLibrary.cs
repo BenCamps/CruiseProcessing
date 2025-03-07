@@ -38,6 +38,10 @@ namespace CruiseProcessing.Interop
             float httot, int fclass, float[] vol, float[] wf,
             out int errflg, string prod);
 
+        string LookupVolumeEquation(int region, string forest, string district, int fiaCode, string product, out int error);
+
+        string LookupVolumeEquationNVB(int region, string forest, string district, int fiaCode, out int error);
+
         float[] LookupWeightFactorsCRZSPDFT(int region, string forest, string product, int fiaCode);
 
         float[] LookupWeightFactorsCRZSPDFTRaw(int region, string forest, int fiaCode);
@@ -56,34 +60,5 @@ namespace CruiseProcessing.Interop
         void BrownCullChunk(int fiaCode, float GCUFT, float NCUFT, float FLIW, out float cullChunkWGT);
 
         MRules GetMRules(int region, string volEq, string product);
-    }
-
-    public static class VolumeLibraryExtensions
-    {
-        public static string GetVersionNumberString(this IVolumeLibrary volumeLibrary)
-        {
-            return VolLibVersionNumberToString(volumeLibrary.GetVersionNumber());
-        }
-
-        public static string VolLibVersionNumberToString(int versionNumber)
-        {
-            try
-            {
-                //  Convert to a string to reformat date
-                string sTemp = versionNumber.ToString();
-                StringBuilder sDate = new StringBuilder();
-                sDate.Append(sTemp.Substring(4, 2));
-                sDate.Append(".");
-                sDate.Append(sTemp.Substring(6, 2));
-                sDate.Append(".");
-                sDate.Append(sTemp.Substring(0, 4));
-
-                return sDate.ToString();
-            }
-            catch
-            {
-                return "0.0.0.0";
-            }
-        }
     }
 }

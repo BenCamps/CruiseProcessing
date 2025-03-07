@@ -8,7 +8,7 @@ namespace CruiseProcessing.Interop
         public static CrzBiomassResult FromArray(float[] values)
         {
             // NOTE: there is an 8 element array in the original code, but as far as I can tell, only 7 elements are used
-            if (values.Length != VolumeLibraryInterop.CRZBIOMASSCS_BMS_SIZE)
+            if (values.Length != VolumeLibrary.CRZBIOMASSCS_BMS_SIZE)
             {
                 throw new ArgumentException("values must have 8 elements");
             }

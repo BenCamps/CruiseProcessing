@@ -43,7 +43,7 @@ namespace CruiseProcessing.Test
             mockDialogService.ShowPercentRemovedDialog(Arg.Any<IEnumerable<VolumeEquationDO>>())
                 .Returns(prList);
 
-            volumeLibrary ??= new VolumeLibrary_20241118();
+            volumeLibrary ??= new VolumeLibrary();
             var volEqViewModel = new VolumeEquationsViewModel(dataLayer, mockDialogService, volumeLibrary, biomassOptions: null, logger: null);
             volEqViewModel.UpdateBiomass(equationList.ToList(), region, forest);
         }

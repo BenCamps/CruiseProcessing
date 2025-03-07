@@ -3,31 +3,23 @@ using CruiseDAL.DataObjects;
 using CruiseProcessing.Data;
 using CruiseProcessing.Interop;
 using CruiseProcessing.Processing;
-using CruiseProcessing.ReferenceImplmentation;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace CruiseProcessing.Test.Processing
 {
-    public class CalculateTreeValues_20241101_Test : TestBase
+    public class CalcualteTreeValues3_Test : CalculateTreeValuesTestBase
     {
-        public CalculateTreeValues_20241101_Test(ITestOutputHelper output) : base(output)
+        public CalcualteTreeValues3_Test(ITestOutputHelper output) : base(output)
         {
         }
 
-
-
-        public enum CompareCalculateTreeValueFlags
-        {
-            None = 0,
-            IgnoreBiomass = 1,
-        }
 
         [Theory]
         [InlineData("OgTest\\Region1\\R1_FrenchGulch.cruise")]
@@ -72,10 +64,13 @@ namespace CruiseProcessing.Test.Processing
         {
             //LogLevel = Microsoft.Extensions.Logging.LogLevel.Trace;
             var filePath = GetTestFile(fileName);
+            var dataLayer = GetCpDataLayer(filePath);
 
-            var mockLogger = CreateLogger<CpDataLayer>();
-            var dal = new DAL(filePath);
-            var dataLayer = new CpDataLayer(dal, mockLogger, biomassOptions: null);
+            var host = CreateTestHost(sc =>
+            {
+                sc.AddTransient<CpDataLayer>(x => dataLayer);
+                sc.AddTransient<CalculateTreeValues2>();
+            });
 
             //var volEqs = dataLayer.getVolumeEquations();
             //if(volEqs.Any(x => x.CalcBiomass ==1) == false)
@@ -96,41 +91,23 @@ namespace CruiseProcessing.Test.Processing
 
 
 
-            //var ctv = new RefCalculateTreeValues(dataLayer, CreateLogger<RefCalculateTreeValues>());
-            var ctv = new CalculateTreeValues2(dataLayer, new VolumeLibrary_20241101(), CreateLogger<CalculateTreeValues2>());
+            
 
             var trees = dataLayer.getTrees();
             trees.All(x => x.TreeDefaultValue_CN != null && x.TreeDefaultValue_CN > 0)
                 .Should().BeTrue("All Trees Should Have A Tree Default Value");
             Output.WriteLine($"Number of Trees: {trees.Count}");
 
-            var strata = dataLayer.GetStrata();
-
-            var ctv2 = new CalculateTreeValues3(dataLayer);
-
-            dataLayer.DeleteLogStock();
-            dataLayer.deleteTreeCalculatedValues();
-            dal.BeginTransaction();
-            foreach (var st in strata)
-            {
-                ctv2.ProcessTrees(st.Code, st.Method, st.Stratum_CN.Value);
-            }
-            dal.CommitTransaction();
+            // process using CalculateTreeValues3
+            var ctv2 = host.Services.GetRequiredService<CalculateTreeValues3>();
+            ReprocessCruise(dataLayer, ctv2);
 
             var tcvs2 = dataLayer.getTreeCalculatedValues();
             var logStocks2 = dataLayer.getLogStock();
 
-
-            dataLayer.DeleteLogStock();
-            dataLayer.deleteTreeCalculatedValues();
-
-
-            dal.BeginTransaction();
-            foreach (var st in strata)
-            {
-                ctv.ProcessTrees(st.Code, st.Method, st.Stratum_CN.Value);
-            }
-            dal.CommitTransaction();
+            // process using CalculateTreeValues
+            var ctv = host.Services.GetRequiredService<CalculateTreeValues2>();
+            ReprocessCruise(dataLayer, ctv);
 
             var tcvs = dataLayer.getTreeCalculatedValues();
             Output.WriteLine($"Number of TreeCalculatedValues: {tcvs.Count}");
@@ -213,8 +190,6 @@ namespace CruiseProcessing.Test.Processing
                         .Excluding(x => x.Tree));
                 }
             }
-
-
         }
     }
 }

@@ -68,15 +68,13 @@ namespace CruiseProcessing.Test.Output
         [InlineData("Version3Testing\\99996FIX_PNT_Timber_Sale_08242021.cruise")]
         public void CreateOutFile(string testFileName)
         {
-            
             var filePath = GetTestFile(testFileName);
-            using var dal = new DAL(filePath);
-
-            var dataLayer = new CpDataLayer(dal, CreateLogger<CpDataLayer>(), biomassOptions: null);
+            var dataLayer = GetCpDataLayer(filePath);
 
             var host = CreateTestHost((sc) =>
             {
                 sc.AddSingleton<CpDataLayer>(dataLayer);
+                sc.AddTransient<CreateTextFile>();
             });
 
             List<TreeDO> tList = dataLayer.getTrees();
@@ -99,7 +97,7 @@ namespace CruiseProcessing.Test.Output
             using StringWriter strWriteOut = new StringWriter();
 
             var headerData = dataLayer.GetReportHeaderData();
-            var ctf = new CreateTextFile(dataLayer, host.Services, VolumeLibraryInterop.Default, CreateLogger<CreateTextFile>());
+            var ctf = host.Services.GetRequiredService<CreateTextFile>();
             _ = ctf.CreateOutFile(selectedReports, headerData, strWriteOut, out var failedReports, out var hasWarnings);
 
             strWriteOut.ToString().Should().NotBeNullOrEmpty();

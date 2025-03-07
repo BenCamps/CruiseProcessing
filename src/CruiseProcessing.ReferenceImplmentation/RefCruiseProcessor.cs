@@ -1,6 +1,7 @@
 ﻿using CruiseDAL.DataObjects;
 using CruiseProcessing.Data;
 using CruiseProcessing.Interop;
+using CruiseProcessing.Interop.Native;
 using CruiseProcessing.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -78,7 +79,7 @@ namespace CruiseProcessing.ReferenceImplmentation
 
 
                 int volLibVersion = 0;
-                RefCalculateTreeValues.VERNUM2(ref volLibVersion);
+                VolumeLibraryMethodProvider_20240626.VERNUM2(out volLibVersion);
                 //DataLayer.WriteGlobalValue(CpDataLayer.GLOBAL_KEY_VOLUMELIBRARY_VERSION, volLibVersion.ToString());
                 DataLayer.VolLibVersion = new RefCalculateTreeValues(DataLayer, _ctvLogger).GetVersion();
 

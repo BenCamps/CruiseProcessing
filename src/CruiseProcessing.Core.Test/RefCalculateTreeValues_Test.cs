@@ -2,6 +2,7 @@
 using CruiseDAL.DataObjects;
 using CruiseProcessing.Data;
 using CruiseProcessing.Interop;
+using CruiseProcessing.Interop.Native;
 using CruiseProcessing.Processing;
 using CruiseProcessing.ReferenceImplmentation;
 using FluentAssertions;
@@ -184,7 +185,7 @@ namespace CruiseProcessing.Test
 
             var strata = dataLayer.GetStrata();
 
-            var ctv2 = new CalculateTreeValues2(dataLayer, new VolumeLibrary_20240626(), CreateLogger<CalculateTreeValues2>());
+            var ctv2 = new CalculateTreeValues2(dataLayer, new VolumeLibrary(VolumeLibraryMethodProvider_20240626.GetNativeMethods()), CreateLogger<CalculateTreeValues2>());
 
             dataLayer.DeleteLogStock();
             dataLayer.deleteTreeCalculatedValues();
@@ -324,7 +325,9 @@ namespace CruiseProcessing.Test
             var logStocks = dataLayer.getLogStock();
 
 
-            var ctv2 = new CalculateTreeValues2(dataLayer, new VolumeLibrary_20240626(), CreateLogger<CalculateTreeValues2>());
+            var ctv2 = new CalculateTreeValues2(dataLayer,
+                new VolumeLibrary(VolumeLibraryMethodProvider_20240626.GetNativeMethods()),
+                CreateLogger<CalculateTreeValues2>());
 
             dataLayer.DeleteLogStock();
             dataLayer.deleteTreeCalculatedValues();

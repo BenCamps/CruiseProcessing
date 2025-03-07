@@ -2,11 +2,13 @@
 using CruiseDAL.DataObjects;
 using CruiseProcessing.Data;
 using CruiseProcessing.Interop;
+using CruiseProcessing.Output;
 using CruiseProcessing.Processing;
 using CruiseProcessing.ReferenceImplmentation;
 using CruiseProcessing.Services;
 using DiffPlex.DiffBuilder;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -25,6 +27,12 @@ namespace CruiseProcessing.Test.Processing
     {
         public CruiseProcessor_Test(ITestOutputHelper output) : base(output)
         {
+        }
+
+        protected override void ConfigureServices(IServiceCollection services)
+        {
+            base.ConfigureServices(services);
+            services.AddOutputReportGenerators();
         }
 
 
@@ -562,6 +570,7 @@ namespace CruiseProcessing.Test.Processing
         }
 
 
+
         [Theory]
         //[InlineData("OgTest\\BLM\\Hammer Away.cruise")]
         //[InlineData("OgTest\\BLM\\Long Nine.cruise")]
@@ -600,14 +609,16 @@ namespace CruiseProcessing.Test.Processing
 
         //[InlineData("Version3Testing\\27504PCM_Spruce East_Timber_Sale.cruise")] no out file
         //[InlineData("Version3Testing\\99996FIX_PNT_Timber_Sale_08242021.cruise")] no out file
-
-
         public void ProcessAndVerityOutput(string testFileName, string expectedOutputFileName, string expectedFailingReports = "")
         {
             using var dataLayer = ProcessCruiseHelper(testFileName);
 
-            var host = ImplicitHost;
-            var ctf = new CreateTextFile(dataLayer, host.Services, VolumeLibraryInterop.Default, CreateLogger<CreateTextFile>());
+            var host = CreateTestHost(sc =>
+            {
+                sc.AddTransient<CpDataLayer>(x => dataLayer);
+                sc.AddTransient<CreateTextFile>();
+            });
+            var ctf = host.Services.GetRequiredService<CreateTextFile>();
 
             var stringWriter = new StringWriter();
 
@@ -657,8 +668,12 @@ namespace CruiseProcessing.Test.Processing
         {
             using var dataLayer = ProcessCruiseHelper(testFileName);
 
-            var host = ImplicitHost;
-            var ctf = new CreateTextFile(dataLayer, host.Services, VolumeLibraryInterop.Default, CreateLogger<CreateTextFile>());
+            var host = CreateTestHost(sc =>
+            {
+                sc.AddTransient<CpDataLayer>(x => dataLayer);
+                sc.AddTransient<CreateTextFile>();
+            });
+            var ctf = host.Services.GetRequiredService<CreateTextFile>();
 
             var stringWriter = new StringWriter();
 
@@ -702,5 +717,7 @@ namespace CruiseProcessing.Test.Processing
 
 
         }
+
+
     }
 }

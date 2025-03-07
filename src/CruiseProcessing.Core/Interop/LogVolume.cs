@@ -64,7 +64,7 @@ namespace CruiseProcessing.Interop
 
         public LogVolume FromArray(float[,] values, int row)
         {
-            if (values.GetLength(1) != VolumeLibraryInterop.VOLLIBNVB_LOGVOL_SIZE_Y)
+            if (values.GetLength(1) != VolumeLibrary.VOLLIBNVB_LOGVOL_SIZE_Y)
             {
                 throw new ArgumentException("values should have 7 elements in second dimension");
             }

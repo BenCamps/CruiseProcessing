@@ -27,7 +27,7 @@ namespace CruiseProcessing.Interop
 
         public LogDiameter FromArray(float[,] values, int column)
         {
-            if (values.GetLength(0) != VolumeLibraryInterop.VOLLIBNVB_LOGDIA_SIZE_X)
+            if (values.GetLength(0) != VolumeLibrary.VOLLIBNVB_LOGDIA_SIZE_X)
             {
                 throw new ArgumentException("values should have 3 elements in first dimension");
             }

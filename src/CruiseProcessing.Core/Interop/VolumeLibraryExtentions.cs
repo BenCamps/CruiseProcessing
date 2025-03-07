@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 
 namespace CruiseProcessing.Interop
 {
@@ -20,6 +21,32 @@ namespace CruiseProcessing.Interop
             SECONDARY_PRODUCT_COMPONENT,
             "StemTip"
         });
+
+        public static string GetVersionNumberString(this IVolumeLibrary volumeLibrary)
+        {
+            return VolLibVersionNumberToString(volumeLibrary.GetVersionNumber());
+        }
+
+        public static string VolLibVersionNumberToString(int versionNumber)
+        {
+            try
+            {
+                //  Convert to a string to reformat date
+                string sTemp = versionNumber.ToString();
+                StringBuilder sDate = new StringBuilder();
+                sDate.Append(sTemp.Substring(4, 2));
+                sDate.Append(".");
+                sDate.Append(sTemp.Substring(6, 2));
+                sDate.Append(".");
+                sDate.Append(sTemp.Substring(0, 4));
+
+                return sDate.ToString();
+            }
+            catch
+            {
+                return "0.0.0.0";
+            }
+        }
 
         public static IEnumerable<BiomassEquationDO> MakeBiomassEquationsInternal(this IVolumeLibrary volumeLibrary, int region, string forest, int fiaCode, string primaryProduct, string species, string liveDead, float percentRemovedValue)
         {

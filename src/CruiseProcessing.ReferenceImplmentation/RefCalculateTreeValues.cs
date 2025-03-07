@@ -1,26 +1,23 @@
 ﻿using CruiseDAL.DataObjects;
 using CruiseProcessing.Data;
 using CruiseProcessing.Interop;
+using CruiseProcessing.Interop.Native;
 using CruiseProcessing.Processing;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CruiseProcessing.ReferenceImplmentation
 {
     public class RefCalculateTreeValues : ICalculateTreeValues
     {
-        const int STRING_BUFFER_SIZE = 256;
-        const int CHARLEN = 1;
+        private const int STRING_BUFFER_SIZE = 256;
+        private const int CHARLEN = 1;
 
-        const int DRYBIO_ARRAY_SIZE = 15;
-        const int GRNBIO_ARRAY_SIZE = 15;
-
-        #region
+        private const int DRYBIO_ARRAY_SIZE = 15;
+        private const int GRNBIO_ARRAY_SIZE = 15;
 
         private string currRegion;
         private string currForest;
@@ -40,139 +37,24 @@ namespace CruiseProcessing.ReferenceImplmentation
         private MRules mRules;
         protected CpDataLayer DataLayer { get; }
         public ILogger Log { get; }
-        CalculateNetVolume NetVolumeCalculator { get; }
-
-
-
+        private CalculateNetVolume NetVolumeCalculator { get; }
+        public VolumeLibraryNativeMethods NativeMethods { get; }
 
         public RefCalculateTreeValues(CpDataLayer dataLayer, ILogger<RefCalculateTreeValues> logger)
         {
             DataLayer = dataLayer ?? throw new ArgumentNullException(nameof(dataLayer));
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
             NetVolumeCalculator = new CalculateNetVolume();
+            NativeMethods = VolumeLibraryMethodProvider_20240626.GetNativeMethods();
         }
-
-        [DllImport("vollib_20240626.dll", CallingConvention = CallingConvention.Cdecl)]//, CallingConvention = CallingConvention.StdCall)]
-        static extern void VOLLIBCSNVB(ref int regn,
-                            StringBuilder forst,
-                            StringBuilder voleq,
-                            ref float mtopp,
-                            ref float mtops,
-
-                            ref float stump,
-                            ref float dbhob,
-                            ref float drcob,
-                            StringBuilder httype,
-                            ref float httot,
-
-                            ref int htlog,
-                            ref float ht1prd,
-                            ref float ht2prd,
-                            ref float upsht1,
-                            ref float upsht2,
-
-                            ref float upsd1,
-                            ref float upsd2,
-                            ref int htref,
-                            ref float avgz1,
-                            ref float avgz2,
-
-                            ref int fclass,
-                            ref float dbtbh,
-                            ref float btr,
-                            float[] vol,
-                            float[,] logvol,
-
-                            float[,] logdia,
-                            float[] loglen,
-                            float[] bohlt,
-                            ref int tlogs,
-                            ref float nologp,
-
-                            ref float nologs,
-                            ref int cutflg,
-                            ref int bfpflg,
-                            ref int cupflg,
-                            ref int cdpflg,
-
-                            ref int spflg,
-                            StringBuilder conspec,
-                            StringBuilder prod,
-                            ref int httfll,
-                            StringBuilder live,
-
-                            ref int ba,
-                            ref int si,
-                            StringBuilder ctype,
-                            ref int errflg,
-                            ref int pmtflg,
-
-                            ref MRules mRules,
-                            ref int dist,
-
-
-                            ref float brkht,
-                            ref float brkhtd,
-                            ref int fiaspcd,
-                            float[] drybio,
-                            float[] grnbio,
-
-                            ref float cr,
-                            ref float cull,
-                            ref int decaycd,
-
-                            int ll1,
-                            int ll2,
-                            int ll3,
-                            int ll4,
-                            int ll5,
-                            int ll6,
-                            int ll7,
-                            int charLen);
-
-        //  declarations for external methods from vollib.dll
-        [DllImport("vollib_20240626.dll", CallingConvention = CallingConvention.Cdecl)]//EntryPoint = "VERNUM2",
-        public static extern void VERNUM2(ref int a);
-
-        [DllImport("vollib_20240626.dll", CallingConvention = CallingConvention.Cdecl)]// CallingConvention = CallingConvention.StdCall)]
-        static extern void VOLLIBCS(ref int regn, StringBuilder forst, StringBuilder voleq, ref float mtopp, ref float mtops,
-            ref float stump, ref float dbhob, ref float drcob, StringBuilder httype, ref float httot, ref int htlog, ref float ht1prd,
-            ref float ht2prd, ref float upsht1, ref float upsht2, ref float upsd1, ref float upsd2, ref int htref, ref float avgz1,
-            ref float avgz2, ref int fclass, ref float dbtbh, ref float btr, ref int i3, ref int i7, ref int i15, ref int i20,
-            ref int i21, float[] vol, float[,] logvol, float[,] logdia, float[] loglen, float[] bohlt, ref int tlogs, ref float nologp,
-            ref float nologs, ref int cutflg, ref int bfpflg, ref int cupflg, ref int cdpflg, ref int spflg, StringBuilder conspec,
-            StringBuilder prod, ref int httfll, StringBuilder live, ref int ba, ref int si, StringBuilder ctype, ref int errflg,
-            ref int indeb, ref int pmtflg, ref MRules mRules, ref int dist, int ll1, int ll2, int ll3, int ll4, int ll5, int ll6, int ll7, int charLen);
-
-        //[DllImportAttribute("vollib.dll", CallingConvention = CallingConvention.Cdecl)]
-        // static extern void CRZBIOMASSCS(ref int regn, StringBuilder forst, ref int spcd, ref float dbhob, ref float drcob, ref float httot, 
-        //                                ref int fclass, float[] vol, float[] wf, float[] bms, ref int errflg, int i1);
-
-        [DllImport("vollib_20240626.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CRZBIOMASSCS(ref int regn,
-                    StringBuilder forst,
-                    ref int spcd,
-                    ref float dbhob,
-                    ref float drcob,
-                    ref float httot,
-                    ref int fclass,
-                    float[] vol,
-                    float[] wf,
-                    float[] bms,
-                    ref int errflg,
-                    StringBuilder prod,
-                    int i1,
-                    int i2);
-
-        #endregion
 
         Interop.IVolumeLibrary ICalculateTreeValues.VolLib => throw new NotSupportedException();
 
         public string GetVersion()
         {
             int volLibVersion = 0;
-            RefCalculateTreeValues.VERNUM2(ref volLibVersion);
-            return VolumeLibraryExtensions.VolLibVersionNumberToString(volLibVersion) + ":Ref";
+            NativeMethods.VERNUM2(out volLibVersion);
+            return VolumeLibraryExtentions.VolLibVersionNumberToString(volLibVersion) + ":Ref";
         }
 
         public void ProcessTrees(string currST, string currMethod, long currST_CN)
@@ -202,13 +84,12 @@ namespace CruiseProcessing.ReferenceImplmentation
             return;
         }   //  end ProcessTrees
 
-
         private void CalculateVolumes(List<TreeDO> strataTrees, string currST, string currMethod,
                                             List<BiomassEquationDO> bioList, long currST_CN)
         {
             //  Also need tree calculated values by stratum
             List<TreeCalculatedValuesDO> tcList = new List<TreeCalculatedValuesDO>();
-           
+
             //  Definitions for the Fortran DLL call
             int I3 = 3;
             int I7 = 7;
@@ -277,7 +158,6 @@ namespace CruiseProcessing.ReferenceImplmentation
                         tcvdo.BiomassTip = calculatedBiomass[6];
                         tcList.Add(tcvdo);
                     }   //  endif on nthRow
-
                 }   //  end foreach loop
             }
             else
@@ -321,7 +201,6 @@ namespace CruiseProcessing.ReferenceImplmentation
 
                         TLOGS = numLogs;
                     }
-
 
                     //  Is this a FBS tree?  process separately and skip volume calculation
                     if (td.IsFallBuckScale == 1)
@@ -377,7 +256,7 @@ namespace CruiseProcessing.ReferenceImplmentation
                                 UPSD1, UPSD2, HTREF, AVGZ1, AVGZ2,
                                 FCLASS, DBTBH, BTR);
 
-                            VOLLIBCSNVB(ref REGN, FORST, VOLEQ, ref MTOPP, ref MTOPS,
+                            NativeMethods.VOLLIBCSNVB(ref REGN, FORST, VOLEQ, ref MTOPP, ref MTOPS,
                                 ref STUMP, ref DBHOB, ref DRCOB, HTTYPE, ref HTTOT,
                                 ref HTLOG, ref HT1PRD, ref HT2PRD, ref UPSHT1, ref UPSHT2,
                                 ref UPSD1, ref UPSD2, ref HTREF, ref AVGZ1, ref AVGZ2,
@@ -449,7 +328,6 @@ namespace CruiseProcessing.ReferenceImplmentation
                     //  and make sure modified log stock list is saved
                     if (TLOGS != 0 && logStockList.Count != 0)
                         DataLayer.SaveLogStock(logStockList, TLOGS);
-
                 }   //  end foreach loop
             }   //  endif on method
 
@@ -457,7 +335,6 @@ namespace CruiseProcessing.ReferenceImplmentation
             //bslyr.fileName = fileName;
             DataLayer.SaveTreeCalculatedValues(tcList);
         }   //  end CalculateVolumes
-
 
         private void getLibraryCallValues(TreeDO td, VolumeEquationDO ved)
         {
@@ -474,7 +351,7 @@ namespace CruiseProcessing.ReferenceImplmentation
             FORST.Append(currForest);
             VOLEQ.Append(ved.VolumeEquationNumber);
 
-            //  Get top DIBs based on comparison of DIB on volume equation versus DIB on tree.  
+            //  Get top DIBs based on comparison of DIB on volume equation versus DIB on tree.
             //  If tree DIB is zero, use volume equation DIB.  Else use tree DIB
             if (td.TopDIBPrimary <= 0)
                 MTOPP = ved.TopDIBPrimary;
@@ -565,7 +442,6 @@ namespace CruiseProcessing.ReferenceImplmentation
             return;
         }   //  end getLibraryCallValues
 
-
         private void CalculateBiomass(ref float[] calculatedBiomass, List<BiomassEquationDO> bioList,
                                             string currSP, string currPP, long currFIA, string currRegion,
                                             string currForest, float[] VOL, float currDBH, float currDRC,
@@ -611,9 +487,8 @@ namespace CruiseProcessing.ReferenceImplmentation
 
             var prod = new StringBuilder(256).Append(currPP);
 
-            CRZBIOMASSCS(ref iRegn, sForest, ref SPCD, ref currDBH, ref currDRC, ref currHGT, ref currFC, VOL, WF,
+            NativeMethods.CRZBIOMASSCS(ref iRegn, sForest, ref SPCD, ref currDBH, ref currDRC, ref currHGT, ref currFC, VOL, WF,
                                 calculatedBiomass, ref ERRFLAG, prod, strlen, strlen);
-
 
             // Apply percent removed if greater than zero
             if (nthRow >= 0)
@@ -622,12 +497,10 @@ namespace CruiseProcessing.ReferenceImplmentation
                 {
                     for (int j = 0; j < 8; j++)
                         calculatedBiomass[j] = calculatedBiomass[j] * (float)(justSpecies[nthRow].PercentRemoved / 100.0);
-
                 }   //  endif percent removed greater than zero
             }  //  endif oon nthrow
             return;
         }   //  end CaclculateBiomass
-
 
         private void UpdateLogStock(List<LogDO> justTreeLogs, List<LogStockDO> logStockList, int currTreeCN,
                                             float[,] LOGVOL, float[,] LOGDIA, float[] LOGLEN, int TLOGS)
@@ -674,7 +547,6 @@ namespace CruiseProcessing.ReferenceImplmentation
             return;
         }   //  end UpdateLogStock
 
-
         private void StoreCalculations(int currTreeCN, float[] VOL, float[,] LOGVOL, int TCUFTflag, int GBDFTflag,
                                             int GCUFTflag, int CORDflag, int SecondVolFlag, int RecvFlag,
                                             float cullDef, float hidDef, float seenDef, float recvDef,
@@ -704,7 +576,6 @@ namespace CruiseProcessing.ReferenceImplmentation
                             biomassCalcs, tcvList, logStockList);
             return;
         }   //  end StoreCalculations
-
 
         private void loadSameTree(int nthRow, float[] VOL, float[,] LOGVOL, int TCUFTflag, int GBDFTflag,
                                             int GCUFTflag, int CORDflag, int SecondVolFlag, int RecvFlag,
@@ -808,7 +679,6 @@ namespace CruiseProcessing.ReferenceImplmentation
             return;
         }   //  end loadSameTree
 
-
         private void loadNewTree(int currTreeCN, float[] VOL, float[,] LOGVOL, int TCUFTflag, int GBDFTflag,
                                             int GCUFTflag, int CORDflag, int SecondVolFlag, int RecvFlag,
                                             float cullDef, float hidDef, float seenDef, float recvDef,
@@ -841,7 +711,6 @@ namespace CruiseProcessing.ReferenceImplmentation
                 tcvdo.CordsSP = VOL[8];
                 tcvdo.GrossBDFTSP = VOL[11];
                 tcvdo.NetBDFTSP = VOL[12];
-
             }
             else if (SecondVolFlag == 0)
             {
@@ -916,7 +785,6 @@ namespace CruiseProcessing.ReferenceImplmentation
             return;
         }   //  end loadNewTree
 
-
         private void RecoveredVolume(TreeCalculatedValuesDO tcvdo, float cullDef, float hidDef,
                                             float seenDef, float recvDef)
         {
@@ -956,7 +824,6 @@ namespace CruiseProcessing.ReferenceImplmentation
 
             return;
         }   //  end RecoveredVolume
-
 
         private void CalcFallBuckScale(int currTree_CN, List<LogDO> justTreeLogs,
                                                 List<LogStockDO> logStockList,
@@ -999,7 +866,6 @@ namespace CruiseProcessing.ReferenceImplmentation
                 treeCalcList.Add(tcv);
             }   //  endif on nthRow
 
-
             //  load logs into log stock table
             foreach (LogDO jtl in justTreeLogs)
             {
@@ -1024,6 +890,7 @@ namespace CruiseProcessing.ReferenceImplmentation
                             ls.NetBoardFoot = 0;
                             ls.NetCubicFoot = 0;
                             break;
+
                         case "7":
                         case "8":
                             ls.BoardFootRemoved = jtl.GrossBoardFoot;
@@ -1031,6 +898,7 @@ namespace CruiseProcessing.ReferenceImplmentation
                             ls.NetBoardFoot = 0;
                             ls.NetCubicFoot = 0;
                             break;
+
                         case "":
                         case " ":
                         case null:
@@ -1039,6 +907,7 @@ namespace CruiseProcessing.ReferenceImplmentation
                             // need a warning message about  blank log grade
                             DataLayer.LogError("TreeCalculatedValues", (int)currTree_CN, "W", "This tree has a blank log grade or no product assigned.");
                             break;
+
                         default:
                             ls.BoardFootRemoved = jtl.GrossBoardFoot;
                             ls.CubicFootRemoved = jtl.GrossCubicFoot;
@@ -1049,7 +918,6 @@ namespace CruiseProcessing.ReferenceImplmentation
                     ls.NetBoardFoot = jtl.NetBoardFoot;
                     ls.GrossCubicFoot = jtl.GrossCubicFoot;
                     ls.NetCubicFoot = jtl.NetCubicFoot;
-
                 }
                 else
                 {
@@ -1067,7 +935,6 @@ namespace CruiseProcessing.ReferenceImplmentation
 
             return;
         }   //  end CalcFallBuckScale
-
 
         private void CalculateValue(List<TreeDO> strataTrees, string currST, string currMethod,
                                             string currRegion, List<ValueEquationDO> valList,
@@ -1115,6 +982,7 @@ namespace CruiseProcessing.ReferenceImplmentation
                                     Math.Pow(tdo.TotalHeight, valList[nthRow].Coefficient3) *
                                     Math.Pow(clearFace, valList[nthRow].Coefficient4) * bdftRatio);
                                 break;
+
                             case "03":
                             case "04":
                                 clearFace++;
@@ -1122,7 +990,7 @@ namespace CruiseProcessing.ReferenceImplmentation
                                     Math.Pow(tdo.DBH, valList[nthRow].Coefficient2) *
                                     Math.Pow(tdo.TotalHeight, valList[nthRow].Coefficient3) * bdftRatio);
                                 break;
-                        }   //  end switch                    
+                        }   //  end switch
                     }
                     else
                     {
@@ -1132,54 +1000,68 @@ namespace CruiseProcessing.ReferenceImplmentation
                             case "01":
                                 sawValue = (tcvList[mthRow].GrossBDFTPP * valList[nthRow].Coefficient1) / 1000;
                                 break;
+
                             case "02":
                                 sawValue = (tcvList[mthRow].NetBDFTPP * valList[nthRow].Coefficient1) / 1000;
                                 break;
+
                             case "03":
                                 sawValue = (tcvList[mthRow].GrossCUFTPP * valList[nthRow].Coefficient1) / 100;
                                 break;
+
                             case "04":
                                 sawValue = (tcvList[mthRow].NetCUFTPP * valList[nthRow].Coefficient1) / 100;
                                 break;
+
                             case "05":
                                 sawValue = tcvList[mthRow].CordsPP * valList[nthRow].Coefficient1;
                                 break;
+
                             case "06":
                                 sawValue = (tcvList[mthRow].GrossBDFTPP * valList[nthRow].Coefficient1) / 1000;
                                 topValue = (tcvList[mthRow].GrossCUFTSP * valList[nthRow].Coefficient2) / 100;
                                 break;
+
                             case "07":
                                 sawValue = (tcvList[mthRow].NetBDFTPP * valList[nthRow].Coefficient1) / 1000;
                                 topValue = (tcvList[mthRow].NetCUFTSP * valList[nthRow].Coefficient2) / 100;
                                 break;
+
                             case "08":
                                 sawValue = (tcvList[mthRow].GrossBDFTPP * valList[nthRow].Coefficient1) / 1000;
                                 topValue = tcvList[mthRow].CordsSP * valList[nthRow].Coefficient2;
                                 break;
+
                             case "09":
                                 sawValue = (tcvList[mthRow].NetBDFTPP * valList[nthRow].Coefficient1) / 1000;
                                 topValue = tcvList[mthRow].CordsSP * valList[nthRow].Coefficient2;
                                 break;
+
                             case "10":
                                 sawValue = (tcvList[mthRow].GrossCUFTPP * valList[nthRow].Coefficient1) / 100;
                                 topValue = (tcvList[mthRow].GrossCUFTSP * valList[nthRow].Coefficient2) / 100;
                                 break;
+
                             case "11":
                                 sawValue = (tcvList[mthRow].GrossCUFTPP * valList[nthRow].Coefficient1) / 100;
                                 topValue = tcvList[mthRow].CordsSP * valList[nthRow].Coefficient2;
                                 break;
+
                             case "12":
                                 sawValue = (tcvList[mthRow].NetCUFTPP * valList[nthRow].Coefficient1) / 100;
                                 topValue = (tcvList[mthRow].NetCUFTSP * valList[nthRow].Coefficient2) / 100;
                                 break;
+
                             case "13":
                                 sawValue = (tcvList[mthRow].NetCUFTPP * valList[nthRow].Coefficient1) / 100;
                                 topValue = tcvList[mthRow].CordsSP * valList[nthRow].Coefficient2;
                                 break;
+
                             case "14":
                                 sawValue = tcvList[mthRow].CordsPP * valList[nthRow].Coefficient1;
                                 topValue = tcvList[mthRow].CordsSP * valList[nthRow].Coefficient2;
                                 break;
+
                             case "50":
                                 sawValue = valList[nthRow].Coefficient1 + (valList[nthRow].Coefficient2 * tdo.DBH) +
                                     (valList[nthRow].Coefficient3 * tdo.TotalHeight) +
@@ -1200,90 +1082,5 @@ namespace CruiseProcessing.ReferenceImplmentation
             DataLayer.SaveTreeCalculatedValues(tcvList);
             return;
         }   //  end CalculateValue
-
-
-
-        //  this is used for the volume library call
-        public struct MRules
-        {
-            public int evod;
-            public int opt;
-
-            public float maxlen;
-            public float minlen;
-            public float minlent;
-            public float merchl;
-            public float mtopp;
-            public float mtops;
-            public float stump;
-            public float trim;
-            public float btr;
-            public float dbhtbh;
-            public float minbfd;
-
-            public char cor;
-
-            public MRules(int ev, float mxln, float mnln, float merln, float mtpp, float mtps, int op, float stmp, float trm)
-            {
-                evod = ev;
-                maxlen = mxln;
-                minlen = mnln;
-                merchl = merln;
-                mtopp = mtpp;
-                mtops = mtps;
-                opt = op;
-                stump = stmp;
-                trim = trm;
-
-                cor = 'Y';
-                minlent = 0;
-                btr = 0;
-                dbhtbh = 0;
-                minbfd = 0;
-            }   //  end MRules
-
-            //  MERCHANDIZING VARIABLES
-            //***************************
-            //  REGION - INTEGER - Region number used to set Regional Merchandizing Rules
-            //  COR - CHARACTER - Flag to indicate Scribner table or Scribner factor volumes.
-            //                  "Y" = table volumes, "N" = factor volumes
-            //  EVOD - INTEGER - allow even or oadd segment lengths
-            //                  segment options 11-14 allow odd lengths by definition
-            //                  1 = odd segment lengths allowed
-            //                  2 = only even segment lengths will be allowed
-            //  MAXLEN - REAL - Maximum segment length
-            //  MINLEN - REAL - Minimum segment length
-            //  MERCHL - REAL - Minimum length of primary product a tree must have
-            //                  must be merchantable
-            //  ** TOP DIB TO USE**
-            //  MTOPP - REAL - BDFT, CUFT and Cord Wood merch top for primary product
-            //  MTOPS - REAL - CUFT and Cord Wood merch top for secondary product
-
-            //  OPT - INTEGER - Specifies whcih segmentation option to use for
-            //          merchandizing tree bole.  Option codes are as follows:
-            //          11 = 16 ft log scale, presented as tree length log.  (FSH 2409.11)
-            //          12 = 20 ft log scale, presented as tree length log.  (FSH 2409.11)
-            //          13 = 32 ft log scale, presented as tree length log.
-            //          14 = 40 ft log scale, presented as tree length log.
-            //          21 = Nominal log length (NLL).  If top log is less than half
-            //              of the NLL then it is combined with the next lowest log and
-            //              this combined piece is then resegmented according to the
-            //              entered merchandizing parameters giving two approximately
-            //              equal log lengths.  If the segment length is greater than
-            //              or equal to half the NLL then the segment stands on its' own.
-            //          22 = Nominal log length (NLL).  top log is combined with the next
-            //              lowest log and this combined piece is then resegmented
-            //              according to the entered merchandizing parameters giving
-            //              two approximately equal log lengths.
-            //          23 = Nominal log length.  top segment stands on its' own.
-            //          24 = Nominal log length.  if the top segment is less than 1/4 of
-            //              NLL then the segment is dropped.  If the segment is 1/4 to
-            //              3/4 of NLL then the segment length is set to 1/2 of NLL.
-            //              if the segment is greater than 3/4 of NLL then the segment
-            //              length is set to NLL.
-
-            //  STUMP - REAL - height of stump in feet or fractions thereof
-            //  TRIM - REAL - trim length for each segment in feet or fractions thereof.
-        }   //  end MRules
     }
 }
