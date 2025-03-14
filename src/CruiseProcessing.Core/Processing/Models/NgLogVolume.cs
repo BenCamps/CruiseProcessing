@@ -23,11 +23,12 @@ namespace CruiseProcessing.Processing.Models
         public double NetBdFt { get; set; }
         public double GrossBdFtRemoved { get; set; }
         public double GrossCuFt { get; set; }
+        public double NetCuFt { get; set; }
         public double GrossCuFtRemoved { get;set; }
 
-        public int SeenDefect {  get; set; }
-        public int PercentRecoverable { get; set; }
+        public double SeenDefect {  get; set; }
+        public double PercentRecoverable { get; set; }
 
-
+        public string Grade {  get; set; }
     }
 }

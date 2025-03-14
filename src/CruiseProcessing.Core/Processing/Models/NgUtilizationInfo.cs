@@ -47,6 +47,6 @@ namespace CruiseProcessing.Processing.Models
         public double TrimNonSaw {  get; set; }
 
         // additional un-used field
-        public bool MerchModFlag { get; set; }
+        public int MerchModFlag { get; set; }
     }
 }

@@ -55,7 +55,7 @@ namespace CruiseProcessing.Processing.Models
         // do we not have a tree default value table?!?
         public string TreeGrade { get; set; }
         public double RecoverablePrimary { get; set; }
-        public string FormClass { get; set; }
+        public double FormClass { get; set; }
 
 
         // more likely Tree Default Value table fields

@@ -7,6 +7,18 @@ namespace CruiseProcessing.Interop
     {
         int GetVersionNumber();
 
+        public VolLibNVBoutput CalculateVolumeNVB(
+            int regn, int forst, string voleq, double mtopp, double mtops,
+            double stump, double dbhob, double drcob, string httype, double httot,
+            int htlog, double ht1prd, double ht2prd, double upsht1, double upsht2,
+            double upsd1, double upsd2, int htref, double avgz1, double avgz2,
+            int fclass, double dbtbh, double btr, int cutflg, int bfpflg, int cupflg, int cdpflg,
+            int spflg, string conspec, string prod, int httfll, string live,
+            int ba, int si, string ctype, int pmtflg,
+            MRules mRules, int idist,
+            double brkht, double brkhtd, int fiaspcd,
+            double cr, double cull, int decaycd);
+
         VolLibNVBoutput CalculateVolumeNVB(
             int regn, string forst, string voleq, float mtopp, float mtops,
             float stump, float dbhob, float drcob, string httype, float httot,

@@ -76,29 +76,55 @@ namespace CruiseProcessing.Interop
         }
 
         public VolLibNVBoutput CalculateVolumeNVB(
-int regn, string forst, string voleq, float mtopp, float mtops,
-float stump, float dbhob, float drcob, string httype, float httot,
-int htlog, float ht1prd, float ht2prd, float upsht1, float upsht2,
-float upsd1, float upsd2, int htref, float avgz1, float avgz2,
-int fclass, float dbtbh, float btr, int cutflg, int bfpflg, int cupflg, int cdpflg,
-int spflg, string conspec, string prod, int httfll, string live,
-int ba, int si, string ctype, int pmtflg,
-MRules mRules, int idist,
-float brkht, float brkhtd, int fiaspcd,
-float cr, float cull, int decaycd)
+                int regn, int forst, string voleq, double mtopp, double mtops,
+                double stump, double dbhob, double drcob, string httype, double httot,
+                int htlog, double ht1prd, double ht2prd, double upsht1, double upsht2,
+                double upsd1, double upsd2, int htref, double avgz1, double avgz2,
+                int fclass, double dbtbh, double btr, int cutflg, int bfpflg, int cupflg, int cdpflg,
+                int spflg, string conspec, string prod, int httfll, string live,
+                int ba, int si, string ctype, int pmtflg,
+                MRules mRules, int idist,
+                double brkht, double brkhtd, int fiaspcd,
+                double cr, double cull, int decaycd)
+        {
+            var sForest = forst.ToString().PadLeft(2, '0');
+
+            return CalculateVolumeNVB(regn, sForest, voleq, (float)mtopp, (float)mtops,
+                                (float)stump, (float)dbhob, (float)drcob, httype, (float)httot,
+                                htlog, (float)ht1prd, (float)ht2prd, (float)upsht1, (float)upsht2,
+                                (float)upsd1, (float)upsd2, htref, (float)avgz1, (float)avgz2,
+                                fclass, (float)dbtbh, (float)btr, cutflg, bfpflg, cupflg, cdpflg,
+                                spflg, conspec, prod, httfll, live,
+                                ba, si, ctype, pmtflg,
+                                mRules, idist,
+                                (float)brkht, (float)brkhtd, fiaspcd,
+                                (float)cr, (float)cull, decaycd);
+        }
+
+        public VolLibNVBoutput CalculateVolumeNVB(
+                int regn, string forst, string voleq, float mtopp, float mtops,
+                float stump, float dbhob, float drcob, string httype, float httot,
+                int htlog, float ht1prd, float ht2prd, float upsht1, float upsht2,
+                float upsd1, float upsd2, int htref, float avgz1, float avgz2,
+                int fclass, float dbtbh, float btr, int cutflg, int bfpflg, int cupflg, int cdpflg,
+                int spflg, string conspec, string prod, int httfll, string live,
+                int ba, int si, string ctype, int pmtflg,
+                MRules mRules, int idist,
+                float brkht, float brkhtd, int fiaspcd,
+                float cr, float cull, int decaycd)
         {
             CalculateVolumeNVB(regn, forst, voleq, mtopp, mtops,
-                stump, dbhob, drcob, httype, httot,
-                htlog, ht1prd, ht2prd, upsht1, upsht2,
-                upsd1, upsd2, htref, avgz1, avgz2,
-                fclass, dbtbh, btr, out var vol, out var logvol,
-                out var logdia, out var loglen, out var bolht, out var tlogs, out var nologp,
-                out var nologs, cutflg, bfpflg, cupflg, cdpflg,
-                spflg, conspec, prod, httfll, live,
-                ba, si, ctype, out var errflg, pmtflg,
-                mRules, idist,
-                brkht, brkhtd, fiaspcd, out var drybio, out var grnbio,
-                cr, cull, decaycd);
+                                stump, dbhob, drcob, httype, httot,
+                                htlog, ht1prd, ht2prd, upsht1, upsht2,
+                                upsd1, upsd2, htref, avgz1, avgz2,
+                                fclass, dbtbh, btr, out var vol, out var logvol,
+                                out var logdia, out var loglen, out var bolht, out var tlogs, out var nologp,
+                                out var nologs, cutflg, bfpflg, cupflg, cdpflg,
+                                spflg, conspec, prod, httfll, live,
+                                ba, si, ctype, out var errflg, pmtflg,
+                                mRules, idist,
+                                brkht, brkhtd, fiaspcd, out var drybio, out var grnbio,
+                                cr, cull, decaycd);
 
             var volumes = new Volumes(vol);
             var logVolumes = new LogVolume[VOLLIBNVB_LOGVOL_SIZE_X];
