@@ -28,7 +28,7 @@ namespace CruiseProcessing.Test.Output
 
             var fileExtentions = new[] { ".crz3", ".cruise" };
 
-            var testCruiseFiles = Directory.EnumerateFiles(base.TestFilesDirectory, "*.*", SearchOption.AllDirectories)
+            var testCruiseFiles = Directory.EnumerateFiles(TestFilesDirectory, "*.*", SearchOption.AllDirectories)
                 .Where(x => fileExtentions.Contains(Path.GetExtension(x)));
 
             // output header
@@ -80,7 +80,7 @@ namespace CruiseProcessing.Test.Output
                     reportMatrix.First(x => x.ReportID == report.ReportID).IsSelected = true;
                 }
 
-                var fileName = file.Remove(0, base.TestFilesDirectory.Length);
+                var fileName = file.Remove(0, TestFilesDirectory.Length);
                 //var fileName = Path.GetFileName(file);
                 Output.WriteLine(fileName.PadRight(fileNameColumnWidth) + "," + string.Join(",", reportMatrix.Select(x => (x.IsSelected ? "X" : " ").PadRight(reportMatrixColumnWidth)).ToArray()));
             }
