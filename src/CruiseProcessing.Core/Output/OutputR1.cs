@@ -1,8 +1,11 @@
-﻿using CruiseDAL.DataObjects;
+﻿
+
+using CruiseDAL.DataObjects;
 using CruiseProcessing.Data;
 using CruiseProcessing.Output;
 using CruiseProcessing.OutputModels;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,15 +27,7 @@ namespace CruiseProcessing
                                                       "  P     I       U   F     D      U      CUFT       CUFT       AVG       ** GROSS VOLUME **     **  NET VOLUME **     GROSS   GROSS",
                                                       "  E     E       C         F      F",
                                                       "  C     S       T   M     T      T      RATIO      RATIO      DBH         BDFT       CUFT       BDFT       CUFT       CCF     MBF"};
-        //  R102/R103 reports
-        //  BDFT OR CUFT
-        private readonly string[] R102R103columns = new string[7] {"  L  P",
-                                                          "  O  R",
-                                                          "  G  O",
-                                                          "     D",
-                                                          "  M  U                                                 GROSS       NET                              NET   16'LOGS/",
-                                                          "  T  C          GROSS    TOTAL    NET       ESTIM      XX/         XX/   TREES/   MEAN     MEAN     XX/   GROSS    AVG",
-                                                          "  H  T          XX       DEF%     XX        TREES      ACRE        ACRE  ACRE     DBH      HGT      TREE  XXX      SLOPE     ACRES"};
+
         //  R104 report
         private readonly string[] R104columns = new string[2] {"           CUTTING               SAMPLE    PRIMARY     CUT/      AVG      BASAL",
 
@@ -66,13 +61,6 @@ namespace CruiseProcessing
         private List<ReportSubtotal> totalToOutput = new List<ReportSubtotal>();
         private string[] completeHeader;
 
-        // TODO can thses class fields be removed?
-        private double currGRS;
-        private double currNET;
-        private double currEF;
-        private double currDBH;
-        private double currHGT;
-        private double currLOGS;
 
         public OutputR1(CpDataLayer dataLayer, HeaderFieldData headerData, string reportID) : base(dataLayer, headerData, reportID)
         {
@@ -82,7 +70,7 @@ namespace CruiseProcessing
         {
             //  fill report title array
             string currentTitle = fillReportTitle(currentReport);
-            List<LCDDO> lcdList = DataLayer.getLCD(); ;
+            List<LCDDO> lcdList = DataLayer.getLCD();
 
             //  is there any data for the report
             switch (currentReport)
@@ -100,21 +88,7 @@ namespace CruiseProcessing
                     }   //  endif on cubic foot
                     break;
 
-                case "R102":
-                    if (lcdList.Sum(l => l.SumGBDFT) == 0)
-                    {
-                        noDataForReport(strWriteOut, currentReport, " >>>> No board foot volume for report");
-                        return;
-                    }   //  endif on board foot
-                    break;
 
-                case "R103":
-                    if (lcdList.Sum(l => l.SumGCUFT) == 0)
-                    {
-                        noDataForReport(strWriteOut, currentReport, " >>>> No cubic foot volume for report");
-                        return;
-                    }   //  endif on cubic foot
-                    break;
 
                 case "R104":
                     if (lcdList.Count == 0)
@@ -143,43 +117,6 @@ namespace CruiseProcessing
                     //  pull groups from LCD
                     List<LCDDO> speciesList = DataLayer.getLCDOrdered("WHERE CutLeave = @p1 ", "GROUP BY UOM,PrimaryProduct,Species,ContractSpecies", "C", "");
                     createR101(speciesList, strWriteOut, ref pageNum, lcdList);
-                    break;
-
-                case "R102":
-                case "R103":
-                    numOlines = 0;
-                    string volTitle = "BOARD";
-                    fieldLengths = new[] { 1, 4, 3, 4, 13, 6, 11, 9, 11, 11, 9, 7, 8, 9, 9, 7, 8 };
-                    if (currentReport == "R103")
-                        volTitle = reportConstants.volumeType.Replace("XXXXX", "CUBIC");
-                    SetReportTitles(currentTitle, 6, 0, 0, reportConstants.FCTO, volTitle);
-                    List<CuttingUnitDO> justMethods = DataLayer.getLoggingMethods();
-                    //  June 2017 -- these reports are by logging method so if blank or null
-                    //  cannot generate the reports
-                    int noMethod = 0;
-                    foreach (CuttingUnitDO jm in justMethods)
-                    {
-                        if (jm.LoggingMethod == " " || jm.LoggingMethod == null)
-                        {
-                            noDataForReport(strWriteOut, currentReport, " >>>> One or more logging methods are missing.  Cannot generate this report.");
-                            noMethod = -1;
-                            break;
-                        }   // endif
-                    }   //  end foreach loop
-                    if (noMethod != -1)
-                    {
-                        //  determine which heights to use for mean height calculation
-                        List<TreeDO> tList = DataLayer.getTrees();
-                        whichHeightFields(out var hgtOne, out var hgtTwo, tList);
-
-                        //  accumulate data by logging method
-                        completeHeader = createCompleteHeader();
-                        AccumulateLogMethods(justMethods, hgtOne);
-                        WriteCurrentMethods(strWriteOut, ref pageNum);
-
-                        //  output overall total
-                        outputTotal(strWriteOut, ref pageNum, 3, "", totalToOutput);
-                    }   //  endif noMethod
                     break;
 
                 case "R104":
@@ -337,9 +274,9 @@ namespace CruiseProcessing
             double currNC = 0;
             string currMeth = "";
             string currUOM = "";
-            currLOGS = 0;
-            currDBH = 0;
-            currEF = 0;
+            double currLOGS = 0;
+            double currDBH = 0;
+            double currEF = 0;
             List<StratumDO> sList = DataLayer.GetStrata();
             //  pull current group from LCD
             List<LCDDO> justCurrentGroup = lcdList.FindAll(
@@ -417,203 +354,13 @@ namespace CruiseProcessing
             return;
         }   //  end AccumulateVolumes
 
-        private void AccumulateLogMethods(List<CuttingUnitDO> justMethods, HeightFieldType hgtOne)
-        {
-            //  R102/R103
-            currGRS = 0;
-            currNET = 0;
-            currEF = 0;
-            currDBH = 0;
-            currHGT = 0;
-            currLOGS = 0;
-            double currGTOP = 0;
-            double currNTOP = 0;
-            double currRECV = 0;
-            double currSLP = 0;
-            double slopeCnt = 0;
-            double unitAC = 0;
-            string[] prodList = new string[6] { "01", "02", "06", "07", "08", "14" };
-            //  need unit list and PRO list
-            List<CuttingUnitDO> cutList = DataLayer.getCuttingUnits();
-            List<PRODO> proList = DataLayer.getPRO();
-            //  accumulate sums by logging method
-            foreach (CuttingUnitDO jm in justMethods)
-            {
-                //  find all units for current method
-                List<CuttingUnitDO> justUnits = cutList.FindAll(
-                    delegate (CuttingUnitDO c)
-                    {
-                        return c.LoggingMethod == jm.LoggingMethod;
-                    });
-
-                // process by product code
-                for (int j = 0; j < 5; j++)
-                {
-                    foreach (CuttingUnitDO ju in justUnits)
-                    {
-                        unitAC += ju.Area;
-                        ju.Strata.Populate();
-                        //  sum up each stratum
-                        foreach (StratumDO stratum in ju.Strata)
-                        {
-                            //  pull strata from lcdList
-                            List<LCDDO> justStrata = DataLayer.getLCDOrdered("WHERE CutLeave = @p1 AND Stratum = @p2 AND PrimaryProduct = @p3 ",
-                                                                        "", "C", stratum.Code, prodList[j]);
-                            foreach (LCDDO js in justStrata)
-                            {
-                                //  find proration factor for the group
-                                int nthRow = proList.FindIndex(
-                                    delegate (PRODO p)
-                                    {
-                                        return p.CutLeave == "C" && p.Stratum == js.Stratum && p.CuttingUnit == ju.Code &&
-                                            p.SampleGroup == js.SampleGroup && p.STM == js.STM &&
-                                            p.PrimaryProduct == prodList[j];
-                                    });
-                                double proratFactor;
-                                if (nthRow >= 0)
-                                    proratFactor = proList[nthRow].ProrationFactor;
-                                else proratFactor = 0;
-
-                                switch (currentReport)
-                                {
-                                    case "R102":        //  board foot
-                                        currGRS += js.SumGBDFT * proratFactor;
-                                        currNET += js.SumNBDFT * proratFactor;
-                                        currGTOP += js.SumGBDFTtop * proratFactor;
-                                        currNTOP += js.SumNBDFTtop * proratFactor;
-                                        currRECV += js.SumBDFTrecv * proratFactor;
-                                        break;
-
-                                    case "R103":        //  cubic foot
-                                        currGRS += js.SumGCUFT * proratFactor;
-                                        currNET += js.SumNCUFT * proratFactor;
-                                        currGTOP += js.SumGCUFTtop * proratFactor;
-                                        currNTOP += js.SumNCUFTtop * proratFactor;
-                                        currRECV += js.SumCUFTrecv * proratFactor;
-                                        break;
-                                }   //  end switch on report
-                                //  sum rest of values needed
-                                currDBH += js.SumDBHOB * proratFactor;
-                                switch ((int)hgtOne)
-                                {
-                                    case 1:
-                                        currHGT += js.SumTotHgt * proratFactor;
-                                        break;
-
-                                    case 2:
-                                        currHGT += js.SumMerchHgtPrim * proratFactor;
-                                        break;
-
-                                    case 3:
-                                        currHGT += js.SumMerchHgtSecond * proratFactor;
-                                        break;
-
-                                    case 4:
-                                        currHGT += js.SumHgtUpStem * proratFactor;
-                                        break;
-                                }   //  end switch on height
-                                currLOGS += js.SumLogsMS * proratFactor;
-                                //  expansion factor is dependent on method
-                                if (stratum.Method == "S3P" || stratum.Method == "3P")
-                                {
-                                    if (js.SumExpanFactor > 0 && js.STM == "N")
-                                        currEF += js.SumExpanFactor * js.TalliedTrees / js.SumExpanFactor;
-                                    else if (js.STM == "Y")
-                                        currEF += js.SumExpanFactor * proratFactor;
-                                    else if (js.SumExpanFactor == 0)
-                                        currEF += js.TalliedTrees;
-                                }
-                                else currEF += js.SumExpanFactor * proratFactor;
-                            }   //  end foreach loop on justStrata
-                            //  Sum slope percent for this stratum
-                            List<PlotDO> justSlope = DataLayer.GetPlotsByStratum(stratum.Code);
-                            currSLP += justSlope.Sum(s => s.Slope);
-                            slopeCnt += justSlope.Count();
-                        }   //  end for loop on strata list
-                    }   //  end foreach loop on stratum
-                        //  load listToOutput with sums by product
-                        //  primary
-                    if (currGRS > 0)
-                    {
-                        RegionalReports rr = new RegionalReports();
-                        rr.value1 = jm.LoggingMethod;
-                        rr.value2 = prodList[j];
-                        rr.value3 = "P";
-                        rr.value7 = currGRS;
-                        rr.value8 = currNET;
-                        rr.value9 = currEF;
-                        rr.value10 = currDBH;
-                        rr.value11 = currHGT;
-                        rr.value12 = currSLP;
-                        rr.value13 = currLOGS;
-                        rr.value14 = unitAC;
-                        rr.value15 = slopeCnt;
-                        listToOutput.Add(rr);
-                    }   //  endif currGRS
-                        //  secondary
-                    if (currGTOP > 0)
-                    {
-                        RegionalReports rr = new RegionalReports();
-                        rr.value1 = jm.LoggingMethod;
-                        if (prodList[j] == "01")
-                            rr.value2 = "02";
-                        else rr.value2 = prodList[j];
-                        rr.value3 = "S";
-                        rr.value7 = currGTOP;
-                        rr.value8 = currNTOP;
-                        rr.value9 = 0;
-                        rr.value10 = 0;
-                        rr.value11 = 0;
-                        rr.value12 = 0;
-                        rr.value13 = 0;
-                        rr.value14 = unitAC;
-                        rr.value15 = 0;
-                        listToOutput.Add(rr);
-                    }   //  endif
-                        //  recovered
-                    if (currRECV > 0)
-                    {
-                        RegionalReports rr = new RegionalReports();
-                        rr.value1 = jm.LoggingMethod;
-                        if (prodList[j] == "01")
-                            rr.value2 = "02";
-                        else rr.value2 = prodList[j];
-                        rr.value3 = "R";
-                        rr.value7 = 0;
-                        rr.value8 = currRECV;
-                        rr.value9 = 0;
-                        rr.value10 = 0;
-                        rr.value11 = 0;
-                        rr.value12 = 0;
-                        rr.value13 = 0;
-                        rr.value14 = unitAC;
-                        rr.value15 = 0;
-                        listToOutput.Add(rr);
-                    }   //  endif
-                    currGRS = 0;
-                    currNET = 0;
-                    currGTOP = 0;
-                    currNTOP = 0;
-                    currRECV = 0;
-                    currEF = 0;
-                    currDBH = 0;
-                    currHGT = 0;
-                    currSLP = 0;
-                    currLOGS = 0;
-                    slopeCnt = 0;
-                    unitAC = 0;
-                }   //  end for loop on product list
-            }   //  end foreach loop on justMethods
-
-            return;
-        }   //  end AccumulateLogMethods
+       
 
         private void AccumulateBasalArea(string currST, string currCU, float currAC, string currCL)
         {
             //  R104
             List<TreeDO> tList = DataLayer.getTrees();
             List<PRODO> proList = DataLayer.getPRO();
-            double currBA = 0;
 
             //  get groups from LCD
             List<LCDDO> justGroups = DataLayer.GetLCDdata("WHERE Stratum = @p1 GROUP BY SampleGroup,Species,PrimaryProduct,CutLeave", currST);
@@ -641,11 +388,11 @@ namespace CruiseProcessing
                 if (justTrees.Count > 0)
                 {
                     //  sum up dbh and ef for average dbh
-                    currDBH = justTrees.Sum(j => j.DBH * j.ExpansionFactor);
+                    double currDBH = justTrees.Sum(j => j.DBH * j.ExpansionFactor);
                     //  calculate and sum basal area
-                    currBA = allTrees.Sum(j => (0.005454 * Math.Pow(j.DBH, 2.0)) * j.ExpansionFactor);
+                    double currBA = allTrees.Sum(j => (0.005454 * Math.Pow(j.DBH, 2.0)) * j.ExpansionFactor);
                     //  also need sum of EF
-                    currEF = justTrees.Sum(j => j.ExpansionFactor);
+                    double currEF = justTrees.Sum(j => j.ExpansionFactor);
 
                     //  what's the proration factor for this group?
                     int nthRow = proList.FindIndex(
@@ -672,8 +419,6 @@ namespace CruiseProcessing
                     r.value10 = currDBH;
                     r.value11 = currEF;
                     listToOutput.Add(r);
-                    currBA = 0;
-                    currDBH = 0;
                 }   //  endif trees in this strata and cutting unit
             }   //  end foreach loop on groups
 
@@ -735,173 +480,7 @@ namespace CruiseProcessing
             return;
         }   //  end WriteCurrentGroup
 
-        private void WriteCurrentMethods(TextWriter strWriteOut, ref int pageNum)
-        {
-            //  R102/R103
-            //  print by method and product
-            string prevPP = "*";
-            string prevLM = "*";
-            double calcValue = 0;
-            foreach (RegionalReports lto in listToOutput)
-            {
-                WriteReportHeading(strWriteOut, reportTitles[0], reportTitles[1], reportTitles[2],
-                                    completeHeader, 15, ref pageNum, "");
-                if (prevPP == "*") prevPP = lto.value2;
-                if (prevLM == "*") prevLM = lto.value1;
-                if (prevPP != lto.value2)
-                {
-                    //  output product subtotal
-                    outputTotal(strWriteOut, ref pageNum, 1, prevPP, firstSubtotal);
-                    firstSubtotal.Clear();
-                    prevPP = lto.value2;
-                }   //  endif
-                if (prevLM != lto.value1)
-                {
-                    //  update overall total
-                    updateTotalTotal();
-                    //  output logging method subtotal
-                    outputTotal(strWriteOut, ref pageNum, 2, prevLM, thirdSubtotal);
-                    thirdSubtotal.Clear();
-                    prevLM = lto.value1;
-                }   //  endif
-                prtFields.Clear();
-                prtFields.Add("");
-                switch (lto.value3)
-                {
-                    case "P":
-                        prtFields.Add(lto.value1.PadLeft(3, ' '));
-                        prtFields.Add(lto.value2.PadLeft(2, ' '));
-                        prtFields.Add(lto.value3);
-                        //  gross volume
-                        prtFields.Add(String.Format("{0,10:F0}", lto.value7).PadLeft(10, ' '));
-                        //  defect percent
-                        if (lto.value7 > 0)
-                            calcValue = ((lto.value7 - lto.value8) / lto.value7) * 100;
-                        else calcValue = 0;
-                        prtFields.Add(String.Format("{0,5:F1}", calcValue).PadLeft(5, ' '));
-                        //  net volume
-                        prtFields.Add(String.Format("{0,10:F0}", lto.value8).PadLeft(10, ' '));
-                        //  estimated trees
-                        prtFields.Add(String.Format("{0,8:F0}", lto.value9).PadLeft(8, ' '));
-                        //  gross and net volume per acre and trees per acre
-                        calcValue = lto.value7 / lto.value14;
-                        prtFields.Add(String.Format("{0,10:F0}", calcValue).PadLeft(10, ' '));
-                        calcValue = lto.value8 / lto.value14;
-                        prtFields.Add(String.Format("{0,10:F0}", calcValue).PadLeft(10, ' '));
-                        calcValue = lto.value9 / lto.value14;
-                        prtFields.Add(String.Format("{0,6:F1}", calcValue).PadLeft(6, ' '));
-                        //  mean DBH and mean height
-                        if (lto.value9 > 0)
-                            calcValue = lto.value10 / lto.value9;
-                        else calcValue = 0;
-                        prtFields.Add(String.Format("{0,5:F1}", calcValue).PadLeft(5, ' '));
-                        if (lto.value9 > 0)
-                            calcValue = lto.value11 / lto.value9;
-                        else calcValue = 0;
-                        prtFields.Add(String.Format("{0,7:F1}", calcValue).PadLeft(7, ' '));
-                        //  net per tree
-                        if (lto.value9 > 0)
-                            calcValue = lto.value8 / lto.value9;
-                        else calcValue = 0;
-                        prtFields.Add(String.Format("{0,8:F0}", calcValue).PadLeft(8, ' '));
-                        //  logs per volume
-                        if (lto.value7 > 0)
-                        {
-                            if (currentReport == "R102")
-                                calcValue = lto.value13 / (lto.value7 / 1000);
-                            else if (currentReport == "R103")
-                                calcValue = lto.value13 / (lto.value7 / 100);
-                        }
-                        else calcValue = 0;
-                        prtFields.Add(String.Format("{0,6:F1}", calcValue).PadLeft(6, ' '));
-                        //  average slope
-                        if (lto.value15 > 0)
-                            calcValue = lto.value12 / lto.value15;
-                        else calcValue = 0;
-                        prtFields.Add(String.Format("{0,5:F1}", calcValue).PadLeft(5, ' '));
-                        //  output acres
-                        prtFields.Add(String.Format("{0,8:F1}", lto.value14).PadLeft(8, ' '));
-                        break;
-
-                    case "S":
-                        //  gross volume
-                        prtFields.Add(String.Format("{0,10:F0}", lto.value7).PadLeft(10, ' '));
-                        //  no total defect
-                        prtFields.Add("  0.0");
-                        //  net volume
-                        prtFields.Add(String.Format("{0,10:F0}", lto.value8).PadLeft(10, ' '));
-                        //  no estimated trees
-                        prtFields.Add("       0");
-                        //  gross and net volume per acre
-                        if (lto.value14 > 0)
-                        {
-                            calcValue = lto.value7 / lto.value14;
-                            prtFields.Add(String.Format("{0,10:F0}", calcValue).PadLeft(10, ' '));
-                            calcValue = lto.value8 / lto.value14;
-                            prtFields.Add(String.Format("{0,10:f)}", calcValue).PadLeft(10, ' '));
-                        }   //  endif
-                        // next fields are zero
-                        prtFields.Add("   0.0");
-                        prtFields.Add("  0.0");
-                        prtFields.Add("    0.0");
-                        prtFields.Add("       0");
-                        //  logs per gross volume
-                        if (lto.value7 > 0)
-                        {
-                            if (currentReport == "R102")
-                                calcValue = lto.value13 / (lto.value7 / 1000);
-                            else if (currentReport == "R103")
-                                calcValue = lto.value13 / (lto.value7 / 100);
-                        }   //  endif
-                        prtFields.Add(String.Format("{0,6:F1}", calcValue).PadLeft(6, ' '));
-                        prtFields.Add("  0.0");
-                        prtFields.Add("     N/A");
-                        break;
-
-                    case "R":        //  calculated values not shown
-                        prtFields.Add(lto.value1.PadLeft(3, ' '));
-                        prtFields.Add(lto.value2.PadLeft(2, ' '));
-                        prtFields.Add(lto.value3);
-                        //  gross volume
-                        prtFields.Add(String.Format("{0,10:F0}", lto.value7).PadLeft(10, ' '));
-                        prtFields.Add("  0.0");
-                        //  net volume
-                        prtFields.Add(String.Format("{0,10:F0}", lto.value8).PadLeft(10, ' '));
-                        //  no estimated trees
-                        prtFields.Add("       0");
-                        //  gross and net volume per acre
-                        prtFields.Add("         0");
-                        calcValue = lto.value8 / lto.value14;
-                        prtFields.Add(String.Format("{0,10:F0}", calcValue).PadLeft(10, ' '));
-                        //  skip next fields
-                        prtFields.Add("   0.0");
-                        prtFields.Add("  0.0");
-                        prtFields.Add("    0.0");
-                        prtFields.Add("       0");
-                        //  logs per gross volume
-                        if (lto.value7 > 0)
-                        {
-                            if (currentReport == "R102")
-                                calcValue = lto.value13 / (lto.value7 / 1000);
-                            else if (currentReport == "R103")
-                                calcValue = lto.value13 / (lto.value7 / 100);
-                        }   //  endif
-                        prtFields.Add(String.Format("{0,6:F1}", calcValue).PadLeft(6, ' '));
-                        prtFields.Add("  0.0");
-                        prtFields.Add("     N/A");
-                        break;
-                }   //  end switch on product
-                printOneRecord(fieldLengths, prtFields, strWriteOut);
-                //  update product subtotal and logging method subtotal
-                updateSubtotal(lto, 1);
-                updateSubtotal(lto, 2);
-            }   //  end foreach loop
-            //  output last product and logging method subtotal
-            outputTotal(strWriteOut, ref pageNum, 1, prevPP, firstSubtotal);
-            outputTotal(strWriteOut, ref pageNum, 2, prevLM, thirdSubtotal);
-            updateTotalTotal();
-            return;
-        }   //  end WriteCurrentMethod
+        
 
         private void WriteCurrentUnit(TextWriter strWriteOut, ref int pageNum)
         {
@@ -997,103 +576,7 @@ namespace CruiseProcessing
             return;
         }   //  end updateTotal
 
-        private void updateSubtotal(RegionalReports oneObject, int whichSubtotal)
-        {
-            //  R102/R103
-            switch (whichSubtotal)
-            {
-                case 1:         //  product subtotal
-                    if (firstSubtotal.Count > 0)
-                    {
-                        firstSubtotal[0].Value7 += oneObject.value7;
-                        firstSubtotal[0].Value8 += oneObject.value8;
-                        firstSubtotal[0].Value9 += oneObject.value9;
-                        firstSubtotal[0].Value10 += oneObject.value10;
-                        firstSubtotal[0].Value11 += oneObject.value11;
-                        firstSubtotal[0].Value12 += oneObject.value12;
-                        firstSubtotal[0].Value13 += oneObject.value13;
-                        firstSubtotal[0].Value14 = oneObject.value14;
-                        firstSubtotal[0].Value15 += oneObject.value15;
-                    }
-                    else
-                    {
-                        ReportSubtotal r = new ReportSubtotal();
-                        r.Value7 = oneObject.value7;
-                        r.Value8 = oneObject.value8;
-                        r.Value9 = oneObject.value9;
-                        r.Value10 = oneObject.value10;
-                        r.Value11 = oneObject.value11;
-                        r.Value12 = oneObject.value12;
-                        r.Value13 = oneObject.value13;
-                        r.Value14 = oneObject.value14;
-                        r.Value15 = oneObject.value15;
-                        firstSubtotal.Add(r);
-                    }   //  endif
-                    break;
 
-                case 2:         //  logging method subtotal
-                    if (thirdSubtotal.Count > 0)
-                    {
-                        thirdSubtotal[0].Value7 += oneObject.value7;
-                        thirdSubtotal[0].Value8 += oneObject.value8;
-                        thirdSubtotal[0].Value9 += oneObject.value9;
-                        thirdSubtotal[0].Value10 += oneObject.value10;
-                        thirdSubtotal[0].Value11 += oneObject.value11;
-                        thirdSubtotal[0].Value12 += oneObject.value12;
-                        thirdSubtotal[0].Value13 += oneObject.value13;
-                        thirdSubtotal[0].Value14 = oneObject.value14;
-                        thirdSubtotal[0].Value15 += oneObject.value15;
-                    }
-                    else
-                    {
-                        ReportSubtotal r = new ReportSubtotal();
-                        r.Value7 = oneObject.value7;
-                        r.Value8 = oneObject.value8;
-                        r.Value9 = oneObject.value9;
-                        r.Value10 = oneObject.value10;
-                        r.Value11 = oneObject.value11;
-                        r.Value12 = oneObject.value12;
-                        r.Value13 = oneObject.value13;
-                        r.Value14 = oneObject.value14;
-                        r.Value15 = oneObject.value15;
-                        thirdSubtotal.Add(r);
-                    }   //  endif
-                    break;
-            }   //  end switch
-            return;
-        }   //  end updateSubtotal
-
-        private void updateTotalTotal()
-        {
-            //  R102/R103
-            if (totalToOutput.Count > 0)
-            {
-                totalToOutput[0].Value7 += thirdSubtotal[0].Value7;
-                totalToOutput[0].Value8 += thirdSubtotal[0].Value8;
-                totalToOutput[0].Value9 += thirdSubtotal[0].Value9;
-                totalToOutput[0].Value10 += thirdSubtotal[0].Value10;
-                totalToOutput[0].Value11 += thirdSubtotal[0].Value11;
-                totalToOutput[0].Value12 += thirdSubtotal[0].Value12;
-                totalToOutput[0].Value13 += thirdSubtotal[0].Value13;
-                totalToOutput[0].Value14 += thirdSubtotal[0].Value14;
-                totalToOutput[0].Value15 += thirdSubtotal[0].Value15;
-            }
-            else
-            {
-                ReportSubtotal r = new ReportSubtotal();
-                r.Value7 = thirdSubtotal[0].Value7;
-                r.Value8 = thirdSubtotal[0].Value8;
-                r.Value9 = thirdSubtotal[0].Value9;
-                r.Value10 = thirdSubtotal[0].Value10;
-                r.Value11 = thirdSubtotal[0].Value11;
-                r.Value12 = thirdSubtotal[0].Value12;
-                r.Value13 = thirdSubtotal[0].Value13;
-                r.Value14 = thirdSubtotal[0].Value14;
-                r.Value15 = thirdSubtotal[0].Value15;
-                totalToOutput.Add(r);
-            }   //  endif
-            return;
-        }   //  end updateTotalTotal
 
         private void updateUnitOrStrata(int UnitOrStrata, string cutLeave)
         {
@@ -1241,90 +724,7 @@ namespace CruiseProcessing
             return;
         }   //  end outputTotal
 
-        private void outputTotal(TextWriter strWriteOut, ref int pageNum, int lineType,
-                                string currTotal, List<ReportSubtotal> totalsLine)
-        {
-            //  write subtotal or total line for any subtotal in R102/R103
-            double calcValue = 0;
-            WriteReportHeading(strWriteOut, reportTitles[0], reportTitles[1], reportTitles[2],
-                                completeHeader, 13, ref pageNum, "");
-            switch (lineType)
-            {
-                case 1:     //  product subtotal
-                    strWriteOut.WriteLine("            _________________________________________________________________________________________________________________________");
-                    strWriteOut.Write(currTotal.PadLeft(4, ' '));
-                    strWriteOut.Write(" TOTAL  ");
-                    break;
 
-                case 2:     //  logging method subtotal
-                    strWriteOut.WriteLine("            _________________________________________________________________________________________________________________________");
-                    strWriteOut.Write(currTotal.PadLeft(4, ' '));
-                    strWriteOut.Write(" TOTAL  ");
-                    break;
-
-                case 3:     //  overall total
-                    strWriteOut.WriteLine(reportConstants.longLine);
-                    strWriteOut.Write(" TOTALS/AVE ");
-                    break;
-            }   //  end switch on lineType
-
-            //  rest of data is the same for all three subtotals and total
-            //  gross volume
-            strWriteOut.Write(String.Format("{0,10:F0}", totalsLine[0].Value7).PadLeft(10, ' '));
-            //  defect percent
-            if (totalsLine[0].Value7 > 0)
-                calcValue = ((totalsLine[0].Value7 - totalsLine[0].Value8) / totalsLine[0].Value7) * 100;
-            strWriteOut.Write(String.Format("{0,5:F1}", calcValue).PadLeft(8, ' '));
-            //  net volume
-            strWriteOut.Write(String.Format("{0,10:F0}", totalsLine[0].Value8).PadLeft(11, ' '));
-            //  estimated trees
-            strWriteOut.Write(String.Format("{0,8:F0}", totalsLine[0].Value9).PadLeft(9, ' '));
-            //  gross and net volume per acre and trees per acre
-            calcValue = totalsLine[0].Value7 / totalsLine[0].Value14;
-            strWriteOut.Write(String.Format("{0,10:F0}", calcValue).PadLeft(11, ' '));
-            calcValue = totalsLine[0].Value8 / totalsLine[0].Value14;
-            strWriteOut.Write(String.Format("{0,10:F0}", calcValue).PadLeft(11, ' '));
-            calcValue = totalsLine[0].Value9 / totalsLine[0].Value14;
-            strWriteOut.Write(String.Format("{0,6:F1}", calcValue).PadLeft(7, ' '));
-            //  mean DBH and mean height
-            if (totalsLine[0].Value9 > 0)
-                calcValue = totalsLine[0].Value10 / totalsLine[0].Value9;
-            else calcValue = 0.0;
-            strWriteOut.Write(String.Format("{0,5:F1}", calcValue).PadLeft(8, ' '));
-            if (totalsLine[0].Value9 > 0)
-                calcValue = totalsLine[0].Value11 / totalsLine[0].Value9;
-            else calcValue = 0.0;
-            strWriteOut.Write(String.Format("{0,7:F1}", calcValue).PadLeft(9, ' '));
-            //  net per tree
-            if (totalsLine[0].Value9 > 0)
-                calcValue = totalsLine[0].Value8 / totalsLine[0].Value9;
-            else calcValue = 0.0;
-            strWriteOut.Write(String.Format("{0,8:F0}", calcValue).PadLeft(9, ' '));
-            //  logs per volume
-            if (totalsLine[0].Value7 > 0)
-            {
-                if (currentReport == "R102")
-                    calcValue = totalsLine[0].Value13 / (totalsLine[0].Value7 / 1000);
-                else if (currentReport == "R103")
-                    calcValue = totalsLine[0].Value13 / (totalsLine[0].Value7 / 100);
-            }
-            else calcValue = 0.0;
-            strWriteOut.Write(String.Format("{0,6:F1}", calcValue).PadLeft(7, ' '));
-            //  average slope
-            if (totalsLine[0].Value15 > 0)
-                calcValue = totalsLine[0].Value12 / totalsLine[0].Value15;
-            else calcValue = 0.0;
-            strWriteOut.Write(String.Format("{0,5:F1}", calcValue).PadLeft(8, ' '));
-            //  output acres
-            strWriteOut.WriteLine(String.Format("{0,8:F1}", totalsLine[0].Value14).PadLeft(10, ' '));
-            strWriteOut.WriteLine("");
-            if (lineType == 2)
-            {
-                strWriteOut.WriteLine(reportConstants.longLine);
-                strWriteOut.WriteLine(reportConstants.longLine);
-            }   //  endif
-            return;
-        }   //  end outputTotal
 
         private void AccumulateValuesAndPrint(TextWriter strWriteOut,
                                         List<CuttingUnitDO> cList,
@@ -1919,26 +1319,6 @@ namespace CruiseProcessing
             return;
         }   //  end outputUnitOrStrata
 
-        //  writes subtotal line for any subtotal in R101
-        private string[] createCompleteHeader()
-        {
-            string[] finnishHeader = new string[7];
-            finnishHeader = R102R103columns;
-            switch (currentReport)
-            {
-                case "R102":
-                    finnishHeader[5] = finnishHeader[5].Replace("XX", "BF");
-                    finnishHeader[6] = finnishHeader[6].Replace("XXX", "MBF");
-                    finnishHeader[6] = finnishHeader[6].Replace("XX", "BF");
-                    break;
 
-                case "R103":
-                    finnishHeader[5] = finnishHeader[5].Replace("XX", "CF");
-                    finnishHeader[6] = finnishHeader[6].Replace("XXX", "CCF");
-                    finnishHeader[6] = finnishHeader[6].Replace("XX", "CF");
-                    break;
-            }   //  end switch on current report
-            return finnishHeader;
-        }   //  end createCompleteHeader
     }
 }

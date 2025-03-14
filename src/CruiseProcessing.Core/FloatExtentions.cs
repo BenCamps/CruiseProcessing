@@ -28,5 +28,15 @@ namespace CruiseProcessing
         {
             return (float)Math.Round(@this, 2);
         }
+
+        public static bool IsZero(this float @this)
+        {
+            return Math.Abs(@this) < 0.0001;
+        }
+
+        public static bool IsZero(this double @this)
+        {
+            return Math.Abs(@this) < 0.0001;
+        }
     }
 }

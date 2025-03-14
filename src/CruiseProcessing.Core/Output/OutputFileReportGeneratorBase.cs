@@ -46,7 +46,7 @@ namespace CruiseProcessing.Output
         }
 
         protected void WriteReportHeading(TextWriter strWriteOut, string TitleOne, string TitleTwo,
-                                        string TitleThree, string[] headerToPrint, int lineIncrement,
+                                        string TitleThree, IReadOnlyList<string> headerToPrint, int lineIncrement,
                                         ref int pageNumber, string extraHeader)
         {
             numOlines = WriteReportHeading(strWriteOut, TitleOne, TitleTwo, TitleThree,
@@ -54,7 +54,7 @@ namespace CruiseProcessing.Output
         }
 
         public static int WriteReportHeading(TextWriter strWriteOut, string TitleOne, string TitleTwo,
-                                string TitleThree, string[] headerToPrint, int lineIncrement,
+                                string TitleThree, IReadOnlyList<string> headerToPrint, int lineIncrement,
                                 ref int pageNumber, string extraHeader, HeaderFieldData headerData, int numOlines, IReadOnlyList<string> reportTitles = null)
         {
             reportTitles ??= new string[3];
@@ -162,6 +162,7 @@ namespace CruiseProcessing.Output
                     reportTitles[1] = currentTitle.Substring(whereSplit1, whereSplit2 - whereSplit1).ToUpper();
                     reportTitles[2] = currentTitle.Substring(whereSplit2, currentTitle.Length - whereSplit2).ToUpper();
                     break;
+                case 7:
                 case 4:     //  two line split with report constant
                     reportTitles[0] = currentTitle.Substring(0, whereSplit1).ToUpper();
                     reportTitles[1] = currentTitle.Substring(whereSplit1, currentTitle.Length - whereSplit1).ToUpper();
@@ -175,11 +176,6 @@ namespace CruiseProcessing.Output
                     reportTitles[0] = currentTitle.ToUpper();
                     reportTitles[1] = whichReportConstant;
                     reportTitles[2] = secondReportConstant;
-                    break;
-                case 7:     //  upper case and split one with report constant
-                    reportTitles[0] = currentTitle.Substring(0, whereSplit1).ToUpper();
-                    reportTitles[1] = currentTitle.Substring(whereSplit1, currentTitle.Length - whereSplit1).ToUpper();
-                    reportTitles[2] = whichReportConstant;
                     break;
 
             }   //  end switch on doWhat
@@ -482,29 +478,6 @@ namespace CruiseProcessing.Output
             public double lineTotal { get; set; }
         }
 
-        protected class RegionalReports
-        {
-            public string value1 { get; set; }
-            public string value2 { get; set; }
-            public string value3 { get; set; }
-            public string value4 { get; set; }
-            public string value5 { get; set; }
-            public string value6 { get; set; }
-            public double value7 { get; set; }
-            public double value8 { get; set; }
-            public double value9 { get; set; }
-            public double value10 { get; set; }
-            public double value11 { get; set; }
-            public double value12 { get; set; }
-            public double value13 { get; set; }
-            public double value14 { get; set; }
-            public double value15 { get; set; }
-            public double value16 { get; set; }
-            public double value17 { get; set; }
-            public double value18 { get; set; }
-            public double value19 { get; set; }
-            public double value20 { get; set; }
-            public string value21 { get; set; }
-        }
+        
     }
 }

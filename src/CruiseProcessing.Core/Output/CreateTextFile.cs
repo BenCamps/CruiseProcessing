@@ -187,15 +187,7 @@ namespace CruiseProcessing
                     var reportPageNum = pageNumber;
                     using var reportStringWriter = new StringWriter();
 
-                    IReportGenerator reportGenerator = rdo.ReportID switch
-                    {
-                        "WT1" => Services.GetRequiredService<Wt1ReportGenerator>(),
-                        "WT2" => Services.GetRequiredService<Wt2ReportGenerator>(),
-                        "WT3" => Services.GetRequiredService<Wt3ReportGenerator>(),
-                        "WT4" => Services.GetRequiredService<Wt4ReportGenerator>(),
-                        "WT5" => Services.GetRequiredService<Wt5ReportGenerator>(),
-                        _ => null,
-                    };
+                    IReportGenerator reportGenerator = Services.GetKeyedService<IReportGenerator>(rdo.ReportID);
 
                     if (reportGenerator != null)
                     {
@@ -391,8 +383,6 @@ namespace CruiseProcessing
                                 break;
 
                             case "R101":
-                            case "R102":
-                            case "R103":
                             case "R104":
                             case "R105":
                                 OutputR1 r1 = new OutputR1(DataLayer, headerData, rdo.ReportID);
