@@ -1,3 +1,4 @@
+src/coverage.xml
 *.local.cs
 TestFiles/Temp/
 TestFiles/**/*.dmp
@@ -357,3 +358,4 @@ healthchecksdb
 MigrationBackup/
 
 !src/nuget/*.nupkg
+
