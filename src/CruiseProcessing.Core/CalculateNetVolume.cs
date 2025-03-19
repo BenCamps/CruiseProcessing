@@ -16,18 +16,13 @@ namespace CruiseProcessing
             //  March 2015 --  because Region 5 records hidden defect differently from other regions
             //  the value on a tree record needs to be checked; if 0 look in TDV and set if greater than zero
             //  Otherwise hidden defect will default to zero
-            float tempHidden = 0;
-            if (currTree.HiddenPrimary == 0)
-            {
-                //  now check hidden primary in TreeDefaultValue
-                if (currTree.TreeDefaultValue.HiddenPrimary > 0)
-                    tempHidden = currTree.TreeDefaultValue.HiddenPrimary;
-                else tempHidden = 0;
-            }
-            else tempHidden = currTree.HiddenPrimary;
+            float hiddenDefectPrimary = (currTree.HiddenPrimary > 0) ? currTree.HiddenPrimary
+                : Math.Max(currTree.TreeDefaultValue.HiddenPrimary, 0);
+
+
             if (cruiseType == "V")
                 VariableLogLength(VOL, LOGVOL, logStockList, TLOGS, currPP, currTree.TreeDefaultValue.CullPrimary,
-                                    tempHidden, currTree.SeenDefectPrimary);
+                                    hiddenDefectPrimary, currTree.SeenDefectPrimary);
 
             //  set defect flag based on region
             if (currRegion == "02" || currRegion == "04" || currRegion == "07")
@@ -58,7 +53,7 @@ namespace CruiseProcessing
                 if (logStockList.Count() <= 0 || TLOGS <= 0)
                     VolumeTreeDefect(currRegion, currPP, ref VOL,
                                      defectLogic, currTree.TreeDefaultValue.CullPrimary,
-                                     tempHidden, currTree.SeenDefectPrimary,
+                                     hiddenDefectPrimary, currTree.SeenDefectPrimary,
                                      currTree.TreeDefaultValue.CullSecondary, currTree.TreeDefaultValue.HiddenSecondary, currTree.SeenDefectSecondary);
                 else
                 {
@@ -80,7 +75,7 @@ namespace CruiseProcessing
                         SetLogGrades(currRegion, logStockList, currTree.Grade, (int)NOLOGP, TLOGS, currTree.RecoverablePrimary);
 
                     VolumeLogDefect(currRegion, LOGVOL, VOL, logStockList, currTree.TreeDefaultValue.CullPrimary,
-                                    tempHidden, currTree.SeenDefectPrimary,
+                                    hiddenDefectPrimary, currTree.SeenDefectPrimary,
                                     currTree.TreeDefaultValue.CullSecondary, currTree.TreeDefaultValue.HiddenSecondary,
                                     currTree.SeenDefectSecondary, (int)NOLOGP, (int)NOLOGS, TLOGS,
                                     currTree.RecoverablePrimary, soundDefault);
@@ -98,7 +93,7 @@ namespace CruiseProcessing
                 {
                     GetR6LogGrade(currTree.Grade, logStockList, TLOGS, (int)NOLOGP, MTOPP);
                     VolumeLogDefect(currRegion, LOGVOL, VOL, logStockList, currTree.TreeDefaultValue.CullPrimary,
-                                    tempHidden, currTree.SeenDefectPrimary,
+                                    hiddenDefectPrimary, currTree.SeenDefectPrimary,
                                     currTree.TreeDefaultValue.CullSecondary, currTree.TreeDefaultValue.HiddenSecondary,
                                     currTree.SeenDefectSecondary, (int)NOLOGP, (int)NOLOGS, TLOGS,
                                     currTree.RecoverablePrimary, soundDefault);
@@ -110,7 +105,7 @@ namespace CruiseProcessing
             {   //  default -- includes regions 1, 2, 3, 4, 8 and 9
                 VolumeTreeDefect(currRegion, currPP, ref VOL,
                                 defectLogic, currTree.TreeDefaultValue.CullPrimary,
-                                tempHidden, currTree.SeenDefectPrimary,
+                                hiddenDefectPrimary, currTree.SeenDefectPrimary,
                                 currTree.TreeDefaultValue.CullSecondary, currTree.TreeDefaultValue.HiddenSecondary, currTree.SeenDefectSecondary);
             }   //  endif currRegion
 
