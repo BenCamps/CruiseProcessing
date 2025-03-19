@@ -30,7 +30,7 @@ namespace CruiseProcessing.Test.ViewModel
             var mockServiceProvider = Substitute.For<IServiceProvider>();
             
             mockServiceProvider.GetService(typeof(CalculateTreeValues2))
-                .Returns(new CalculateTreeValues2(datalayer, VolumeLibraryInterop.Default, Substitute.For<ILogger<CalculateTreeValues2>>()));
+                .Returns(new CalculateTreeValues2(datalayer, new VolumeLibrary(), Substitute.For<ILogger<CalculateTreeValues2>>()));
 
             return mockServiceProvider;
         }
