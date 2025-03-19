@@ -473,7 +473,7 @@ namespace CruiseProcessing
                                 if (currST != js.Stratum)
                                 {
                                     List<PlotDO> pList = DataLayer.GetPlotsByStratum(js.Stratum);
-                                    numPlots += pList.Count();
+                                    numPlots += pList.Count;
                                     currST = js.Stratum;
                                 }   //  endif
                             }   //  end foreach loop
@@ -597,8 +597,6 @@ namespace CruiseProcessing
             else if (valueToExpand == "VOL")
                 lcd.SumNCUFT = calcValue;
             speciesTotal.Add(lcd);
-            calcValue = 0;
-            return;
         }   //  end expandData for LCD data
 
         private void LoadDIBclasses(List<TreeDO> justMeasured)
@@ -611,7 +609,6 @@ namespace CruiseProcessing
                 td.DBH = k;
                 treesByDBH.Add(td);
             }   //  end for k loop
-            return;
         }   //  end LoadDIBclasses
 
         private void LoadDIBclass(List<TreeDO> justMeaqsured)
@@ -627,36 +624,35 @@ namespace CruiseProcessing
                 td.DBH = k;
                 treesByDBH.Add(td);
             }   //  end for loop
-            return;
         }   ///  end LoadDIBclass
 
-        private int findDBHindex(List<TreeDO> listToSearch, double currDBH)
+        private static int findDBHindex(List<TreeDO> listToSearch, double currDBH)
         {
-            float DBHtoFind = (float)Math.Round(currDBH);
+            int DBHtoFind = (int)Math.Round(currDBH);
             int rowToLoad = listToSearch.FindIndex(
                 delegate (TreeDO lts)
                 {
-                    return lts.DBH == DBHtoFind;
+                    return (int)lts.DBH == DBHtoFind;
                 });
             return rowToLoad;
         }   //  end findDBHindex
 
-        private int findDIBindex(List<TreeDO> listToSearch, double currDBH)
+        private static int findDIBindex(List<TreeDO> listToSearch, double currDBH)
         {
             //  overloaded function for graph 11
-            float DBHtoFind = 0;
+            int DBHtoFind = 0;
             if ((int)currDBH % 2 == 0)
                 DBHtoFind = (int)currDBH;
-            else DBHtoFind = (int)(currDBH + 1.0);
+            else DBHtoFind = (int)(currDBH + 1);
             int rowToLoad = listToSearch.FindIndex(
                 delegate (TreeDO lts)
                 {
-                    return lts.DBH == DBHtoFind;
+                    return (int)lts.DBH == DBHtoFind;
                 });
             return rowToLoad;
         }   //  end findDIBindex
 
-        private void noDataForGraph(string currGroup, string whichGroup)
+        private static void noDataForGraph(string currGroup, string whichGroup)
         {
             StringBuilder msgText = new StringBuilder();
             msgText.Append("No data found for ");
@@ -665,8 +661,6 @@ namespace CruiseProcessing
             msgText.Append(currGroup);
             msgText.Append("\nCould not produce a graph.");
             MessageBox.Show(msgText.ToString(), "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-            return;
         }   //  end noDataForGraph
 
         private List<LogStockDO> LoadLogs(List<LogStockDO> justSixteens, string currSP, List<StratumDO> sList)
@@ -679,7 +673,7 @@ namespace CruiseProcessing
                 List<LogStockDO> justLogs = justSixteens.FindAll(
                     delegate (LogStockDO l)
                     {
-                        return l.DIBClass == jd.DIBClass;
+                        return l.DIBClass.IsApproximatelyEqual(jd.DIBClass, 0);
                     });
                 //  expand and sum
                 double calcValue = 0;
@@ -709,7 +703,7 @@ namespace CruiseProcessing
         }   //  end LoadLogs
 
         //  this works just for graph 9 -- by KPI
-        private void buildKPIdata(List<TreeEstimateDO> KPIgroups, List<ReportSubtotal> graphData)
+        private static void buildKPIdata(List<TreeEstimateDO> KPIgroups, List<ReportSubtotal> graphData)
         {
             //  total up number of trees from tree estimate data for each KPI/species group
             foreach (TreeEstimateDO kg in KPIgroups)
@@ -718,7 +712,7 @@ namespace CruiseProcessing
                 int nthRow = graphData.FindIndex(
                     delegate (ReportSubtotal r)
                     {
-                        return r.Value4 == kg.KPI;
+                        return r.Value4.IsKpiEqual(kg.KPI);
                     });
                 if (nthRow == -1)
                 {
@@ -731,7 +725,6 @@ namespace CruiseProcessing
                 else if (nthRow >= 0)
                     graphData[nthRow].Value3++;
             }   //  end foreach loop
-            return;
         }   //  end buildKPIdata
 
         //  this works for graph 9 and set specific categories for KPI data

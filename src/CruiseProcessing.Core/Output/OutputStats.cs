@@ -121,7 +121,6 @@ namespace CruiseProcessing
                 ProcessRecovered(strWriteOut, ref pageNumb, volType);
             }   //  endif recovered pages
 
-            return;
         }   //  end CreateStatReports
 
 
@@ -194,7 +193,6 @@ namespace CruiseProcessing
             }   //  end foreach stratum
             //  print footnote
             strWriteOut.WriteLine("  * CANNOT CALCULATE SAMPLING ERROR IF SMALL N EQUALS 1.");
-            return;
         }   //  end ProcessPrimary
 
 
@@ -270,7 +268,6 @@ namespace CruiseProcessing
             //  print footnote
             //strWriteOut.Write("\x00B9");   this puts a funny character at the beginning that I can't get rid of
             strWriteOut.WriteLine("  * CANNOT CALCULATE SAMPLING ERROR IF SMALL N EQUALS 1.");
-            return;
         }   //  end ProcessSecondary
 
 
@@ -345,7 +342,6 @@ namespace CruiseProcessing
             }   //  end foreach on stratum
             //  print footnote
             strWriteOut.WriteLine("  * CANNOT CALCULATE SAMPLING ERROR IF SMALL N EQUALS 1.");
-            return;
         }   //  end ProcessRecovered
 
 
@@ -358,7 +354,7 @@ namespace CruiseProcessing
             {
                 case 1:
                     stageSamples = (int) pop.StageOneSamples;
-                    if (stageSamples == 1.0)
+                    if (stageSamples == 1)
                         stage1Stats[0].theMean = CommonStatistics.MeanOfX(stage1Stats[0].SumOfX, stageSamples);
                     else
                     {
@@ -373,7 +369,7 @@ namespace CruiseProcessing
                     break;
                 case 2:
                     stageSamples = (int) pop.StageTwoSamples;
-                    if (stageSamples == 1.0 && stage2Stats[0].SumOfX2 > 0)
+                    if (stageSamples == 1 && stage2Stats[0].SumOfX2 > 0)
                         stage2Stats[0].theMean = CommonStatistics.MeanOfX(stage2Stats[0].SumOfX, stageSamples);
                     else if(stageSamples > 0 && stage2Stats[0].SumOfX2 > 0)
                     {
@@ -399,7 +395,6 @@ namespace CruiseProcessing
                 stage2Stats[0].CombSampErr = ce;
             }
             else stage1Stats[0].CombSampErr = stage1Stats[0].theSampErr;
-            return;
         }   //  end CalcCombinedError
 
 
@@ -488,7 +483,6 @@ namespace CruiseProcessing
             }   //  end switch on whichStage
             printOneRecord(fieldLengths, prtFields, strWriteOut);
             prtFields.Clear();
-            return;
         }   //  end WriteCurrentGroup
 
 
@@ -501,10 +495,8 @@ namespace CruiseProcessing
             for (int j = 0; j < headerToUse.Count(); j++)
                 completeHeader[j] = headerToUse[j];
         
-            completeHeader[2] = completeHeader[2].Replace("ZZZZZZZZZZ", prodType);
-            completeHeader[2] = completeHeader[2].Replace("XXXXX", volType);
+            completeHeader[2] = completeHeader[2].Replace("ZZZZZZZZZZ", prodType).Replace("XXXXX", volType);
                                                                 
-            return;
         }   //  end finishColumnHeaders
 
 

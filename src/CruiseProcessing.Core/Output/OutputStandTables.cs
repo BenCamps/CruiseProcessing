@@ -152,7 +152,6 @@ namespace CruiseProcessing
                     break;
             }   //  end switch
 
-            return;
         }   //  end CreateStandTables
 
 
@@ -219,7 +218,6 @@ namespace CruiseProcessing
                     noDataForReport(strWriteOut, currentReport, ">>>No tree data for current strata; could not produce table");
             }   //  end foreach loop on stratum
 
-            return;
         }   //  end CalculateAndPrintStratum
 
 
@@ -275,7 +273,6 @@ namespace CruiseProcessing
             }   //  end switch on GroupedBy
 
             processGroups(speciesGroups, strWriteOut, ref pageNumb, treeData, classInterval, "");
-            return;
         }   //  end CalculateAndPrintSale
 
 
@@ -305,13 +302,13 @@ namespace CruiseProcessing
                     case 3:
                         begGroup = 20;
                         if (groupsToPrint.Count < 30)
-                            endGroup = groupsToPrint.Count();
+                            endGroup = groupsToPrint.Count;
                         else endGroup = 30;
                         break;
                     case 4:
                         begGroup = 30;
                         if (groupsToPrint.Count < 40)
-                            endGroup = groupsToPrint.Count();
+                            endGroup = groupsToPrint.Count;
                         else endGroup = 40;
                         break;
                 }   //  end switch
@@ -342,7 +339,6 @@ namespace CruiseProcessing
                 columnHeader[1] = null;
                 columnHeader[2] = null;
             }   //  end for j loop
-            return;
         }   //  end processGroups
 
 
@@ -379,7 +375,6 @@ namespace CruiseProcessing
                     if(lastPage) columnHeader[2] += "TOTALS";
                     break;
             }   //  end switch on StratumOrSale
-            return;
         }   //  end LoadColumnHeader
 
 
@@ -482,7 +477,6 @@ namespace CruiseProcessing
                         break;
                 }   //  switch 
             }   //  endif what product
-            return;
         }   //  end LoadStandTable
 
 
@@ -523,7 +517,6 @@ namespace CruiseProcessing
             }   //  end switch
             //  Add to line total column
             listToLoad[nthRow].lineTotal += valueToLoad;
-            return;
         }   //  end LoadProperColumn
 
 
@@ -652,12 +645,11 @@ namespace CruiseProcessing
                 prtFields.Add(String.Format("{0,9:F0}", columnTotals[10]).PadLeft(9, ' '));
             }   //  endif
             printOneRecord(strWriteOut, prtFields);
-            return;
         }   //  end writeCurrentGroup
 
 
         
-        private void clearOutputList(List<StandTables> listToClear)
+        private static void clearOutputList(List<StandTables> listToClear)
         {
             //  clears out everything except dib class
             foreach (StandTables ltc in listToClear)
@@ -673,7 +665,6 @@ namespace CruiseProcessing
                 ltc.species9 = 0;
                 ltc.species10 = 0;
             }   //  end foreach loop
-            return;
         }   //  end clearOutputList
     }   //  end class OutputStandTables
 }

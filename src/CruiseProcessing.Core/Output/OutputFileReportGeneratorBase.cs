@@ -335,13 +335,13 @@ namespace CruiseProcessing.Output
         protected bool CheckForCubicFootVolumeAndWeights(TextWriter writer)
         {
             List<LCDDO> wholeList = DataLayer.getLCD();
-            if (wholeList.Sum(l => l.SumGCUFT) == 0)
+            if (!wholeList.Any(l => l.SumGCUFT > 0))
             {
                 noDataForReport(writer, currentReport, ">>  No cubic foot volume for this report");
                 return false;
             }
 
-            if (wholeList.Sum(l => l.SumWgtMSP) == 0)
+            if (!wholeList.Any(l => l.SumWgtMSP > 0))
             {
                 noDataForReport(writer, currentReport, ">>  No weight for this report");
                 return false;

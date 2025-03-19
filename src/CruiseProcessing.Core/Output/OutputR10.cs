@@ -79,11 +79,7 @@ namespace CruiseProcessing
         private List<string> prtFields = new List<string>();
         private List<RegionalReports> listToOutput = new List<RegionalReports>();
         private List<ReportSubtotal> totalToOutput = new List<ReportSubtotal>();
-        private double currGRS = 0;
-        private double currNET = 0;
-        private double currREM = 0;
 
-        //private double currUTIL = 0;
         private double convFactor = 100.0;
 
         private int footFlag;
@@ -106,8 +102,7 @@ namespace CruiseProcessing
                 case "R001":
                 case "R003":
                 case "R006":
-                    currGRS = lcdList.Sum(l => l.SumGBDFT);
-                    if (currGRS == 0)
+                    if (!lcdList.Any(l => l.SumGBDFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No board foot volume for report");
                         return;
@@ -118,8 +113,7 @@ namespace CruiseProcessing
                 case "R004":
                 case "R007":
                 case "R005":
-                    currGRS = lcdList.Sum(l => l.SumGCUFT);
-                    if (currGRS == 0)
+                    if (!lcdList.Any(l => l.SumGCUFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No cubic foot volume for report");
                         return;
@@ -148,7 +142,7 @@ namespace CruiseProcessing
                         RegionalReports r = new RegionalReports();
                         r.value1 = sl.Species;
                         listToOutput.Add(r);
-                        AccumulateVolume(logList, sl.Species, currRow, sList);
+                        AccumulateVolume(logList, sl.Species, currRow);
                         currRow++;
                     }   //  end foreach
                     WriteCurrentGroup(strWriteOut, ref pageNumb, completeHeader);
@@ -196,7 +190,7 @@ namespace CruiseProcessing
                         fieldLengths = new int[] { 1, 4, 7, 3, 7, 6, 9, 8, 9, 10, 10, 8, 8, 8, 9, 9, 8, 5 };
                         completeHeader = createCompleteHeader();
                         SetReportTitles(currentTitle, 6, 0, 0, reportConstants.FCTO_PPO, "--  CUBIC FOOT  --");
-                        AccumulateMostlyLCD(lcdList, speciesList, sList, strWriteOut, ref pageNumb);
+                        AccumulateMostlyLCD(lcdList, speciesList, strWriteOut, ref pageNumb);
                     }   //  endif
                     break;
 
@@ -210,11 +204,10 @@ namespace CruiseProcessing
                     OutputLogMatrixFile();
                     break;
             }   //  end switch
-            return;
         }   //  end CreateR10reports
 
         private void AccumulateVolume(List<LogStockDO> logList, string currSP,
-                                        int currRow, List<StratumDO> sList)
+                                        int currRow)
         {
             //  accumulate volume based on report
             footFlag = (int)logList[0].Tree.TreeDefaultValue.MerchHeightLogLength;
@@ -235,6 +228,10 @@ namespace CruiseProcessing
                     currST = jl.Tree.Stratum.Code;
                     currAC = Utilities.ReturnCorrectAcres(currST, DataLayer, (long)jl.Tree.Stratum_CN);
                 }   //  endif
+
+                double currGRS = 0;
+                double currNET = 0;
+                double currREM = 0;
 
                 switch (currentReport)
                 {
@@ -300,7 +297,6 @@ namespace CruiseProcessing
                 //else listToOutput[currRow].value10 += jl.Tree.ExpansionFactor * currAC;
                 //listToOutput[currRow].value10 += jl.Tree.ExpansionFactor * currAC;
             }   //  end foreach
-            return;
         }   //  end AccumulateVolume
 
         private void AccumulateByLogGrade(List<LogStockDO> logList, List<LCDDO> speciesList, List<StratumDO> sList)
@@ -362,8 +358,8 @@ namespace CruiseProcessing
                 // Find all logs by species, stratum and log grade
                 for (int k = 0; k < 10; k++)
                 {
-                    currGRS = 0;
-                    currNET = 0;
+                    double currGRS = 0;
+                    double currNET = 0;
                     // loop by stratum
                     foreach (StratumDO s in sList)
                     {
@@ -427,11 +423,10 @@ namespace CruiseProcessing
                     }   //  end foreach loop
                 }   //  end for k loop
             }   //  end foreach loop
-            return;
         }   //  end AccumulateByLogGrade
 
-        private void AccumulateMostlyLCD(List<LCDDO> lcdList, List<LCDDO> speciesList, List<StratumDO> sList,
-                                          TextWriter strWriteOut, ref int pageNumb)
+        private void AccumulateMostlyLCD(List<LCDDO> lcdList, List<LCDDO> speciesList, TextWriter strWriteOut,
+                                          ref int pageNumb)
         {
             //  R005
             double currUnitAcres = 0;
@@ -466,9 +461,9 @@ namespace CruiseProcessing
                 //  then process by stratum, species, and pp=01 only
                 foreach (LCDDO sl in speciesList)
                 {
-                    currGRS = 0;
-                    currNET = 0;
-                    currREM = 0;
+                    double currGRS = 0;
+                    double currNET = 0;
+                    double currREM = 0;
                     foreach (CuttingUnitDO ju in justUnits)
                     {
                         ju.Strata.Populate();
@@ -540,9 +535,6 @@ namespace CruiseProcessing
                     rr.value12 = currDBH;
                     rr.value13 = currHGT;
                     listToOutput.Add(rr);
-                    currGRS = 0;
-                    currNET = 0;
-                    currREM = 0;
                     currLOGS = 0;
                     currEF = 0;
                     currDBH = 0;
@@ -555,13 +547,12 @@ namespace CruiseProcessing
                 updateSubtotals(ref logMethodSubtotal);
                 updateOverallTotal();
                 totalAcres += currUnitAcres;
-                outputTotalSubtotal(logMethodSubtotal, 1, strWriteOut, ref pageNumb, currUnitAcres);
+                outputTotalSubtotal(logMethodSubtotal, 1, strWriteOut, currUnitAcres);
                 listToOutput.Clear();
                 logMethodSubtotal.Clear();
             }   //  end foreach loop on logging methods list
             // output final total
-            outputTotalSubtotal(totalToOutput, 2, strWriteOut, ref pageNumb, totalAcres);
-            return;
+            outputTotalSubtotal(totalToOutput, 2, strWriteOut, totalAcres);
         }   // end AccumulateMostlyLCD
 
         private void OutputFileBySpeciesDiameter()
@@ -570,20 +561,19 @@ namespace CruiseProcessing
             //  capture cruise number
             string cruiseNumb = DataLayer.getCruiseNumber();
             //  update headers for output file based on report
-            string[] completeHeaders = new string[5];
-            completeHeader = R006R007columns;
+            string[] completeHeaders = R006R007columns.ToArray();
             switch (currentReport)
             {
                 case "R006":
-                    completeHeader[0] = completeHeader[0].Replace("TTTTT", "BOARD");
-                    completeHeader[0] = completeHeader[0].Replace("ZZZ", "MBF");
-                    completeHeader[0] = completeHeader[0].Replace("XXXXXX", cruiseNumb.PadLeft(6, ' '));
+                    completeHeader[0] = completeHeaders[0].Replace("TTTTT", "BOARD")
+                        .Replace("ZZZ", "MBF")
+                        .Replace("XXXXXX", cruiseNumb.PadLeft(6, ' '));
                     break;
 
                 case "R007":
-                    completeHeader[0] = completeHeader[0].Replace("TTTTT", "CUBIC");
-                    completeHeader[0] = completeHeader[0].Replace("ZZZ", "CCF");
-                    completeHeader[0] = completeHeader[0].Replace("XXXXXX", cruiseNumb.PadLeft(6, ' '));
+                    completeHeader[0] = completeHeaders[0].Replace("TTTTT", "CUBIC")
+                        .Replace("ZZZ", "CCF")
+                        .Replace("XXXXXX", cruiseNumb.PadLeft(6, ' '));
                     break;
             }   //  end switch on currentReport
 
@@ -620,7 +610,6 @@ namespace CruiseProcessing
                 }   //  end foreach loop
                 textFile.Close();
             }   //  end using
-            return;
         }   //  end OutputFileBySpeciesDiameter
 
         private void OutputLogMatrixFile()
@@ -639,7 +628,6 @@ namespace CruiseProcessing
             AccumulateCategories(reportMatrix, outputMatrix);
             //  output file
             WriteOutputFile(outputMatrix);
-            return;
         }   //  end OutputLogMatrixFile
 
         private void AccumulateCategories(List<LogMatrixDO> reportMatrix, List<LogMatrix> outputMatrix)
@@ -682,7 +670,7 @@ namespace CruiseProcessing
                             break;
                     }   //  end switch
                     //  and max/min diameters
-                    if ((rm.SEDlimit == "" || rm.SEDminimum == 0) && currLG != null)
+                    if ((rm.SEDlimit == "" || rm.SEDminimum.IsExactlyZero()) && currLG != null)
                     {
                         justLogs = logList.FindAll(
                             delegate (LogStockDO l)
@@ -789,6 +777,8 @@ namespace CruiseProcessing
                                                             (long)jl.Tree.Stratum_CN);
                         currST = jl.Tree.Stratum.Code;
                     }   //  endif
+
+                    double currNET = 0;
                     if (volType == "B")
                         currNET = jl.NetBoardFoot;
                     else if (volType == "C")
@@ -858,13 +848,11 @@ namespace CruiseProcessing
             summaryLabels[10] = summaryLabels[10].Replace("xxx", volType);
             if (currentReport == "R001")
             {
-                summaryLabels[11] = summaryLabels[11].Replace("xxx", "MBF");
-                summaryLabels[11] = summaryLabels[11].Replace("zzz", "CCF");
+                summaryLabels[11] = summaryLabels[11].Replace("xxx", "MBF").Replace("zzz", "CCF");
             }
             else if (currentReport == "R002")
             {
-                summaryLabels[11] = summaryLabels[11].Replace("xxx", "CCF");
-                summaryLabels[11] = summaryLabels[11].Replace("zzz", "MBF");
+                summaryLabels[11] = summaryLabels[11].Replace("xxx", "CCF").Replace("zzz", "MBF");
             }   //  endif
 
             //  write heading lines
@@ -1033,7 +1021,6 @@ namespace CruiseProcessing
             //            strWriteOut.WriteLine(Utilities.FormatField(calcValue,"{0,6:F2}").ToString().PadLeft(6,' '));
 
             //  DONE!
-            return;
         }   //  end outputLogSummary
 
         private void WriteCurrentGroup(TextWriter strWriteOut, ref int pageNumb,
@@ -1158,8 +1145,7 @@ namespace CruiseProcessing
                         }   //  endif
                     }   //  end foreach loop
                     break;
-            }   //  end switch on current report
-            return;
+            } 
         }   //  end WriteCurrentGroup
 
         private void WriteCurrentGroup(double unitAcres, TextWriter strWriteOut, ref int pageNumb)
@@ -1240,7 +1226,6 @@ namespace CruiseProcessing
                 else prtFields.Add("");
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   // end foreach loop
-            return;
         }   // end WriteCurrentGroup
 
         private void WriteOutputFile(List<LogMatrix> outputMatrix)
@@ -1302,7 +1287,6 @@ namespace CruiseProcessing
                 }   //  end foreach loop
                 textOut.Close();
             }   //  end using
-            return;
         }   //  end WriteOutputFile
 
         private void OutputLogData(TextWriter textFile)
@@ -1325,7 +1309,6 @@ namespace CruiseProcessing
             textFile.WriteLine();
             //  clear output list for next species
             listToOutput.Clear();
-            return;
         }   //  end OutputLogData
 
         private void updateTotal()
@@ -1357,7 +1340,6 @@ namespace CruiseProcessing
             rs.Value12 = listToOutput.Sum(l => l.value16);
             rs.Value14 = listToOutput.Sum(l => l.value18);
             totalToOutput.Add(rs);
-            return;
         }   //  end updateGradeTotals
 
         private void updateSubtotals(ref List<ReportSubtotal> logMethodSubtotal)
@@ -1373,7 +1355,6 @@ namespace CruiseProcessing
             rs.Value12 = listToOutput.Sum(l => l.value12);
             rs.Value13 = listToOutput.Sum(l => l.value13);
             logMethodSubtotal.Add(rs);
-            return;
         }   //  end updateSubtotals
 
         private void updateOverallTotal()
@@ -1401,7 +1382,6 @@ namespace CruiseProcessing
                 rs.Value13 = listToOutput.Sum(l => l.value13);
                 totalToOutput.Add(rs);
             }   //  endif
-            return;
         }   //  end updateSubtotals
 
         private void outputTotal(TextWriter strWriteOut)
@@ -1496,11 +1476,10 @@ namespace CruiseProcessing
                     strWriteOut.WriteLine(lastLine.ToString());
                     break;
             }   //  end switch on report
-            return;
         }   //  end outputTotal
 
         private void outputTotalSubtotal(List<ReportSubtotal> outputTotal, int totalToPrint,
-                                            TextWriter strWriteOut, ref int pageNumb, double unitAcres)
+                                            TextWriter strWriteOut, double unitAcres)
         {
             //  R005
             double calcValue = 0;
@@ -1572,7 +1551,6 @@ namespace CruiseProcessing
             strWriteOut.WriteLine(String.Format("{0,7:F1}", calcValue).PadLeft(9, ' '));
             if (totalToPrint == 1)
                 strWriteOut.WriteLine(reportConstants.longLine);
-            return;
         }   //  end outputTotalSubtotal
 
         private string[] createCompleteHeader()
@@ -1595,7 +1573,7 @@ namespace CruiseProcessing
             return finnishHeader;
         }   //  end createCompleteHeader
 
-        private string[] createCompleteHeader(List<LCDDO> speciesList)
+        private static string[] createCompleteHeader(List<LCDDO> speciesList)
         {
             //   R003/R004
             string[] finnishHeader = new string[2];
@@ -1610,7 +1588,7 @@ namespace CruiseProcessing
             return finnishHeader;
         }   //  end createCompleteHeader
 
-        private double FindProrationFactor(string currCL, string currPP, string currST, string currSP,
+        private static double FindProrationFactor(string currCL, string currPP, string currST, string currSP,
                                             string currCU, List<PRODO> pList, List<TreeDO> tList)
         {
             //  find proration factor
@@ -1699,7 +1677,6 @@ namespace CruiseProcessing
                     outputMatrix[nthRow].netUtility = String.Format("{0,9:F3}", currentValue);
                     break;
             }   //  end switch
-            return;
         }   //  end CalculateVolume
 
         private List<LogMatrix> CreateLogMatrix(List<LogMatrixDO> reportMatrix)
@@ -1742,7 +1719,7 @@ namespace CruiseProcessing
             return matrixToOutput;
         }   //  end CreateLogMatrix
 
-        private void buildLogGradeDescription(string currLG, string currGD, StringBuilder updatedDescrip)
+        private static void buildLogGradeDescription(string currLG, string currGD, StringBuilder updatedDescrip)
         {
             //  R008/R009
             if (currLG != "" && currLG != null)
@@ -1752,10 +1729,9 @@ namespace CruiseProcessing
                 updatedDescrip.Append(" ");
                 updatedDescrip.Append(currLG);
             }   //  endif
-            return;
         }   //  end buildLogGradeDescription
 
-        private void buildDiameterDescription(string currLimit, double currMin, double currMax,
+        private static void buildDiameterDescription(string currLimit, double currMin, double currMax,
                                 StringBuilder updatedDiameter)
         {
             //  R008/R009
@@ -1763,9 +1739,9 @@ namespace CruiseProcessing
             {
                 case "":
                 case null:
-                    if (currMin == 0)
+                    if (currMin.IsExactlyZero())
                         updatedDiameter.Append(" ");
-                    else if (currMax == 0 && currMin > 0)
+                    else if (currMax.IsExactlyZero() && currMin > 0)
                     {
                         updatedDiameter.Append("  ");
                         updatedDiameter.Append(String.Format("{0,4:F1}", currMin));
@@ -1799,7 +1775,6 @@ namespace CruiseProcessing
                     updatedDiameter.Append(String.Format("{0,4:F1}", currMax));
                     break;
             }   //  end switch
-            return;
         }   //  end buildDiameterDescription
     }
 }

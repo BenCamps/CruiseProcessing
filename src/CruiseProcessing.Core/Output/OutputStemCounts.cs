@@ -65,9 +65,8 @@ namespace CruiseProcessing
                 }   //  end switch on report
                 numOlines = 0;
 
-            }   //  end foreach loop
-            return;
-        }   //  end createStemCountReports
+            }
+        }
 
 
         private void createByUnit(StratumDO currST, List<LCDDO> justSpecies, List<TreeDO> justTrees,
@@ -86,7 +85,7 @@ namespace CruiseProcessing
                     {
                         return p.Stratum_CN == currST.Stratum_CN && p.CuttingUnit_CN == cu.CuttingUnit_CN;
                     });
-                numOplots = justPlots.Count();
+                numOplots = justPlots.Count;
                 //  load headers for each cutting unit
                 if (currentReport == "SC1")
                     completeHeader = createCompleteHeader(justSpecies, cu.Code, currST.Code, 0);
@@ -143,9 +142,9 @@ namespace CruiseProcessing
                     WriteCurrentPage(strWriteOut, ref pageNumb, justSpecies);
                     numOlines = 0;
                 }   //  endif
-            }   //  end foreach loop on cutting unit
-            return;
-        }   //  end createByUnit
+            }   
+
+        }
 
 
         private void createByStratum(StratumDO currST, List<LCDDO> justSpecies, List<TreeDO> justTrees,
@@ -198,9 +197,8 @@ namespace CruiseProcessing
                 {
                     WriteCurrentPage(strWriteOut, ref pageNumb, justSpecies);
                     numOlines = 0;
-                }   //  endif
-            return;
-        }   //  end createByStratum
+                }   
+        }   
 
 
         private void loadCountsToOutput(int currRow, int currCol, double currEF, double currAC)
@@ -239,8 +237,7 @@ namespace CruiseProcessing
                     break;
             }   //  end switch
             countsToOutput[currRow].lineTotal += currEF * currAC;
-            return;
-        }   //  end loadCountsToOutput
+        }   
 
 
         private void WriteCurrentPage(TextWriter strWriteOut, ref int pageNumb, List<LCDDO> justSpecies)
@@ -313,9 +310,8 @@ namespace CruiseProcessing
             {
                 strWriteOut.WriteLine("");
                 strWriteOut.WriteLine("  NO DBH ENTRIES IN DATA SO NO DIB CLASSES AVAILABLE.");
-            }   //  endif
-            return;
-        }   //  end WriteCurrentPage
+            }   
+        }   
 
 
         private void outputTotalLine(TextWriter strWriteOut, ref int pageNumb, List<LCDDO> justSpecies)
@@ -368,8 +364,7 @@ namespace CruiseProcessing
             //  sum up total column
             calcValue = countsToOutput.Sum(c => c.lineTotal);
             strWriteOut.WriteLine(String.Format("{0,9:F1}", calcValue).PadLeft(9, ' '));
-            return;
-        }   //  end outputTotalLine
+        } 
 
 
         private string[] createCompleteHeader(List<LCDDO> justSpecies, string currCU, string currST, int currPlots)
@@ -409,6 +404,6 @@ namespace CruiseProcessing
             sb.Append("TOTALS");
             finnishHeader[2] = sb.ToString();
             return finnishHeader;
-        }   //  end createCompleteHeader
+        } 
     }
 }

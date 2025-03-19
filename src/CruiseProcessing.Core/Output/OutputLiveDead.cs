@@ -106,7 +106,7 @@ namespace CruiseProcessing
                 case "LD7":
                     volType = "CUFT";
                     //  any data for report?
-                    if (lcdList.Sum(l => l.SumGCUFT) == 0)
+                    if (!lcdList.Any(l => l.SumGCUFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No cubic foot volume for report");
                         return;
@@ -119,7 +119,7 @@ namespace CruiseProcessing
                 case "LD8":
                     volType = "BDFT";
                     //  any data for report?
-                    if (lcdList.Sum(l => l.SumGBDFT) == 0)
+                    if (!lcdList.Any(l => l.SumGBDFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No board foot volume for report");
                         return;

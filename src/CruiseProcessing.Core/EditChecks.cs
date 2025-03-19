@@ -134,13 +134,13 @@ namespace CruiseProcessing
         private static void ValidateStratum(StratumDO sdo, CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             //  check for valid fixed plot size or BAF for each stratum
-            double BAForFPSvalue = StratumMethods.GetBafOrFps(sdo);
+            float BAForFPSvalue = (float)StratumMethods.GetBafOrFps(sdo);
             if ((sdo.Method == "PNT"
                 || sdo.Method == "P3P"
                 || sdo.Method == "PCM"
                 || sdo.Method == "PCMTRE"
                 || sdo.Method == "3PPNT") // is variable radius cruise method
-                && BAForFPSvalue == 0)
+                && BAForFPSvalue.IsBafEqual(0.0f))
             {
                 errors.AddError("Stratum", "E", "22", (long)sdo.Stratum_CN, "BasalAreaFactor");
             }
@@ -148,13 +148,13 @@ namespace CruiseProcessing
                 || sdo.Method == "F3P"
                 || sdo.Method == "FIXCNT"
                 || sdo.Method == "FCM") // is fixed size plot method
-                && BAForFPSvalue == 0)
+                && BAForFPSvalue.IsPlotSizeEqual(0.0f))
             {
                 errors.AddError("Stratum", "E", "23", (long)sdo.Stratum_CN, "FixedPlotSize");
             }
 
             //  check for acres on area based methods
-            double currAcres = Utilities.AcresLookup((long)sdo.Stratum_CN, dataLayer, sdo.Code);
+            float currAcres = (float)Utilities.AcresLookup((long)sdo.Stratum_CN, dataLayer, sdo.Code);
 
             if ((sdo.Method == "PNT"
                 || sdo.Method == "FIX"
@@ -164,7 +164,7 @@ namespace CruiseProcessing
                 || sdo.Method == "3PPNT"
                 || sdo.Method == "FCM"
                 || sdo.Method == "PCMTRE")
-                && currAcres == 0)
+                && currAcres.IsAcresEqual(0.0f))
             {
                 errors.AddError("Stratum", "E", "24", (long)sdo.Stratum_CN, "NoName");
             }
@@ -172,7 +172,7 @@ namespace CruiseProcessing
                 || sdo.Method == "3P"
                 || sdo.Method == "S3P"
                 || sdo.Method == "STR")
-                && currAcres == 0)
+                && currAcres.IsAcresEqual(0.0f))
             {
                 errors.AddError("Stratum", "W", "Stratum has no acres", (long)sdo.Stratum_CN, "NoName");
             }
@@ -288,10 +288,10 @@ namespace CruiseProcessing
                     }
 
                     // check heights
-                    if (tree.TotalHeight == 0 &&
-                            tree.MerchHeightPrimary == 0 &&
-                            tree.MerchHeightSecondary == 0 &&
-                            tree.UpperStemHeight == 0)
+                    if (tree.TotalHeight.IsHeightEqual(0.0f) &&
+                            tree.MerchHeightPrimary.IsHeightEqual(0.0f) &&
+                            tree.MerchHeightSecondary.IsHeightEqual(0.0f) &&
+                            tree.UpperStemHeight.IsHeightEqual(0.0f))
                     {
                         errors.AddError("Tree", "E", "32", tree.Tree_CN.Value, "Height");
                     }
@@ -652,29 +652,24 @@ namespace CruiseProcessing
         private static int CheckForNoKPI(IEnumerable<TreeDO> treeList, ErrorLogCollection errors)
         {
             int totalErrs = 0;
-            var noKPI = treeList.Where(nk => nk.CountOrMeasure == "M" && nk.KPI == 0.0 && nk.STM == "N");
-            if (noKPI.Any())
+            var noKPI = treeList.Where(nk => nk.CountOrMeasure == "M" && nk.KPI.IsKpiEqual(0.0f) && nk.STM == "N");
+            foreach (TreeDO nok in noKPI)
             {
-                foreach (TreeDO nok in noKPI)
-                {
-                    errors.AddError("Tree", "E", "27", (long)nok.Tree_CN, "NoName");
-                    totalErrs++;
-                }
+                errors.AddError("Tree", "E", "27", (long)nok.Tree_CN, "NoName");
+                totalErrs++;
             }
+
             return totalErrs;
         }
 
         private static int CheckForNoDBH(IEnumerable<TreeDO> treeList, ErrorLogCollection errors)
         {
             int totalErrs = 0;
-            var noDBH = treeList.Where(nd => nd.CountOrMeasure == "M" && nd.DBH == 0.0 && nd.DRC == 0.0);
-            if (noDBH.Any())
+            var noDBH = treeList.Where(nd => nd.CountOrMeasure == "M" && nd.DBH.IsDiameterEqual(0.0f) && nd.DRC.IsDiameterEqual(0.0f));
+            foreach (TreeDO nod in noDBH)
             {
-                foreach (TreeDO nod in noDBH)
-                {
-                    errors.AddError("Tree", "E", "11", (long)nod.Tree_CN, "NoName");
-                    totalErrs++;
-                }
+                errors.AddError("Tree", "E", "11", (long)nod.Tree_CN, "NoName");
+                totalErrs++;
             }
             return totalErrs;
         }

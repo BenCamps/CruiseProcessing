@@ -53,7 +53,6 @@ namespace CruiseProcessing
                 fieldLengths = new int[] { 6, 6, 4, 8, 3, 5, 9, 6 };
                 writeTreeBasedBySampleGroup(strWriteOut, ref pageNum);
             }   //  endif
-            return;
         }   //  end createUnitSummary
 
         private void loadAreaBased()
@@ -154,7 +153,7 @@ namespace CruiseProcessing
                                         {
                                             return p.CuttingUnit_CN == cu.CuttingUnit_CN && p.Stratum_CN == s.Stratum_CN;
                                         });
-                                    r.value11 = pList.Count();
+                                    r.value11 = pList.Count;
                                     r.value12 = s.BasalAreaFactor;
                                     r.value13 = s.FixedPlotSize;
                                     areaBasedOutput.Add(r);
@@ -164,7 +163,6 @@ namespace CruiseProcessing
                     }   //  end switch on method
                 }   //  end foreach loop on stratum
             }   //  end foreach loop on cutting units
-            return;
         }   //  end loadAreaBased
 
         private void loadTreeBased()
@@ -370,7 +368,6 @@ namespace CruiseProcessing
                     }   //  end switch on method
                 }   //  end foreach loop on strata
             }   //  end foreach loop on cutting units
-            return;
         }   //  end loadTreeBased
 
         private void writeAreaBased(TextWriter strWriteOut, ref int pageNumb)
@@ -401,7 +398,7 @@ namespace CruiseProcessing
                     calcValue = (abo.value7 * abo.value12) / abo.value11;
                     prtFields.Add(String.Format("{0,6:F0}", calcValue).PadLeft(6, ' '));
                 }
-                else if (abo.value7 == 0)
+                else
                     prtFields.Add("      ");
 
                 if (abo.value8 > 0 && abo.value11 > 0)
@@ -409,13 +406,12 @@ namespace CruiseProcessing
                     calcValue = (abo.value8 * abo.value13) / abo.value11;
                     prtFields.Add(String.Format("{0,7:F0}", calcValue).PadLeft(7, ' '));
                 }
-                else if (abo.value8 == 0)
+                else
                     prtFields.Add("       ");
 
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   //  end foreach loop
             strWriteOut.WriteLine(reportConstants.subtotalLine2);
-            return;
         }   //  end writeAreaBased
 
         private void writeTreeBasedBySpecies(TextWriter strWriteOut, ref int pageNumb)
@@ -444,7 +440,6 @@ namespace CruiseProcessing
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   //  end foreach loop
             strWriteOut.WriteLine(reportConstants.subtotalLine2);
-            return;
         }   //  end writeTreeBasedBySpecies
 
         private void writeTreeBasedBySampleGroup(TextWriter strWriteOut, ref int pageNumb)
@@ -471,7 +466,6 @@ namespace CruiseProcessing
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   //  end foreach loop
             strWriteOut.WriteLine(reportConstants.subtotalLine2);
-            return;
         }   //  end writeTreeBasedBySampleGroup
     }
 }

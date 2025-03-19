@@ -60,7 +60,7 @@ namespace CruiseProcessing.Output.R1
             HeaderData = headerData;
             var pageNumb = startPageNum;
             numOlines = 0;
-            Log.LogInformation("Generating {currentReport} report", currentReport);
+            Log.LogInformation("Generating {CurrentReport} report", currentReport);
             string currentTitle = fillReportTitle(currentReport);
 
             List<LCDDO> lcdList = DataLayer.getLCD();
@@ -77,7 +77,7 @@ namespace CruiseProcessing.Output.R1
             {
                 case "R102":
                     {
-                        if (lcdList.Sum(l => l.SumGBDFT).IsZero())
+                        if (!lcdList.Any(l => l.SumGBDFT > 0))
                         {
                             noDataForReport(strWriteOut, currentReport, " >>>> No board foot volume for report");
                             return pageNumb;
@@ -90,7 +90,7 @@ namespace CruiseProcessing.Output.R1
 
                 case "R103":
                     {
-                        if (lcdList.Sum(l => l.SumGCUFT).IsZero())
+                        if (!lcdList.Any(l => l.SumGCUFT > 0))
                         {
                             noDataForReport(strWriteOut, currentReport, " >>>> No cubic foot volume for report");
                             return pageNumb;
@@ -406,7 +406,6 @@ namespace CruiseProcessing.Output.R1
                     foreach (var listItem in prodGroup.Items)
                     {
                         var prtFields = new List<string>();
-                        double calcValue = 0;
 
                         prtFields.Add(loggingMethod.PadLeft(3, ' ') + " ");
                         prtFields.Add(product.PadLeft(2, ' ') + " ");

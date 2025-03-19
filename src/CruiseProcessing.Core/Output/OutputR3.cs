@@ -79,7 +79,6 @@ namespace CruiseProcessing
                 //  output total line
                 outputTotalLine(strWriteOut, ref pageNumb);
             }   //  endif
-            return;
         }   //  end CreateR3Reports
 
         private void AccumulateValues(LCDDO jg)
@@ -116,7 +115,6 @@ namespace CruiseProcessing
                 rr.value13 += l.SumExpanFactor * currSTacres;
             }   //  end foreach loop
             listToOutput.Add(rr);
-            return;
         }   //  end AccumulateValues
 
         private void WriteCurrentGroup(TextWriter strWriteOut, ref int pageNumb)
@@ -176,7 +174,6 @@ namespace CruiseProcessing
                 strWriteOut.WriteLine("");
                 strWriteOut.WriteLine("");
             }   //  endif
-            return;
         }   //  end WriteCurrentGroup
 
         private void updateTotalLine()
@@ -255,7 +252,6 @@ namespace CruiseProcessing
             }   //  end foreach loop
             strWriteOut.WriteLine("");
             strWriteOut.WriteLine("");
-            return;
         }   //  end outputTotalLine
     }
 }

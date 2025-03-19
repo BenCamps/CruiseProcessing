@@ -41,14 +41,6 @@ namespace CruiseProcessing
         private List<string> prtFields = new List<string>();
         private List<RegionalReports> listToOutput = new List<RegionalReports>();
         private List<ReportSubtotal> totalToOutput = new List<ReportSubtotal>();
-        private double currGRS = 0;
-        private double currNET = 0;
-        private double currAC = 0;
-        private double currDBH2 = 0;
-        private double currHGT = 0;
-        private double currLOGS = 0;
-        private double currVAL = 0;
-        private double currEF = 0;
         private double convFactor = 100.0;
         private string[] completeHeader;
 
@@ -68,8 +60,7 @@ namespace CruiseProcessing
             {
                 case "R401":
                 case "R403":
-                    currGRS = lcdList.Sum(l => l.SumGBDFT);
-                    if (currGRS == 0)
+                    if (!lcdList.Any(l => l.SumGBDFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No board foot volume for report ");
                         return;
@@ -77,8 +68,7 @@ namespace CruiseProcessing
                     break;
                 case "R402":
                 case "R404":
-                    currGRS = lcdList.Sum(l => l.SumGCUFT);
-                    if (currGRS == 0)
+                    if (!lcdList.Any(l => l.SumGCUFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No cubic foot volume for report ");
                         break;
@@ -161,7 +151,6 @@ namespace CruiseProcessing
                     }   //  endif noMethod
                     break;
             }   //  end switch on currentReport
-            return;
         }   //  end CreateR4Reports
 
         private void AccumulateSpeciesVolume(List<LCDDO> lcdList, string currSP, HeightFieldType hgtOne, string currPP)
@@ -175,14 +164,14 @@ namespace CruiseProcessing
 
             //  need stratum table to get acres
             List<StratumDO> sList = DataLayer.GetStrata();
-            currAC = 0;
-            currDBH2 = 0;
-            currHGT = 0;
-            currLOGS = 0;
-            currVAL = 0;
-            currEF = 0;
-            currGRS = 0;
-            currNET = 0;
+            double currAC = 0;
+            double currDBH2 = 0;
+            double currHGT = 0;
+            double currLOGS = 0;
+            double currVAL = 0;
+            double currEF = 0;
+            double currGRS = 0;
+            double currNET = 0;
             int nthRow = 0;
             string prevST = "*";
             foreach (LCDDO js in justSpecies)
@@ -253,7 +242,6 @@ namespace CruiseProcessing
             rr.value12 = currVAL;
             rr.value13 = currEF;
             listToOutput.Add(rr);
-            return;
         }   //  end AccumulateSpeciesVolume
 
 
@@ -261,12 +249,12 @@ namespace CruiseProcessing
         {
             //R403/R404
             double unitAC = 0;
-            currGRS = 0;
-            currNET = 0;
-            currEF = 0;
-            currDBH2 = 0;
-            currLOGS = 0;
-            currHGT = 0;
+            double currGRS = 0;
+            double currNET = 0;
+            double currEF = 0;
+            double currDBH2 = 0;
+            double currLOGS = 0;
+            double currHGT = 0;
 
             List<CuttingUnitDO> cutList = DataLayer.getCuttingUnits();
             List<PRODO> proList = DataLayer.getPRO();
@@ -359,7 +347,6 @@ namespace CruiseProcessing
                     }   //  end for loop on strata list
                 }   //  end foreach loop on justUnits
             }   //  end foreach loop on justMethods
-            return;
         }   // end AccumulateByLogMethod
 
 
@@ -399,7 +386,6 @@ namespace CruiseProcessing
                 rr.value13 = currEF;
                 listToOutput.Add(rr);
             }   //  endif nthRow
-            return;
         }   //  end loadListToOutput
 
 
@@ -473,7 +459,6 @@ namespace CruiseProcessing
                 }   //  endif
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   //  end foreach loop
-            return;
         }   //  end WriteCurrentGroup
 
 
@@ -552,7 +537,6 @@ namespace CruiseProcessing
 
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   // end foreach loop
-            return;
         }   // end WriteCurrentGroup
 
 
@@ -586,7 +570,6 @@ namespace CruiseProcessing
                     totalToOutput.Add(r);
                 }   //  end foreach loop
             }   //  endif
-            return;
         }   //  end updateTotal
 
 
@@ -654,7 +637,6 @@ namespace CruiseProcessing
                 else strWriteOut.WriteLine("          ");
             }
             else strWriteOut.WriteLine("     N/A  ");
-            return;
         }   //  end writeTotalLine
 
 
@@ -724,33 +706,28 @@ namespace CruiseProcessing
             strWriteOut.Write(String.Format("{0,6:F1}", calcValue).PadLeft(7, ' '));
             //  unit acres
             strWriteOut.WriteLine(String.Format("{0,8:F1}", Total12).PadLeft(9, ' '));
-            return;
         }   //  end writeTotalLine
 
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Bug", "S4143:Collection elements should not be replaced unconditionally",
-            Justification = "in header template XX replaced by BF or CF, ZZZ replaced by MBF or CCF")]
         private string[] createCompleteHeader()
         {
             string[] finnishHeader = new string[7];
             if (currentReport == "R401" || currentReport == "R402")
-                finnishHeader = R401R402columns;
+                finnishHeader = R401R402columns.ToArray();
             else if (currentReport == "R403" || currentReport == "R404")
-                finnishHeader = R403R404columns;
+                finnishHeader = R403R404columns.ToArray();
             switch (currentReport)
             {
                 case "R401":        case "R403":
                     {
                         finnishHeader[5] = finnishHeader[5].Replace("XX", "BF");
-                        finnishHeader[6] = finnishHeader[6].Replace("XX", "BF");
-                        finnishHeader[6] = finnishHeader[6].Replace("ZZZ", "MBF");
+                        finnishHeader[6] = finnishHeader[6].Replace("XX", "BF").Replace("ZZZ", "MBF");
                         break;
                     }
                 case "R402":        case "R404":
                     {
                         finnishHeader[5] = finnishHeader[5].Replace("XX", "CF");
-                        finnishHeader[6] = finnishHeader[6].Replace("XX", "CF");
-                        finnishHeader[6] = finnishHeader[6].Replace("ZZZ", "CCF");
+                        finnishHeader[6] = finnishHeader[6].Replace("XX", "CF").Replace("ZZZ", "CCF");
                         break;
                     }
             }   //  end switch on current report

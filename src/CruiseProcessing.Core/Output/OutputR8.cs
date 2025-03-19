@@ -68,9 +68,8 @@ namespace CruiseProcessing
 
             // grad LCD list to see if there's volume for the report
             List<LCDDO> lcdList = DataLayer.getLCD();
-            var currGRSbdft = lcdList.Sum(l => l.SumGBDFT);
-            var currGRScuft = lcdList.Sum(l => l.SumGCUFT);
-            if (currGRSbdft == 0 && currGRScuft == 0)
+
+            if (!lcdList.Any(l => l.SumGBDFT > 0) && !lcdList.Any(l => l.SumGCUFT > 0))
             {
                  noDataForReport(strWriteOut, currentReport, " >>>>> No volume for this report.");
                  return;
@@ -119,7 +118,6 @@ namespace CruiseProcessing
                     OutputPulpwood(strWriteOut, ref pageNumb, justGroups, lcdList);
                     break;
             }   //  end switch on currentReport
-            return;
         }   //  end CreateR8Reports
 
 
@@ -166,7 +164,6 @@ namespace CruiseProcessing
                         case "02":      //  pulpwood
                             listToOutput[rowToLoad].value17 += jt.Tree.ExpansionFactor * currAC;
                             listToOutput[rowToLoad].value18 += jt.NetCUFTPP * jt.Tree.ExpansionFactor * currAC;
-                            double testCalc = jt.NetCUFTPP * jt.Tree.ExpansionFactor * currAC;
                             //  load summary values
                             reportSummary[4].value9 += jt.Tree.DBH * jt.Tree.ExpansionFactor * currAC;
                             reportSummary[4].value10 += jt.Tree.MerchHeightPrimary * jt.Tree.ExpansionFactor * currAC;
@@ -224,7 +221,6 @@ namespace CruiseProcessing
                     }   //  end switch on primary product
                 }   //  endif on species
             }   //  end foreach loop on justTrees
-            return;
         }   //  end AccumulateVolume
 
 
@@ -394,7 +390,7 @@ namespace CruiseProcessing
                             totHt1 += rs.value10;
                             totHt2 += rs.value11;
                         }
-                        else if (calcTrees == 0.0)
+                        else
                         {
                             strWriteOut.Write("   0.0");
                             strWriteOut.Write("             ");
@@ -427,7 +423,6 @@ namespace CruiseProcessing
                 }   //  end switch on rowToPrint
                 rowToPrint++;
             }   //  end foreach loop on reportSummary
-            return;
         }   //  end WriteReport
 
 
@@ -543,7 +538,6 @@ namespace CruiseProcessing
                 strWriteOut.WriteLine(String.Format("{0,7:F2}", totalToOutput[0].value10 / ccfFactor).PadLeft(10, ' '));
                 totalToOutput.Clear();
             }   //  endif
-            return;
         }   //  end OutputSawtimber
 
 
@@ -663,7 +657,6 @@ namespace CruiseProcessing
                     strWriteOut.WriteLine("       0.0");
                 }   //  endif
                 totalToOutput.Clear();
-            return;
         }   //  end OutputProduct8
 
 
@@ -778,7 +771,6 @@ namespace CruiseProcessing
                     strWriteOut.WriteLine("       0.0");
                 }   //  endif
                 totalToOutput.Clear();
-            return;
         }   //  end OutputPulpwood
 
 
@@ -793,7 +785,6 @@ namespace CruiseProcessing
                 listToOutput.Add(rr);
                 nextDIB += 2;
             }   //  end for j loop
-            return;
         }   //  end LoadDIBclasses
 
 

@@ -76,12 +76,12 @@ namespace CruiseProcessing
             switch (currentReport)
             {
                 case "R101":
-                    if (lcdList.Sum(l => l.SumGBDFT) == 0)
+                    if (!lcdList.Any(l => l.SumGBDFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No board foot volume for report");
                         return;
                     }   //  endif on board foot
-                    if (lcdList.Sum(l => l.SumGCUFT) == 0)
+                    if (!lcdList.Any(l => l.SumGCUFT > 0))
                     {
                         noDataForReport(strWriteOut, currentReport, " >>>> No cubic foot volume for report");
                         return;
@@ -1047,45 +1047,37 @@ namespace CruiseProcessing
             foreach (LCDDO pv in lcdList)
             {
                 //  Is the product in the list to output
-                if (listToOutput.Count >= 0)
+                int nthRow = listToOutput.FindIndex(lto => lto.value1 == pv.PrimaryProduct);
+                if (nthRow >= 0)
                 {
-                    int nthRow = listToOutput.FindIndex(
-                        delegate (RegionalReports lto)
-                        {
-                            return lto.value1 == pv.PrimaryProduct;
-                        });
-                    if (nthRow >= 0)
-                    {
-                        listToOutput[nthRow].value7 += pv.SumGBDFT; ;
-                        listToOutput[nthRow].value8 += pv.SumGCUFT;
-                        listToOutput[nthRow].value9 += pv.SumNBDFT;
-                        listToOutput[nthRow].value10 += pv.SumNCUFT;
-                        //  also add any secondaary volume
-                        listToOutput[nthRow].value11 += pv.SumGBDFTtop;
-                        listToOutput[nthRow].value12 += pv.SumGCUFTtop;
-                        listToOutput[nthRow].value13 += pv.SumNBDFTtop;
-                        listToOutput[nthRow].value14 += pv.SumNCUFTtop;
-                    }
-                    else if (nthRow < 0)
-                    {
-                        RegionalReports rr = new RegionalReports();
-                        rr.value1 = pv.PrimaryProduct;
-                        rr.value2 = "P";
-                        rr.value3 = pv.SecondaryProduct;
-                        rr.value4 = "S";
-                        rr.value7 = pv.SumGBDFT;
-                        rr.value8 = pv.SumGCUFT;
-                        rr.value9 = pv.SumNBDFT;
-                        rr.value10 = pv.SumNCUFT;
-                        rr.value11 = pv.SumGBDFTtop;
-                        rr.value12 = pv.SumGCUFTtop;
-                        rr.value13 = pv.SumNBDFTtop;
-                        rr.value14 = pv.SumNCUFTtop;
-                        listToOutput.Add(rr);
-                    }   //  endif
-                }   //  endif
+                    listToOutput[nthRow].value7 += pv.SumGBDFT; ;
+                    listToOutput[nthRow].value8 += pv.SumGCUFT;
+                    listToOutput[nthRow].value9 += pv.SumNBDFT;
+                    listToOutput[nthRow].value10 += pv.SumNCUFT;
+                    //  also add any secondaary volume
+                    listToOutput[nthRow].value11 += pv.SumGBDFTtop;
+                    listToOutput[nthRow].value12 += pv.SumGCUFTtop;
+                    listToOutput[nthRow].value13 += pv.SumNBDFTtop;
+                    listToOutput[nthRow].value14 += pv.SumNCUFTtop;
+                }
+                else if (nthRow < 0)
+                {
+                    RegionalReports rr = new RegionalReports();
+                    rr.value1 = pv.PrimaryProduct;
+                    rr.value2 = "P";
+                    rr.value3 = pv.SecondaryProduct;
+                    rr.value4 = "S";
+                    rr.value7 = pv.SumGBDFT;
+                    rr.value8 = pv.SumGCUFT;
+                    rr.value9 = pv.SumNBDFT;
+                    rr.value10 = pv.SumNCUFT;
+                    rr.value11 = pv.SumGBDFTtop;
+                    rr.value12 = pv.SumGCUFTtop;
+                    rr.value13 = pv.SumNBDFTtop;
+                    rr.value14 = pv.SumNCUFTtop;
+                    listToOutput.Add(rr);
+                }
             }       //  end foreaach
-            return;
         }   // end Accumulate Totals
 
         private void WriteSectionOne(TextWriter strWriteOut, ref int pagenumber)

@@ -429,7 +429,7 @@ namespace CruiseProcessing
                 //  Expansion factor is only printed for primary product
                 //  and is different for S3P and 3P
                 if (currMeth == "S3P" || currMeth == "3P")
-                    summedEF = CommonEquations.Calculate3PTrees(currData, currMeth);
+                    summedEF = currData.Sum(lcd => lcd.TalliedTrees);
                 prtFields.Add(String.Format(fieldFormat6, summedEF * STacres));
             }
             else

@@ -86,7 +86,6 @@ namespace CruiseProcessing
             OutputSubtotalSummary(strWriteOut, ref pageNumb, summaryList);
             OutputGrandTotal(strWriteOut, currentReport, ref pageNumb);
 
-            return;
         }   //  end OutputUnitReports
 
         private int findMethods()
@@ -118,7 +117,6 @@ namespace CruiseProcessing
             strWriteOut.WriteLine("  {0,12:F0}", unitSubtotal[0].Value4);
             strWriteOut.WriteLine(" ");
             numOlines += 3;
-            return;
         }   //  end OutputUnitSubtotal
 
         private void OutputGrandTotal(TextWriter strWriteOut, string currRPT, ref int pageNumb)
@@ -148,8 +146,7 @@ namespace CruiseProcessing
             //  also output the footer
             // for (int k = 0; k < 5; k++)
             //     strWriteOut.WriteLine(rh.UCfooter[k]);
-            return;
-        }   //  end OutputGrandTotal
+        }
 
         private void OutputSubtotalSummary(TextWriter strWriteOut, ref int pageNumb, List<ReportSubtotal> summaryList)
         {
@@ -179,7 +176,6 @@ namespace CruiseProcessing
             strWriteOut.WriteLine(reportConstants.longLine);
             strWriteOut.WriteLine(reportConstants.longLine);
             numOlines += 2;
-            return;
         }   //  end OutputSubtotalSummary
 
         private void finishColumnHeaders(string[] leftHandSide, string[] rightHandSide)
@@ -196,7 +192,6 @@ namespace CruiseProcessing
                 sb.Append(rightHandSide[k]);
                 completeHeader[k] = sb.ToString();
             }   //  end for loop
-            return;
         }   //  end finishColumnHeaders
 
         //////////////////////////////////////////////////////////////////////////
@@ -256,7 +251,6 @@ namespace CruiseProcessing
                 currTipwood = 0.0;
                 //  end foreach loop on species
             }
-            return;
         }   //  end LoadAndPrintProrated
 
         private void UpdateUnitTotal(string currRPT)
@@ -277,7 +271,6 @@ namespace CruiseProcessing
                 // rs.Value13 += estTrees;
                 unitSubtotal.Add(rs);
             }   //  endif
-            return;
         }   //  end UpdateUnitTotal
 
         private void UpdateStrataTotal(string currRPT)
@@ -312,7 +305,6 @@ namespace CruiseProcessing
                 grandTotal.Add(rs);
             }   //  endif
 
-            return;
         }   //  end UpdateStrataTotal
 
         //      /////////////////////////////////////////////////////////////////////////////////
@@ -356,7 +348,6 @@ namespace CruiseProcessing
                 //rs.Value13 += estTrees;
                 grandTotal.Add(rs);
             }   //  endif
-            return;
         }   //  end UpdateSubtotalSummary
 
         private void WriteCurrentGroup(TextWriter strWriteOut, ref int pageNumb)
@@ -379,7 +370,6 @@ namespace CruiseProcessing
             prtFields.Add(String.Format(fieldFormat3, currTipwood));
 
             printOneRecord(fieldLengths, prtFields, strWriteOut);
-            return;
         }   //  end WriteCurrentGroup
 
         private void SumUpGroups(List<TreeCalculatedValuesDO> tList)
@@ -407,7 +397,6 @@ namespace CruiseProcessing
                 }   // endif on unit of measure
             }   //  end foreach loop on trees
 
-            return;
         }   //  end SumUpGroups for 100% method
 
         private void SumUpGroups(List<LCDDO> lcdList, string currCU)
@@ -461,8 +450,8 @@ namespace CruiseProcessing
                     }   //  endif sure to measure
                 }   //  endif on unit of measure
             }   //  end foreach loop on LCD
-            return;
-        }   //  end SumUpGroups
+
+        }
 
         private double pull3PtallyTrees(List<PRODO> proList, List<LCDDO> lcdList, string currSG,
                                         string currSP, string currST, string currPP, string currLD,
@@ -527,8 +516,7 @@ namespace CruiseProcessing
                 Tipwoodsum += js.TipwoodVolume * js.Tree.ExpansionFactor * currProFac;
             }   //  end foreach loop
 
-            return;
-        }   //  end getSTMtrees
+        }
 
         /*      public void OutputTipwoodReport(StreamWriter strWriteOut, reportHeaders rh, ref int pageNumb)
            {

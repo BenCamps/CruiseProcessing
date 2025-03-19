@@ -266,7 +266,7 @@ namespace CruiseProcessing
                     {
                         var sList = DataLayer.GetStrata();
                         //  first see if these methods exist in the cruise file
-                        int nthRow = findMethods(sList);
+                        int nthRow = Find3PMethods(sList);
                         if (nthRow == -1)
                         {
                             strWriteOut.WriteLine("\f");
@@ -492,12 +492,11 @@ namespace CruiseProcessing
                     unitSubtotal[0].Value7 += jg.TreeCount;
                     prtFields.Clear();
                 }   //  end foreach loop
-            }   //  endif on method
-            return;
-        }   //  end WriteCurrentGroup
+            }
+        }
 
 
-        private int findMethods(List<StratumDO> sList)
+        private static int Find3PMethods(List<StratumDO> sList)
         {
             int nthRow = -1;
             nthRow = sList.FindIndex(
@@ -541,8 +540,7 @@ namespace CruiseProcessing
             rs.Value7 = currData.Sum(tcv => tcv.Tree.TreeCount);
 
             unitSubtotal.Add(rs);
-            return;
-        }   //  end UpdateSubtotals
+        }  
 
 
 
@@ -587,8 +585,8 @@ namespace CruiseProcessing
                     }   //  endif
                     break;
             }   //  end switch on current report
-            return;
-        }   //  end OutputSubtotal
+
+        }   
 
         private void OutputUnitSubtotal(TextWriter strWriteOut, ref int pageNumb,
                                         string currRPT)
@@ -651,9 +649,8 @@ namespace CruiseProcessing
                     strWriteOut.WriteLine(" ");
                     numOlines += 3;
                     break;
-            }   //  end switch
-            return;
-        }   //  end OutputUnitSubtotal
+            }  
+        }   
 
         private void OutputStrataSubtotal(TextWriter strWriteOut, ref int pageNumb, string currST,
                                             string currRPT)
@@ -718,9 +715,8 @@ namespace CruiseProcessing
                     strWriteOut.WriteLine(reportConstants.longLine);
                     numOlines += 5;
                     break;
-            }   //  end switch
-            return;
-        }   //  end OutputSubtotal
+            }   
+        }   
 
 
         private void OutputGrandTotal(TextWriter strWriteOut, ref int pageNumb)
@@ -736,8 +732,7 @@ namespace CruiseProcessing
             strWriteOut.Write(String.Format("{0,9:F0}", grandTotal[0].Value5));
             strWriteOut.WriteLine(String.Format("{0,9:F0}", grandTotal[0].Value6));
             numOlines += 2;
-            return;
-        }   //  end OutputGrandTotal
+        }   
 
 
         private void OutputGrandTotal(TextWriter strWriteOut, string currRPT, ref int pageNumb)
@@ -834,8 +829,7 @@ namespace CruiseProcessing
             //  also output the footer
             for (int k = 0; k < 5; k++)
                 strWriteOut.WriteLine(UCfooter[k]);
-            return;
-        }   //  end OutputGrandTotal
+        }   
 
 
         private void OutputSubtotalSummary(TextWriter strWriteOut, ref int pageNumb, List<ReportSubtotal> summaryList)
@@ -881,8 +875,7 @@ namespace CruiseProcessing
             strWriteOut.WriteLine(reportConstants.longLine);
             strWriteOut.WriteLine(reportConstants.longLine);
             numOlines += 2;
-            return;
-        }   //  end OutputSubtotalSummary
+        }   
 
 
         private void OutputSummaryList(TextWriter strWriteOut, ref int pageNumb,
@@ -931,26 +924,20 @@ namespace CruiseProcessing
 
             strWriteOut.WriteLine(reportConstants.longLine);
             numOlines++;
-            return;
-        }   //  end OutputSummary List
+        }   
 
 
         private void finishColumnHeaders(string[] leftHandSide, string[] rightHandSide)
         {
             //  clean up completeHeader before loading again
-            for (int j = 0; j < 11; j++)
+            for (int j = 0; j < completeHeader.Length; j++)
                 completeHeader[j] = null;
             //  load up complete header
-            StringBuilder sb = new StringBuilder();
             for (int k = 0; k < rightHandSide.Count(); k++)
             {
-                sb.Clear();
-                sb.Append(leftHandSide[k]);
-                sb.Append(rightHandSide[k]);
-                completeHeader[k] = sb.ToString();
-            }   //  end for loop
-            return;
-        }   //  end finishColumnHeaders
+                completeHeader[k] = leftHandSide[k] + rightHandSide[k];
+            }
+        }   
 
 
         private void LoadAndPrintProrated_UC1to4(TextWriter strWriteOut, StratumDO sdo, string currRPT,
@@ -974,7 +961,7 @@ namespace CruiseProcessing
                 else if (prevCU != cuttingUnit.Code)
                 {
                     //  print unit total and reset values
-                    unitSubtotal[0].Value1 = prevCU.PadLeft(3, ' '); ;
+                    unitSubtotal[0].Value1 = prevCU.PadLeft(3, ' ');
                     OutputUnitSubtotal(strWriteOut, ref pageNumb, currentReport);
                     prevCU = cuttingUnit.Code;
                     prtFields.Clear();
@@ -1025,7 +1012,6 @@ namespace CruiseProcessing
                 OutputStrataSubtotal(strWriteOut, ref pageNumb, sdo.Code, currentReport);
             unitSubtotal.Clear();
             strataSubtotal.Clear();
-            return;
         }   //  end LoadAndPrintProrated
 
 
@@ -1248,8 +1234,7 @@ namespace CruiseProcessing
                 rs.Value5 += currNCUFT + currNCUFTnonsaw;
                 rs.Value6 += currGCUFTtopwood;
                 grandTotal.Add(rs);
-            }   //  endif
-            return;
+            }   //  endif;
         }   //  end UpdateUnitTotal
 
 
@@ -1293,7 +1278,6 @@ namespace CruiseProcessing
                 }   //  endif on report
                 unitSubtotal.Add(rs);
             }   //  endif
-            return;
         }   //  end UpdateUnitTotal
 
         private void UpdateStrataTotal_UC1to4(string currRPT)
@@ -1375,8 +1359,6 @@ namespace CruiseProcessing
                 }   //  endif
                 grandTotal.Add(rs);
             }   //  endif
-
-            return;
         }   //  end UpdateStrataTotal
 
 
@@ -1454,7 +1436,6 @@ namespace CruiseProcessing
                 rs.Value13 += estTrees;
                 grandTotal.Add(rs);
             }   //  endif
-            return;
         }   //  end UpdateSubtotalSummary
 
 
@@ -1491,9 +1472,8 @@ namespace CruiseProcessing
                 rs.Value9 += currNBDFT;
                 summaryList.Add(rs);
 
-            }   //  endif
-            return;
-        }   //  end UpdateSummaryList
+            } 
+        }
 
 
         private void WriteCurrentGroup_CUreports(TextWriter strWriteOut, ref int pageNumb)
@@ -1525,9 +1505,9 @@ namespace CruiseProcessing
                 //  Expansion factor is first
                 prtFields.Add(String.Format(fieldFormat5, numTrees));
                 //  This is estimated number of trees -- all methods except 3P
-                if (currGBDFT == 0.0 && currGCUFT == 0)
-                    prtFields.Add("      0");
-                else prtFields.Add(String.Format(fieldFormat5, estTrees));
+                if (currGBDFT > 0 || currGCUFT > 0)
+                { prtFields.Add(String.Format(fieldFormat5, estTrees)); }
+                else { prtFields.Add("      0"); }
             }   // endif on report
             //  load volumes
             prtFields.Add(String.Format(fieldFormat3, currGBDFT));
@@ -1554,7 +1534,6 @@ namespace CruiseProcessing
                 }   //   endif recovered flag
             }   //  endif on report
             printOneRecord(fieldLengths, prtFields, strWriteOut);
-            return;
         }   //  end WriteCurrentGroup
 
 
@@ -1594,7 +1573,6 @@ namespace CruiseProcessing
             else prtFields.Add("       ");
 
             printOneRecord(fieldLengths, prtFields, strWriteOut);
-            return;
         }   //  end WriteCurrentGroup
 
 
@@ -1775,7 +1753,6 @@ namespace CruiseProcessing
             currNBDFTnonsaw = 0.0;
             currGCUFTnonsaw = 0.0;
             currNCUFTnonsaw = 0.0;
-            return;
         }   //  end SumUpGroups for 100% method
 
 
@@ -2000,7 +1977,6 @@ namespace CruiseProcessing
             currNBDFTnonsaw = 0.0;
             currGCUFTnonsaw = 0.0;
             currNCUFTnonsaw = 0.0;
-            return;
         }   //  end SumUpGroups for area based methods
 
 
@@ -2213,9 +2189,8 @@ namespace CruiseProcessing
                     sumDBHsquared += cg.SumDBHOBsqrd;
                     sumExpanFactor += cg.SumExpanFactor;
                 }   //  endif
-            }   //  end foreach loop
-            return;
-        }   //  end overloaded SumUpGroups
+            }
+        } 
 
         private void sumSTMtrees_VSM5(LCDDO currGroup, string currentUnit,
                                     long currCU_CN, long currST_CN)
@@ -2262,9 +2237,8 @@ namespace CruiseProcessing
 
                 //  and increment number of trees
                 numTrees++;
-            }   //  end foreach loop
-            return;
-        }   //  end sumSTMtrees
+            }
+        } 
 
         private double pull3PtallyTrees_UCreports(List<PRODO> proList, List<LCDDO> lcdList, string currSG,
                                         string currSP, string currST, string currPP, string currLD,
@@ -2360,9 +2334,7 @@ namespace CruiseProcessing
                     NCUFTnonsaw += js.GrossCUFTRP * js.Tree.ExpansionFactor * currProFac;
                     CordSum += js.CordsRP * js.Tree.ExpansionFactor * currProFac;
                 }   //  endif
-            }   //  end foreach loop
-
-            return;
-        }   //  end captureSTMtrees
+            }   
+        }
     }
 }

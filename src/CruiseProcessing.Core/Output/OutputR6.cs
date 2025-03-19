@@ -36,7 +36,6 @@ namespace CruiseProcessing
         private double currNET = 0;
         private double convFactor = 100.0;
         private double currAC = 0;
-        private string currUOM;
         private string[] completeHeader;
         private string volumeType = "***** CCF *****";
         private int tableNumber = 1;
@@ -130,7 +129,6 @@ namespace CruiseProcessing
                     }  //  end foreach loop
                     break;
             }  //  end switch
-            return;
         }  //  end CreateR6reports
 
         private void AccumulatePaymentUnits(List<CuttingUnitDO> justPaymentUnits, TextWriter strWriteOut,
@@ -141,11 +139,8 @@ namespace CruiseProcessing
             double currNET01 = 0;
             double currGRS08 = 0;
             double currNET08 = 0;
-            double totalGRS01 = 0;
-            double totalNET01 = 0;
-            double totalGRS08 = 0;
-            double totalNET08 = 0;
-            double payUnitAcres = 0;
+            string currUOM;
+
 
             List<CuttingUnitDO> cutList = DataLayer.getCuttingUnits();
             List<PRODO> proList = DataLayer.getPRO();
@@ -159,7 +154,7 @@ namespace CruiseProcessing
                     {
                         return c.PaymentUnit == jpu.PaymentUnit;
                     });
-                payUnitAcres = justUnits.Sum(j => j.Area);
+                double payUnitAcres = justUnits.Sum(j => j.Area);
                 double proratFac = 0.0;
                 string prevUOM = "*";
                 //  then need strata volume to prorate
@@ -175,10 +170,10 @@ namespace CruiseProcessing
                         string prevSP = "*";
                         string prevPP = "*";
                         string prevSProd = "*";
-                        totalGRS01 = 0;
-                        totalNET01 = 0;
-                        totalGRS08 = 0;
-                        totalNET08 = 0;
+                        double totalGRS01 = 0;
+                        double totalNET01 = 0;
+                        double totalGRS08 = 0;
+                        double totalNET08 = 0;
                         //  July 2014 -- need to know the cruise  method to get correct logs/trees
                         string currMeth = stratum.Method;
                         foreach (LCDDO js in justSpecies)
@@ -226,7 +221,7 @@ namespace CruiseProcessing
                                     UpdateSubtotal(r08.value1, r08.value10, r08.value6, r08.value5,
                                                            js.UOM, r08.value7, r08.value8);
                                 }
-                                else if (totalNET08 == 0)
+                                else
                                 {
                                     //  need to update unit acres in subtotal
                                     UpdateSubtotal(ju.PaymentUnit, ju.Area, js.SecondaryProduct, js.Species,
@@ -355,7 +350,7 @@ namespace CruiseProcessing
                             UpdateSubtotal(r08.value1, r08.value10, r08.value6, r08.value5,
                                                    prevUOM, r08.value7, r08.value8);
                         }
-                        else if (totalNET08 == 0)
+                        else
                         {
                             //  need to update unit acres in subtotal
                             UpdateSubtotal(ju.PaymentUnit, ju.Area, prevSProd, prevSP,
@@ -372,10 +367,8 @@ namespace CruiseProcessing
                 listToOutput.Clear();
                 UpdateOverallTotal();
                 unitSubtotal.Clear();
-                payUnitAcres = 0;
             }  //  end foreach loop on just payment units
             outputOverallTotal(strWriteOut, ref pageNumb);
-            return;
         }  //  end AccumulatePaymentUnits
 
         private void AccumulateTableValues(List<LogStockDO> justSpecies)
@@ -440,7 +433,6 @@ namespace CruiseProcessing
                         break;
                 }  //  end switch
             }  //  end foreach loop
-            return;
         }  //  end AccumulateTableValues
 
         private void UpdateSubtotal(string currPU, double currUnitAcres, string currProd,
@@ -471,7 +463,6 @@ namespace CruiseProcessing
                 unitSubtotal.Add(rr);
             }  //  endif
 
-            return;
         }  //  end UpdateSubtotal
 
         private void OutputUnitSubtotal(TextWriter strWriteOut, ref int pageNumb)
@@ -509,7 +500,6 @@ namespace CruiseProcessing
             }  //  end foreach loop on unit subtotals
             strWriteOut.WriteLine(reportConstants.longLine);
             numOlines++;
-            return;
         }  //  end OutputUnitSubtotal
 
         private void UpdateOverallTotal()
@@ -537,7 +527,6 @@ namespace CruiseProcessing
                     totalToOutput.Add(rs);
                 }  //  endif
             }  //  end foreach on unitSubtotal
-            return;
         }  //  end UpdateOverallTotal
 
         private void outputOverallTotal(TextWriter strWriteOut, ref int pageNumb)
@@ -613,8 +602,7 @@ namespace CruiseProcessing
 
                 printOneRecord(fieldLengths, prtFields, strWriteout);
             }  //  end foreach loop on listToOutput
-            return;
-        }  //  edn WriteCurrentUnit
+        }
 
         private void WriteCurrentTable(TextWriter strWriteOut, ref int pageNumb)
         {
@@ -650,7 +638,6 @@ namespace CruiseProcessing
                 prtFields.Add(String.Format("{0,9:F2}", lto.value15 / convFactor).PadLeft(9, ' '));
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }  //  end foreach loop
-            return;
         }  //  end WriteCurrentTable
 
         private void PrintTotal(TextWriter strWriteOut, ref int pageNumb)
@@ -691,7 +678,6 @@ namespace CruiseProcessing
             //  total net
             calcValue = listToOutput.Sum(lto => lto.value15);
             strWriteOut.WriteLine(String.Format("{0,9:F2}", calcValue / convFactor).PadLeft(14, ' '));
-            return;
         }  //  PrintTotal
 
         private void OutputFooter(TextWriter strWriteOut, ref int pageNumb)
@@ -704,7 +690,6 @@ namespace CruiseProcessing
             strWriteOut.WriteLine(" GRADES WILL BE ASSIGNED BASED ON THE PRIMARY AND SECONDARY TOP");
             strWriteOut.WriteLine(" LISTED IN THE VOLUME EQUATIONS.  LOGS WITH TOP DIB LESS THAN THE PRIMARY TOP DIB");
             strWriteOut.WriteLine(" WILL AUTOMATICALLY BE ASSIGNED A NON-SAW TIMBER GRADE 8.");
-            return;
         }  //  end OutputFooter
 
         private int findTableRow(float currSED)
@@ -757,7 +742,6 @@ namespace CruiseProcessing
                 rr.value1 = j.ToString();
                 listToOutput.Add(rr);
             }  //  end for j loop
-            return;
         }  // end fillOneInchClass
 
         private void sortGrandTotal(List<ReportSubtotal> totalToOutput)
@@ -807,7 +791,6 @@ namespace CruiseProcessing
                 r.Value3 = sl.Value3;
                 totalToOutput.Add(r);
             }  //  end foreach loop
-            return;
         }  //  end sortGrandTotal
     }
 }

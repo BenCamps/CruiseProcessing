@@ -106,7 +106,7 @@ namespace CruiseProcessing
 
 
         //  new modified merch rules report (A15)
-        private string[] A15columns = new string[2] {"  VOLUME                    MIN LOG LENGTH    MAX LOG LENGTH   SEGMENTATION    MIN MERCH    EVEN/ODD",
+        private readonly string[] A15columns = new string[2] {"  VOLUME                    MIN LOG LENGTH    MAX LOG LENGTH   SEGMENTATION    MIN MERCH    EVEN/ODD",
                                                     " EQUATION   PRODUCT   TRIM     PRIMARY           PRIMARY           LOGIC        LENGTH      SEGMENT     MODIFIED?"};
 
         //  Log level reports
@@ -233,8 +233,7 @@ namespace CruiseProcessing
                         fieldLengths = new int[] { 1, 3, 4, 5, 5, 7, 6, 4, 4, 8, 9, 8, 9, 8, 8, 9, 9, 9, 8, 8 };
                         prtFields.Clear();
                         //  no data?
-                        var summedValue = tcvList.Sum(cvdo => cvdo.GrossCUFTPP);
-                        if (summedValue == 0)
+                        if (!tcvList.Any(cvdo => cvdo.GrossCUFTPP > 0))
                         {
                             noDataForReport(strWriteOut, currentReport, " >>>> No cubic foot volume for report");
                             return;
@@ -250,8 +249,7 @@ namespace CruiseProcessing
                         fieldLengths = new int[] { 1, 3, 4, 5, 5, 7, 6, 4, 4, 8, 9, 8, 9, 8, 8, 9, 9, 9, 8, 8 };
                         prtFields.Clear();
                         //  no data?
-                        var summedValue = tcvList.Sum(cvdo => cvdo.GrossBDFTPP);
-                        if (summedValue == 0)
+                        if (!tcvList.Any(cvdo => cvdo.GrossBDFTPP > 0))
                         {
                             noDataForReport(strWriteOut, currentReport, " >>>> No board foot volume for report");
                             return;
@@ -267,8 +265,7 @@ namespace CruiseProcessing
                         fieldLengths = new int[] { 1, 3, 4, 5, 5, 8, 6, 4, 6, 15, 15, 9, 9, 11, 15, 15 };
                         prtFields.Clear();
                         //  no data?
-                        var summedValue = tcvList.Sum(tcvdo => tcvdo.ValuePP);
-                        if (summedValue == 0)
+                        if (!tcvList.Any(tcvdo => tcvdo.ValuePP > 0))
                         {
                             noDataForReport(strWriteOut, currentReport, " >>>> No dollar value data for this report");
                             return;
@@ -315,9 +312,8 @@ namespace CruiseProcessing
                         tcvList = DataLayer.getTreeCalculatedValues();
                         fieldLengths = new int[] { 1, 4, 5, 5, 5, 7, 6, 4, 5, 9, 10, 9, 9, 10, 9, 9, 9, 9, 9 };
                         prtFields.Clear();
-                        //  Sum up mainsteam primary to determine if report can be printed
-                        var summedValue = tcvList.Sum(tcvdo => tcvdo.BiomassMainStemPrimary);
-                        if (summedValue == 0)
+                        // determine if report can be printed
+                        if (!tcvList.Any(tcvdo => tcvdo.BiomassMainStemPrimary > 0))
                         {
                             noDataForReport(strWriteOut, currentReport, " >>>> No biomass data for this report");
                             return;
@@ -362,7 +358,7 @@ namespace CruiseProcessing
                         fieldLengths = new int[] { 2, 3, 4, 5, 5, 7, 3, 4, 5, 7, 7, 9, 3, 4, 6, 7, 7, 8, 7, 7, 7, 3, 8 };
                         prtFields.Clear();
                         //  no data?
-                        if (lsList.Count == 0)
+                        if (!lsList.Any())
                         {
                             noDataForReport(strWriteOut, currentReport, " >>>> No log stock data for this report.");
                             return;
@@ -371,8 +367,7 @@ namespace CruiseProcessing
                         break;
                     }
             }   //  end switch on currentReport
-            return;
-        }   //  end OutputListReports
+        }
 
         private void WriteUnit(int whichPage, TextWriter strWriteOut, List<CuttingUnitDO> cList,
                                 ref int pageNumb)
@@ -403,7 +398,7 @@ namespace CruiseProcessing
                         WriteReportHeading(strWriteOut, reportTitles[0], reportTitles[1], reportTitles[2], A01payment, 9, ref pageNumb, "");
                         //  need stratum for each cutting unit
                         var strataList = DataLayer.GetStratumCodesByUnit(cud.Code);
-                        if (strataList.Count() > 0)
+                        if (strataList.Any())
                         {
                             foreach (string stratumCode in strataList)
                             {
@@ -412,7 +407,7 @@ namespace CruiseProcessing
                                 printOneRecord(fieldLengths, prtFields, strWriteOut);
                             }   //  end foreach stratum
                         }
-                        else if (strataList.Count() == 0)
+                        else
                         {
                             prtFields = CuttingUnitMethods.buildPrintArray(cud, HeaderData[3].ToString(), "  ");
                             printOneRecord(fieldLengths, prtFields, strWriteOut);
@@ -420,7 +415,6 @@ namespace CruiseProcessing
                     }   //  end foreach loop
                     break;
             }   //  end switch on page
-            return;
         }   //  end WriteUnit
 
         private void WriteStratum(TextWriter strWriteOut, List<StratumDO> sList, ref int pageNumb)
@@ -439,8 +433,6 @@ namespace CruiseProcessing
                                                             totalStrataAcres, totalPlots);
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   //  end foreach loop
-
-            return;
         }   //  end WriteStratum
 
         private static List<string> BuildStratumPrintArray(StratumDO stl, string cruiseName, double totalAcres,
@@ -528,7 +520,6 @@ namespace CruiseProcessing
                     printOneRecord(fieldLengths, prtFields, strWriteOut);
                 }   //  endif count or measure tree
             }   //  end foreach loop
-            return;
         }   //  end WriteTreeCalcValues
 
         private void WritePlot(TextWriter strWriteOut, ref int pageNumb)
@@ -541,12 +532,11 @@ namespace CruiseProcessing
                     WriteReportHeading(strWriteOut, reportTitles[0], "PLOT TABLE INFORMATION",
                                     reportTitles[2], A13plot, 7, ref pageNumb, "");
                     prtFields = PlotMethods.buildPrintArray(pl, pl.Stratum.Code, pl.CuttingUnit.Code);
-                    if (prtFields.Count > 0)
+                    if (prtFields.Count > 0 && prtFields[0] != null)
                     {
-                        if (prtFields[0] != null)
-                            printOneRecord(fieldLengths, prtFields, strWriteOut);
-                    }   //  endif
-                }   //  end foreach loop
+                        printOneRecord(fieldLengths, prtFields, strWriteOut);
+                    }
+                }
             }
             else if (currentReport == "A02")
             {
@@ -626,7 +616,6 @@ namespace CruiseProcessing
                     }
                 }   //  end foreach loop
             }   //  endif
-            return;
         }   //  end WriteTree
 
         private void WriteLogList(TextWriter strWriteOut, List<LogDO> logList, List<TreeDO> tList, ref int pageNumb)
@@ -637,7 +626,7 @@ namespace CruiseProcessing
             {
                 //  any logs for this tree?
                 List<LogDO> currentLogs = LogMethods.GetLogRecords(logList, (long)tdo.Tree_CN);
-                int numbLogs = currentLogs.Count();
+                int numbLogs = currentLogs.Count;
                 if (numbLogs > 0)
                 {
                     //  how many iterations for the number of logs?
@@ -680,7 +669,6 @@ namespace CruiseProcessing
                     }   //  endif remaining logs
                 }   //  endif number of logs
             }   //  end foreach loop
-            return;
         }   //  end WriteLogList
 
         private void WriteFallBuckScale(TextWriter strWriteOut, List<TreeDO> justFBS, ref int pageNumb)
@@ -707,7 +695,6 @@ namespace CruiseProcessing
                 }   //  endif
             }   //  end foreach loop
 
-            return;
         }   //  end WriteFallBuckScale
 
         private void WriteLogStock(TextWriter strWriteOut, List<LogStockDO> lsList, ref int pageNumb)
@@ -720,13 +707,12 @@ namespace CruiseProcessing
                                     L1columns, 10, ref pageNumb, "");
                 //  calulate total expansion factor -- expansion factor times strata acres
                 double STacres = Utilities.ReturnCorrectAcres(lsdo.Tree.Stratum.Code, DataLayer, (long)lsdo.Tree.Stratum_CN);
-                if (STacres == 0.0) STacres = 1.0;
+                if (STacres.IsAcresEqual(0.0)) STacres = 1.0;
                 double totEF = lsdo.Tree.ExpansionFactor * STacres;
                 prtFields = LogMethods.buildPrintArray(lsdo, totEF);
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
-            }   //  end foreach loop
-            return;
-        }   //  end WriteLogStock
+            }
+        }
 
         private void WriteSampleGroup(TextWriter strWriteOut, List<SampleGroupDO> sgList, ref int pageNumb)
         {
@@ -739,7 +725,6 @@ namespace CruiseProcessing
                 prtFields = SampleGroupMethods.buildPrintArray(sg);
                 printOneRecord(fieldLengths, prtFields, strWriteOut);
             }   //  end foreach loop
-            return;
         }   //  end WriteSampleGroup
 
         private void WriteMerchRules(TextWriter strWriteOut, List<VolumeEquationDO> currEQ, ref int pageNum)
@@ -756,12 +741,11 @@ namespace CruiseProcessing
             //  output footer
             strWriteOut.WriteLine("\n\n");
             strWriteOut.WriteLine(" SEGMENT DESCRIPTIONS");
-            strWriteOut.WriteLine("			21 -- If top seg < 1/2 nom log len, combine with next lowest log");
-            strWriteOut.WriteLine("			22 -- Top placed with next lowest log and segmented");
-            strWriteOut.WriteLine("			23 -- Top segment stands on its own");
-            strWriteOut.WriteLine("			24 -- If top seg < 1/4 log len drop the top.  If top >= 1/4 and <= 3/4 nom length, ");
-            strWriteOut.WriteLine("						top is 1/2 of nom log lenght, else top is nom log len.");
-            return;
+            strWriteOut.WriteLine("         21 -- If top seg < 1/2 nom log len, combine with next lowest log");
+            strWriteOut.WriteLine("         22 -- Top placed with next lowest log and segmented");
+            strWriteOut.WriteLine("         23 -- Top segment stands on its own");
+            strWriteOut.WriteLine("         24 -- If top seg < 1/4 log len drop the top.  If top >= 1/4 and <= 3/4 nom length, ");
+            strWriteOut.WriteLine("                     top is 1/2 of nom log lenght, else top is nom log len.");
         }   //  end WriteMerchRules
     }
 }

@@ -41,19 +41,20 @@ namespace CruiseProcessing
             List<LCDDO> lcdList = LCDmethods.GetCutGroupedBy("", "", 8, DataLayer);
 
             string volType = "";
-            double volSum = 0;
+            bool hasVolume = true;
             //  make sure there's data for the current report
             if (currentReport == "A11")
             {
                 volType = "BDFT";
-                volSum = lcdList.Sum(l => l.SumNBDFT);
+                hasVolume = lcdList.Any(l => l.SumNBDFT > 0);
             }
             else if (currentReport == "A12")
             {
                 volType = "CUFT";
-                volSum = lcdList.Sum(l => l.SumNCUFT);
+                hasVolume = lcdList.Any(l => l.SumNCUFT > 0);
             }   //  endif
-            if (volSum == 0)
+
+            if (!hasVolume)
             {
                 var sb = new StringBuilder();
                 sb.Append(">> No ");
@@ -72,8 +73,7 @@ namespace CruiseProcessing
                 //  need complete report title
                 if (k == 1)
                 {
-                    currentTitle = currentTitle.Substring(0, 32);
-                    currentTitle += " ESTIMATED NUMBER OF TREES";
+                    currentTitle = currentTitle.Substring(0, 32) + " ESTIMATED NUMBER OF TREES";
                     eachLine.Clear();
                     productSubTotal.Clear();
                     saleTotal.Clear();
@@ -142,9 +142,7 @@ namespace CruiseProcessing
                 //  Output sale total
                 WriteCurrentGroup(strWriteOut, ref pageNumb, 3, saleTotal);
             }   //  end for k loop
-
-            return;
-        }   //  end CreateTreeGradeReports
+        } 
 
         private void LoadEachLine(string volType, ref int firstLine, LCDDO lcd, int whichPage)
         {
@@ -231,8 +229,7 @@ namespace CruiseProcessing
             }   //  end switch
             //  Add volume to line total
             eachLine[nthRow].Value14 += currentValue * currAcres;
-            return;
-        }   //  end LoadEachLine
+        } 
 
         private void WriteCurrentGroup(TextWriter strWriteOut, ref int pageNumb, int whichLine,
                                         List<ReportSubtotal> listToPrint)
@@ -282,12 +279,11 @@ namespace CruiseProcessing
 
                 if (whichLine == 2 || whichLine == 3)
                     strWriteOut.WriteLine(reportConstants.longLine);
-            }   //  end foreach loop
-            return;
-        }   //  end WriteCurrentGroup    
+            }  
+        } 
 
 
-        private void UpdateTotals(List<ReportSubtotal> eachLine, List<ReportSubtotal> listToUpdate, int whichTotal)
+        private static void UpdateTotals(List<ReportSubtotal> eachLine, List<ReportSubtotal> listToUpdate, int whichTotal)
         {
             //  update appropriate total
             switch (whichTotal)
@@ -328,9 +324,8 @@ namespace CruiseProcessing
                 listToUpdate[0].Value12 += rs.Value12;
                 listToUpdate[0].Value13 += rs.Value13;
                 listToUpdate[0].Value14 += rs.Value14;
-            }   //  end foreach loop
-            return;
-        }   //  end UpdateTotals
+            } 
+        }
 
     }
 

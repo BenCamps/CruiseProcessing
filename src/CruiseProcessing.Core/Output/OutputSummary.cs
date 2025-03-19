@@ -454,8 +454,6 @@ namespace CruiseProcessing
             strWriteOut.WriteLine("products but are shown here as blank so the associated volumes can be reported:");
             strWriteOut.WriteLine("Number of measured trees, Quad mean DBH, Mean DBH, Mean height(s), Average defect,");
             strWriteOut.WriteLine("any Ratio, Estimated number of trees.");
-
-            return;
         }   //  end OutputSummaryReports
 
 
@@ -534,9 +532,8 @@ namespace CruiseProcessing
                         UpdateTotals(currData, STacres, sourceFlag[k]);
                     }   //  endif current report
                 }   //  endif sourceFlag not zero
-            }   //  end foreach loop
-            return;
-        }   //  end WriteCurrentGroup
+            }
+        }
 
 
         private void finishColumnHeaders(string[] lowLevelColumns, string[] summaryColumns, List<TreeDO> tList)
@@ -554,8 +551,7 @@ namespace CruiseProcessing
             whichHeightFields(out hgtOne, out hgtTwo, tList);
             //  update summary columns with height(s)
             completeHeader = updateHeightHeader(hgtOne, hgtTwo, "MEAN", completeHeader);
-            return;
-        }   //  end finishColumnHeaders
+        }   
 
         private void finishColumnHeaders(string[] leftHandSide, string[] rightHandSide)
         {
@@ -568,9 +564,8 @@ namespace CruiseProcessing
                 sb.Append(leftHandSide[k]);
                 sb.Append(rightHandSide[k]);
                 completeHeader[k] = sb.ToString();
-            }   //  end for loop
-            return;
-        }   //  end finishColumnHeaders
+            }   
+        }   
 
         private void FindSourceFlag(List<LCDDO> currData)
         {
@@ -589,8 +584,7 @@ namespace CruiseProcessing
                 currData.Sum(l => l.SumCordsRecv) > 0)
                 sourceFlag[2] = 3;
 
-            return;
-        }   //  end FindSourceFlag
+        }
 
         private void UpdateTotals(List<LCDDO> currData, double STacres, int currPP)
         {
@@ -645,9 +639,8 @@ namespace CruiseProcessing
                         }   //  endifp
                         break;
                 }   // end switch
-            }   //  end foreach loop
-            return;
-        }   //  UpdateTotals
+            }
+        }   
 
 
         private void UpdateSubtotals(string currMethod, List<LCDDO> currData, LCDDO currGRP, double STacres, int currSRC)
@@ -772,9 +765,8 @@ namespace CruiseProcessing
                     }   //  endif source
                     rptSubtotal.Add(rs);
                 }   //  endif nthRow
-            }   //  end foreach loop
-            return;
-        }   //  end UpdateSubtotals
+            }
+        }   
 
         private void PrintTotals(TextWriter strWriteOut, ref int pageNum)
         {
@@ -793,15 +785,14 @@ namespace CruiseProcessing
                 strWriteOut.Write(rptSubtotal[k].Value1);
                 strWriteOut.Write("        ");
                 strWriteOut.Write(rptSubtotal[k].Value2);
-                strWriteOut.Write("                         	   ");
+                strWriteOut.Write("                                ");
                 strWriteOut.Write(String.Format(fieldFormat3, rptSubtotal[k].Value3));
                 strWriteOut.Write("        ");
                 strWriteOut.Write(String.Format(fieldFormat3, rptSubtotal[k].Value4).PadLeft(2, ' '))
 ; strWriteOut.Write("   ");
                 strWriteOut.WriteLine(String.Format(fieldFormat3, rptSubtotal[k].Value5 / 2000));
-            }   //  end for k loop
-            return;
-        }   //  end PrintTotals
+            }   
+        }   
 
         private void PrintSubtotals(string currRPT, TextWriter strWriteOut, ref int pageNumb)
         {
@@ -1280,7 +1271,6 @@ namespace CruiseProcessing
             strWriteOut.WriteLine(String.Format("{0,10:F0}", totCubGrandTotal));
             strWriteOut.WriteLine("                                        _________                  _________                  _________");
             numOlines += 3;
-            return;
-        }   //  end PrintSubtotals
+        } 
     }
 }

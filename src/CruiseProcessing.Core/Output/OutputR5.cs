@@ -28,8 +28,6 @@ namespace CruiseProcessing
         private List<RegionalReports> listToOutput = new List<RegionalReports>();
         private List<ReportSubtotal> totalToOutput = new List<ReportSubtotal>();
         private string[] completeHeader = new string[6];
-        // TODO this should be pretty easy to remove as class field
-        private int tableCounter = 0;
 
         public OutputR5(CpDataLayer dataLayer, HeaderFieldData headerData, string reportID) : base(dataLayer, headerData, reportID)
         {
@@ -37,6 +35,7 @@ namespace CruiseProcessing
 
         public void CreateR5report(TextWriter strWriteOut, ref int pageNumb)
         {
+            int tableCounter = 0;
             numOlines = 0;
             //  fill report title array
             string currentTitle = fillReportTitle(currentReport);
@@ -54,7 +53,7 @@ namespace CruiseProcessing
 
                 //  create complete header for this group
                 tableCounter++;
-                completeHeader = createCompleteHeader(jg.Species, jg.PrimaryProduct);
+                completeHeader = createCompleteHeader(jg.Species, jg.PrimaryProduct, tableCounter);
                 //  load values into output list
                 List<LogStockDO> justLogs = DataLayer.getCutLogs("C", jg.Species, jg.PrimaryProduct, 0);
                 AccumulateVolumes(justLogs);
@@ -62,7 +61,6 @@ namespace CruiseProcessing
                 if (listToOutput.Count > 0)
                     WriteCurrentGroup(strWriteOut, ref pageNumb);
             }   //  end foreach loop
-            return;
         }   //  end CreateR5report
 
         private void AccumulateVolumes(List<LogStockDO> justLogs)
@@ -82,7 +80,7 @@ namespace CruiseProcessing
                 int nthRow = listToOutput.FindIndex(
                     delegate (RegionalReports r)
                     {
-                        return r.value7 == jl.DIBClass;
+                        return r.value7.IsApproximatelyEqual(jl.DIBClass, 0);// diameter classes are treated as integers
                     });
                 if (nthRow < 0) nthRow = 0;
                 listToOutput[nthRow].value8 += jl.Tree.ExpansionFactor * currSTacres;
@@ -90,9 +88,8 @@ namespace CruiseProcessing
                 listToOutput[nthRow].value10 += jl.NetBoardFoot * jl.Tree.ExpansionFactor * currSTacres;
                 listToOutput[nthRow].value11 += jl.GrossCubicFoot * jl.Tree.ExpansionFactor * currSTacres;
                 listToOutput[nthRow].value12 += jl.NetCubicFoot * jl.Tree.ExpansionFactor * currSTacres;
-            }   //  end foreach loop
-            return;
-        }   //  end AccumulateVolumes
+            } 
+        }
 
         private void WriteCurrentGroup(TextWriter strWriteOut, ref int pageNumb)
         {
@@ -126,7 +123,6 @@ namespace CruiseProcessing
             listToOutput.Clear();
             totalToOutput.Clear();
             numOlines = 0;
-            return;
         }   //  end WriteCurrentGroup
 
         private void updateTotals()
@@ -138,17 +134,13 @@ namespace CruiseProcessing
             r.Value11 = listToOutput.Sum(l => l.value11);
             r.Value12 = listToOutput.Sum(l => l.value12);
             totalToOutput.Add(r);
-            return;
         }   //  end updateTotals
 
-        private string[] createCompleteHeader(string currSP, string currPP)
+        private static string[] createCompleteHeader(string currSP, string currPP, int tableCounter)
         {
             string[] finnishHeader = new string[6];
-            finnishHeader[0] = R501columns[0];
-            finnishHeader[0] = finnishHeader[0].Replace("XX", tableCounter.ToString());
-            finnishHeader[0] = finnishHeader[0].Replace("ZZZZZZ", currSP.PadRight(6, ' '));
-            finnishHeader[1] = R501columns[1];
-            finnishHeader[1] = finnishHeader[1].Replace("TT", currPP);
+            finnishHeader[0] = R501columns[0].Replace("XX", tableCounter.ToString()).Replace("ZZZZZZ", currSP.PadRight(6, ' '));
+            finnishHeader[1] = R501columns[1].Replace("TT", currPP);
             finnishHeader[2] = R501columns[2];
             finnishHeader[3] = R501columns[3];
             finnishHeader[4] = R501columns[4];

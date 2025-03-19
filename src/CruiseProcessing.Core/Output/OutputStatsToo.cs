@@ -64,16 +64,12 @@ namespace CruiseProcessing
             //  check for no data
             List<POPDO> popCutOnly = POPmethods.GetCutTrees(popList);
             List<LCDDO> lcdCutOnly = LCDmethods.GetCutOrLeave(lcdList, "C", "", "", "");
-            if (popCutOnly.Count == 0 && lcdCutOnly.Count == 0 && currentReport == "ST3")
+            if ((popCutOnly.Count == 0 && lcdCutOnly.Count == 0 && currentReport == "ST3")
+                || (!lcdCutOnly.Any(l => l.SumValue > 0) && currentReport == "ST4"))
             {
                 noDataForReport(strWriteOut, currentReport, " >> No data available to generate this report.");
                 return;
             }
-            else if(lcdCutOnly.Sum(l => l.SumValue) == 0 && currentReport == "ST4")
-            {
-                noDataForReport(strWriteOut, currentReport, " >> No data available to generate this report.");
-                return;
-            }   //  endif no data
 
             //  need report header and initialize pages to print
             for (int j = 0; j < 3; j++)
@@ -220,7 +216,6 @@ namespace CruiseProcessing
             strWriteOut.WriteLine("");
             strWriteOut.WriteLine(STfooters[2]);
 
-            return;
         }   //  end OutputStatReports
 
 
@@ -283,9 +278,8 @@ namespace CruiseProcessing
                 }   //  end switch on report
                 groupSums.Clear();
 
-            }   //  end foreach loop
-            return;
-        }   //  end ProcessData
+            }
+        }
 
 
         private void SumGroups(double STacres, List<LCDDO> currGrp, string prodType, string volType, string currMeth)
@@ -357,9 +351,8 @@ namespace CruiseProcessing
 
                 //  now add up X and X sqrd
                 AddUpXandXsqrd(justPOP, prodType, gs);
-            }   //  end foreach loop
-            return;
-        }   //  end SumGroups
+            } 
+        }
 
 
         private void AddUpVolumes(string prodType, string volType, LCDDO currGrp, double STacres, int currRow)
@@ -423,9 +416,8 @@ namespace CruiseProcessing
                             break;
                     }   //  end switch on volume type
                     break;
-            }   //  end switch
-            return;
-        }   //  end AddUpVolumes
+            }
+        }
 
 
         private void AddUpValue(string prodType, LCDDO currGrp, double STacres, int currRow)
@@ -441,9 +433,8 @@ namespace CruiseProcessing
                 case "RP":
                     groupSums[currRow].GrossVol += currGrp.SumValueRecv * STacres;
                     break;
-            }   //  end switch on product
-            return;
-        }   //  end AddUpValue
+            } 
+        }
 
 
         private void AddUpXandXsqrd(List<POPDO> justPOP, string prodType, StatSums currGS)
@@ -510,9 +501,8 @@ namespace CruiseProcessing
                             currGS.ST1X2net = 0.0;
                         } //  endif on report
                         break;
-                }   //  end switch on product type
-            return;
-        }   //  end AddUpXandXsqrd
+                }
+        }
 
 
         private void DetermineCombinedError(string currMeth)
@@ -641,9 +631,8 @@ namespace CruiseProcessing
 
                 gs.GrossErrSq = Math.Pow((gs.GrossVol * CombinedGross), 2);
                 gs.NetErrSq = Math.Pow((gs.NetVol * CombinedNet), 2);
-            }   //  end foreach loop
-            return;
-        }   //  end DetermineCombinedError
+            }
+        }
 
 
         private void WriteCurrentGroup(TextWriter strWriteOut, ref int pageNumb, string prodType)
@@ -714,8 +703,7 @@ namespace CruiseProcessing
                             groupSums[0].PP, groupSums[0].SP, groupSums[0].UOM, prodType);
             UpdateTotals(FinalGrossVol, FinalNetVol, FinalGrossErr2, FinalNetErr2, groupSums[0].ST, groupSums[0].PP, 
                                 groupSums[0].SP, groupSums[0].UOM, prodType);
-            return;
-        }   //  end WriteCurrentGroup
+        }
 
 
         private void WriteCurrentGroup(string prodType, TextWriter strWriteOut, ref int pageNumb)
@@ -764,8 +752,7 @@ namespace CruiseProcessing
                                 groupSums[0].UOM, prodType);
             UpdateTotals(FinalGrossVol, 0.0, FinalGrossErr2, 0.0, groupSums[0].ST, groupSums[0].PP, groupSums[0].SP,
                                 groupSums[0].UOM, prodType);
-            return;
-        }   //  end WriteCurrentGroup
+        }
 
 
         private void UpdateSubtotals(double finalGrossVol, double finalNetVol, double finalGrossErr2, double finalNetErr2, 
@@ -865,9 +852,8 @@ namespace CruiseProcessing
                 aggStrata[nthRow].Value4 += finalNetVol;
                 aggStrata[nthRow].Value5 += finalGrossErr2;
                 aggStrata[nthRow].Value6 += finalNetErr2;
-            }   //  endif
-            return;
-        }   //  end UpdateSubtotals
+            } 
+        }
 
 
         private void UpdateTotals(double finalGrossVol, double finalNetVol, double finalGrossErr2, double finalNetErr2, 
@@ -967,9 +953,8 @@ namespace CruiseProcessing
                 totalStrata[nthRow].Value4 += finalNetVol;
                 totalStrata[nthRow].Value5 += finalGrossErr2;
                 totalStrata[nthRow].Value6 += finalNetErr2;
-            }   //  endif
-            return;
-        }   //  end UpdateTotals
+            }
+        }
 
 
         private void OutputSubtotal(TextWriter strWriteOut, ref int pageNumb, int whichSubtotal, List<ReportSubtotal> subtotalToPrint,
@@ -1066,9 +1051,8 @@ namespace CruiseProcessing
                 if(rs.Value3 > 0 || rs.Value4 > 0) printOneRecord(fieldLengths, prtFields, strWriteOut);
                 //  clear print fields for next group
                 prtFields.Clear();
-            }   //  end foreach loop
-            return;
-        }   //  end OutputSubtotals
+            }
+        }
 
 
         private void finishColumnHeaders(string[] headerToUse, string prodType)
@@ -1082,8 +1066,7 @@ namespace CruiseProcessing
 
             completeHeader[0] = completeHeader[0].Replace("ZZZZZZZZZZZZZZZZZ", prodType);
 
-            return;
-        }   //  end finishColumnHeaders
+        }
 
 
         public class StatSums

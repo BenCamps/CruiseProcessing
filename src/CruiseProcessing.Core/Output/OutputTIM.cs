@@ -56,7 +56,7 @@ namespace CruiseProcessing
                 if (pop.UOM != "04")
                 {
                     //  find total error for the cruise
-                    double saleErr = CalculateNetErr(pop.UOM, popList, strList);
+                    double saleErr = CalculateNetErr(popList, strList);
                     
                     //  Load the various records
                     using (StreamWriter strSumOut = new StreamWriter(SUMout))
@@ -105,8 +105,6 @@ namespace CruiseProcessing
             dumpFile += "\\";
             dumpFile += cruiseNum + ".crz.dmp";
             File.Copy(FilePath, dumpFile, true);
-
-            return;
         }   //  end CreateSUMfile
 
 
@@ -161,7 +159,6 @@ namespace CruiseProcessing
             sumList.Add(sf);
 
             WriteCurrentRecords(strSumOut, "1A");
-            return;
         }   //  end Load1A
 
         private void Load2A(TextWriter strSumOut, List<CuttingUnitDO> cutList)
@@ -193,7 +190,6 @@ namespace CruiseProcessing
             }   //  end foreach loop
 
             WriteCurrentRecords(strSumOut, "2A");
-            return;
         }   //  end Load2A
 
 
@@ -222,7 +218,6 @@ namespace CruiseProcessing
             }   //  end foreach loop
 
             WriteCurrentRecords(strSumOut, "3A");
-            return;
         }   //  end Load3A
 
 
@@ -331,7 +326,6 @@ namespace CruiseProcessing
             }   //  end foreach loop
 
             WriteCurrentRecords(strSumOut, "1V");
-            return;
         }   //  end Load1V
 
 
@@ -448,14 +442,13 @@ namespace CruiseProcessing
 
                             
             WriteCurrentRecords(strSumOut, "2V");
-            return;
         }   //  end Load2V
 
 
         private void Load3V(TextWriter strSumOut, List<StratumDO> strList, List<PRODO> proList)
         {
             double STacres;
-            ArrayList justUnits = new ArrayList();
+            
             List<LCDDO> lcdList = DataLayer.getLCD();
             List<TreeDO> tList = DataLayer.getTrees();
             //  Process by stratum
@@ -471,6 +464,8 @@ namespace CruiseProcessing
 
                     foreach (LCDDO js in justStrata)
                     {
+                        List<string> justUnits = new List<string>();
+
                         //  reset productTypes to prevent extraneous records
                         for (int k = 0; k < 3; k++)
                             productTypes[k] = "";
@@ -481,19 +476,18 @@ namespace CruiseProcessing
                         if (js.SumCUFTrecv > 0)
                             productTypes[2] = "RP";
                         //  need to find unit for this species group
-                        justUnits.Clear();
                         if (sd.Method == "100" || js.STM == "Y")
                         {
                             List<TreeDO> currentStratum = TreeListMethods.GetCurrentStratum(tList, sd.Code);
-                            justUnits = getLCDunits(currentStratum,"C","M",js.Species,js.STM);
-                            foreach (object ju in justUnits)
+                            justUnits = getLCDunits(currentStratum,"C","M",js.Species,js.STM).ToList();
+                            foreach (var ju in justUnits)
                             {
                                 //  pull trees
                                 List<TreeCalculatedValuesDO> tcvList = DataLayer.getTreeCalculatedValues((int) sd.Stratum_CN);
                                 List<TreeCalculatedValuesDO> justTrees = tcvList.FindAll(
                                     delegate(TreeCalculatedValuesDO tcv)
                                     {
-                                        return tcv.Tree.CuttingUnit.Code == ju.ToString() && tcv.Tree.Species == js.Species && tcv.Tree.SampleGroup.UOM == js.UOM &&
+                                        return tcv.Tree.CuttingUnit.Code == ju && tcv.Tree.Species == js.Species && tcv.Tree.SampleGroup.UOM == js.UOM &&
                                             tcv.Tree.SampleGroup.Code == js.SampleGroup && tcv.Tree.SampleGroup.PrimaryProduct == js.PrimaryProduct &&
                                             tcv.Tree.SampleGroup.SecondaryProduct == js.SecondaryProduct && tcv.Tree.LiveDead == js.LiveDead &&
                                             tcv.Tree.Grade == js.TreeGrade && tcv.Tree.TreeDefaultValue.ContractSpecies == js.ContractSpecies &&
@@ -501,7 +495,7 @@ namespace CruiseProcessing
                                             //tcv.Tree.TreeDefaultValue.Chargeable == js.Yield && tcv.Tree.STM == js.STM;
                                     });
                                 
-                                Create100percent(justTrees, js.Stratum, js.UOM, js.SampleGroup, js.PrimaryProduct, ju.ToString(), js.SecondaryProduct, js.Species, 
+                                Create100percent(justTrees, js.Stratum, js.UOM, js.SampleGroup, js.PrimaryProduct, ju, js.SecondaryProduct, js.Species, 
                                                     js.LiveDead, js.TreeGrade, js.Yield, js.ContractSpecies, STacres);
                             }   //  end foreach loop
                         }
@@ -515,7 +509,6 @@ namespace CruiseProcessing
             }   //  end foreach loop on stratum
 
             WriteCurrentRecords(strSumOut, "3V");
-            return;
         }   //  end Load3V
 
 
@@ -585,9 +578,7 @@ namespace CruiseProcessing
 
 
                             //  average height
-                            double hgtOne = 0.0;
-                            double hgtTwo = 0.0;
-                            CalculateAverageHeight(justTrees, ref hgtOne, ref hgtTwo);
+                            CalculateAverageHeight_hpct(justTrees, out var hgtOne, out var hgtTwo);
                             if (regionNumber == "08" || regionNumber == "09")
                             {
                                 //  average heights are switched in position
@@ -754,13 +745,12 @@ namespace CruiseProcessing
                         break;
                 }   //  end switch
             }   //  end for k loop
-            return;
         }   //  end Create100percent
 
 
-        private void CreateOther(LCDDO js, double STacres, ArrayList justUnits, string currMethod)
+        private void CreateOther(LCDDO js, double STacres, IReadOnlyList<string> justUnits, string currMethod)
         {
-            foreach (object ju in justUnits)
+            foreach (var ju in justUnits)
             {
                 for (int k = 0; k < 3; k++)
                 {
@@ -770,7 +760,7 @@ namespace CruiseProcessing
                     sf.currST = js.Stratum;
                     sf.currRG = regionNumber;
                     sf.currUOM = js.UOM;
-                    sf.LCDunit = ju.ToString();
+                    sf.LCDunit = ju;
                     if(js.SampleGroup.Length > 2) js.SampleGroup = js.SampleGroup.Substring(0, 2);
                     if (js.SampleGroup == "" || js.SampleGroup == " " || js.SampleGroup == null)
                         sf.currSG = "~ ";
@@ -808,8 +798,6 @@ namespace CruiseProcessing
                     else sf.alpha5 = js.ContractSpecies.ToUpper();
 
                     //  calculated values
-                    double hgtOne = 0.0;
-                    double hgtTwo = 0.0;
                     if (js.SumExpanFactor > 0)
                     {
                         switch (productTypes[k])
@@ -818,7 +806,7 @@ namespace CruiseProcessing
                                 //  mean DBH
                                 sf.alpha6 = String.Format("{0,5:F1}", (js.SumDBHOB / js.SumExpanFactor));
                                 //  average heights
-                                CalculateAverageHeight(js, ref hgtOne, ref hgtTwo);
+                                CalculateAverageHeight(js, out var hgtOne, out var hgtTwo);
                                 if (regionNumber == "08" || regionNumber == "09")
                                 {
                                     // average heights are switched in position
@@ -861,8 +849,8 @@ namespace CruiseProcessing
                             else
                                 sf.alpha9 = String.Format("{0,11:F2}", (js.SumExpanFactor * js.TalliedTrees / js.SumExpanFactor));
                         }
-                        else sf.alpha9 = String.Format("{0,11:F2}", js.SumExpanFactor * STacres); ;
-                    }   //  endif expansion factor
+                        else sf.alpha9 = String.Format("{0,11:F2}", js.SumExpanFactor * STacres);
+                    }
 
                     //  fields not calculated
                     switch (productTypes[k])
@@ -927,7 +915,6 @@ namespace CruiseProcessing
                     }   //end switch
                 }   //  end for k loop on product
             }   //  end foreach unit
-            return;
         }   //  end CreateOthers
 
 
@@ -1082,15 +1069,14 @@ namespace CruiseProcessing
                     }   //  end foreach loop
                     break;
 
-            }   //  end switch
+            } 
 
-            return;
-        }   //  end WriteCurrentRecords
+        } 
 
 
-        private void CalculateAverageHeight(List<TreeCalculatedValuesDO> justTrees, ref double hgtOne, ref double hgtTwo)
+        private static void CalculateAverageHeight_hpct(List<TreeCalculatedValuesDO> justTrees, out double hgtOne, out double hgtTwo)
         {
-            // for 1005% only
+            // for 100% only
             hgtOne = 0.0;
             hgtTwo = 0.0;
             double sumTH = 0.0;
@@ -1129,7 +1115,7 @@ namespace CruiseProcessing
                 else if (sumUSH > 0)
                     hgtTwo = sumUSH / currEF;
             }
-            else if(sumTH == 0 && sumMHP > 0)
+            else if(sumMHP > 0)
             {
                 hgtOne = sumMHP / currEF;
                 if (sumMHS > 0)
@@ -1137,16 +1123,15 @@ namespace CruiseProcessing
                 else if (sumUSH > 0)
                     hgtTwo = sumUSH / currEF;
             }
-            else if(hgtOne == 0.0 && hgtTwo  == 0.0)
+            else
             {
                 hgtOne = sumMHS / currEF;
                 hgtTwo = sumUSH / currEF;
-            }   //  endif
-            return;
-        }   //  end CalculateAverageHeight
+            } 
+        }
 
 
-        private void CalculateAverageHeight(LCDDO js, ref double hgtOne, ref double hgtTwo)
+        private static void CalculateAverageHeight(LCDDO js, out double hgtOne, out double hgtTwo)
         {
             //  all methods except 100%
             hgtOne = 0.0;
@@ -1162,7 +1147,7 @@ namespace CruiseProcessing
                 else if (js.SumHgtUpStem > 0)
                     hgtTwo = js.SumHgtUpStem / js.SumExpanFactor;
             }
-            else if(js.SumTotHgt == 0 && js.SumMerchHgtPrim > 0)
+            else if(js.SumMerchHgtPrim > 0)
             {
                 hgtOne = js.SumMerchHgtPrim / js.SumExpanFactor;
                 if (js.SumMerchHgtSecond > 0)
@@ -1170,7 +1155,7 @@ namespace CruiseProcessing
                 else if (js.SumHgtUpStem > 0)
                     hgtTwo = js.SumHgtUpStem / js.SumExpanFactor;
             }
-            else if(hgtOne == 0.0 && hgtTwo == 0.0)
+            else
             {
                 hgtOne = js.SumMerchHgtSecond / js.SumExpanFactor;
                 hgtTwo = js.SumHgtUpStem / js.SumExpanFactor;
@@ -1178,11 +1163,9 @@ namespace CruiseProcessing
         }   //  end CalculateAverageHeight
 
 
-        private double CalculateNetErr(string currUOM, List<POPDO> popList, List<StratumDO> strList)
+        private double CalculateNetErr(List<POPDO> popList, List<StratumDO> strList)
         {
             double TotalNetErr = 0.0;
-            double SummedNetVol = 0.0;
-            double SummedError = 0.0;
             double TotalNetVol = 0.0;
             double TotalSummedErr = 0.0;
             List<LCDDO> lcdList = DataLayer.getLCD();
@@ -1195,8 +1178,8 @@ namespace CruiseProcessing
                     //  pull sample groups for the stratum and loop accordingly
                     List<SampleGroupDO> currSampleGroups = DataLayer.getSampleGroups((int)sd.Stratum_CN);
                     double SGnetVol = 0.0;
-                    SummedNetVol = 0.0;
-                    SummedError = 0.0;
+                    double SummedNetVol = 0.0;
+                    double SummedError = 0.0;
                     for (int k = 0; k < 3; k++)
                     {
                         foreach (SampleGroupDO sg in currSampleGroups)
@@ -1222,10 +1205,10 @@ namespace CruiseProcessing
             if(TotalNetVol > 0)
                 TotalNetErr = Math.Sqrt(TotalSummedErr)/ TotalNetVol;
             return TotalNetErr;
-        }   //  end CalculateNetError
+        }
 
 
-        private void CalcProductNetError(POPDO pd, ref double SummedNetVol, ref double SummedError, string currMethod,
+        private static void CalcProductNetError(POPDO pd, ref double SummedNetVol, ref double SummedError, string currMethod,
                                             double SGnetVol, int ithProduct)
         {
             double Stg1X = 0.0;
@@ -1285,11 +1268,10 @@ namespace CruiseProcessing
 
             SummedNetVol += SGnetVol;
             SummedError += SGerror;
-            return;
         }   //  end CalcProductNetError
 
 
-        private double TotalVolume(string currUOM, int nthProduct, List<LCDDO> currGroup)
+        private static double TotalVolume(string currUOM, int nthProduct, List<LCDDO> currGroup)
         {
             double calcNetVol = 0.0;
             switch (nthProduct)
@@ -1341,26 +1323,30 @@ namespace CruiseProcessing
         }   //  end TotalVolume
 
 
-        private ArrayList getLCDunits(List<TreeDO> currentStratum, string currCL, string currCM, string currSP, string currSTM)
+        private static IReadOnlyCollection<string> getLCDunits(List<TreeDO> currentStratum, string currCL, string currCM, string currSP, string currSTM)
         {
-            List<TreeDO> justGroup = currentStratum.FindAll(
-                delegate(TreeDO t)
-                {
-                    return t.SampleGroup.CutLeave == currCL && t.CountOrMeasure == currCM && 
-                                    t.Species == currSP && t.STM == currSTM;
-                });
+            return currentStratum.Where(t => t.SampleGroup.CutLeave == currCL && t.CountOrMeasure == currCM &&
+                                    t.Species == currSP && t.STM == currSTM)
+                .Select(t => t.CuttingUnit.Code).Distinct().ToArray();
 
-            ArrayList unitGroups = new ArrayList();
-            foreach (TreeDO jg in justGroup)
-            {
-                if (unitGroups.Contains(jg.CuttingUnit.Code))
-                {
-                    //  do nothing
-                }
-                else unitGroups.Add(jg.CuttingUnit.Code);
+            //List<TreeDO> justGroup = currentStratum.FindAll(
+            //    delegate(TreeDO t)
+            //    {
+            //        return t.SampleGroup.CutLeave == currCL && t.CountOrMeasure == currCM && 
+            //                        t.Species == currSP && t.STM == currSTM;
+            //    });
+
+            //ArrayList unitGroups = new ArrayList();
+            //foreach (TreeDO jg in justGroup)
+            //{
+            //    if (unitGroups.Contains(jg.CuttingUnit.Code))
+            //    {
+            //        //  do nothing
+            //    }
+            //    else unitGroups.Add(jg.CuttingUnit.Code);
                 
-            }   //  end foreach
-            return unitGroups;
+            //}   //  end foreach
+            //return unitGroups;
         }   //  end getLCDunits
 
 

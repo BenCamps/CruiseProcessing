@@ -503,7 +503,6 @@ namespace CruiseProcessing
                 clearOutputList(reportData);
             }   //  end for n loop on number of pages
 
-            return;
         }   //  end CreateUnitStandTables
 
 
@@ -602,9 +601,8 @@ namespace CruiseProcessing
                         }   //  end switch on value
                         break;
                 }   //  end switch on product
-            }   //  end foreach loop on currentGroup
-            return;
-        }   //  end LoadUnitData
+            }  
+        }   
 
 
         private void LoadUnitData(List<TreeCalculatedValuesDO> currentTrees, CuttingUnitDO currentUnit, int whichColumn)
@@ -686,10 +684,8 @@ namespace CruiseProcessing
                         }   //  end switch
                         break;
                 }   //  end switch on product
-            }   //  end foreach loop
-
-            return;
-        }   //  end LoadUnitData
+            }
+        }   
 
 
         private void LoadProperColumn(double valuToLoad, int nthColumn, int whichRow)
@@ -729,7 +725,6 @@ namespace CruiseProcessing
             }//  end switch
             //  add to line total colum
             reportData[whichRow].lineTotal += valuToLoad;
-            return;
         }   //  end LoadProperColumn
 
 
@@ -758,7 +753,6 @@ namespace CruiseProcessing
             //  add total column on last page
             if (lastPage)
                 columnHeader[0] += "TOTALS";
-            return;
         }   //  end LoadColumnHeader
 
 
@@ -871,7 +865,6 @@ namespace CruiseProcessing
                 prtFields.Add(String.Format("{0,9:F0}", columnTotals[10]).PadLeft(9,' '));
             }   //  endif lastPage
             printOneRecord(strWriteOut,prtFields);
-            return;
         }   //  end writeCurrentGroup
 
 /*
@@ -1195,11 +1188,10 @@ namespace CruiseProcessing
             //  write contract species summary here and then grand total
             writeSummary(strWriteOut, ref pageNumb, csSummary);
             writeGrandTotal(strWriteOut, ref pageNumb, totalAcres, grSawTotal, grNonSawTotal);
-            return;
         }   //  end VolumeSummary
 
 
-        private void UpdateContractSpeciesSummary(List<ReportSubtotal> csSummary, string currCS, 
+        private static void UpdateContractSpeciesSummary(List<ReportSubtotal> csSummary, string currCS, 
                                                     double csSawVol, double csNonSawVol)
         {
             //  find contract species in summary list
@@ -1212,9 +1204,8 @@ namespace CruiseProcessing
             {
                 csSummary[ithRow].Value3 += csSawVol;
                 csSummary[ithRow].Value4 += csNonSawVol;
-            }   //  endif ithRow
-            return;
-        }   //  end UpdateContractSpeciesSummary
+            }
+        }  
 
 
         private void writeContractSpeciesGroup(TextWriter strWriteOut, ref int pageNumb, int firstFlag,
@@ -1262,7 +1253,6 @@ namespace CruiseProcessing
                     printOneRecord(strWriteOut, prtFields);
                     break;
             }   //  end switch on report
-            return;
         }   //  end writeContractSpeciesGroup
 
 
@@ -1303,7 +1293,6 @@ namespace CruiseProcessing
             printOneRecord(strWriteOut, prtFields);
             strWriteOut.WriteLine(reportConstants.longLine);
             numOlines++;
-            return;
         }   //  end writePaymentGroup
 
 
@@ -1336,7 +1325,6 @@ namespace CruiseProcessing
                 prtFields.Add(String.Format("{0,7:F2}", totalNonSaw / 100).PadLeft(7, ' '));
             else prtFields.Add(String.Format("{0,7:F0}", totalNonSaw / 100).PadLeft(7, ' '));
             printOneRecord(strWriteOut, prtFields);
-            return;
         }   //  end writeSummary
 
 
@@ -1359,7 +1347,6 @@ namespace CruiseProcessing
             else prtFields.Add(String.Format("{0,7:F0}", gNonSawVol / 100).PadLeft(7, ' '));
 
             printOneRecord(strWriteOut, prtFields);
-            return;
         }   //  end writeGrandTotal
 
 
@@ -1399,7 +1386,6 @@ namespace CruiseProcessing
                     }   //  endif
                 }   //  endif cut trees only
             }   //  end foreach loop
-            return;
         }   //  end SumVolume
 
 
@@ -1435,14 +1421,13 @@ namespace CruiseProcessing
                     }   //  endif
                 }   //  endif cut trees only
             }   //  end foreach loop
-            return;
         }   //  end SumVolume
 
 
-        private void clearOutputList(List<StandTables> listToClear)
+        private static void clearOutputList(List<StandTables> listToClear)
         {
             //  clears out everything except dib class
-            foreach (StandTables rd in reportData)
+            foreach (StandTables rd in listToClear)
             {
                 rd.species1 = 0;
                 rd.species2 = 0;
@@ -1455,7 +1440,6 @@ namespace CruiseProcessing
                 rd.species9 = 0;
                 rd.species10 = 0;
             }   //  end foreach loop
-            return;
         }   //  end clearOutputList
 
     }   //  end OutputUnitStandTables
