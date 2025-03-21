@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace CruiseProcessing.Output
 {
@@ -54,14 +55,6 @@ namespace CruiseProcessing.Output
         private void processUnits(TextWriter strWriteOut, List<CuttingUnitDO> cList, ref int pageNumb)
         {
             //  WT4
-            int firstLine = 1;
-            double prorateFactor = 0;
-            double unitSaw = 0;
-            double unitNonsawPP = 0;
-            double unitNonsawSP = 0;
-            double totalUnitSaw = 0;
-            double totalUnitNonsawPP = 0;
-            double totalUnitNonsawSP = 0;
             double grandTotalSaw = 0;
             double grandTotalNonsawPP = 0;
             double grandTotalNonsawSP = 0;
@@ -70,24 +63,36 @@ namespace CruiseProcessing.Output
 
             foreach (CuttingUnitDO cdo in cList)
             {
+                int firstLine = 1;
+                double totalUnitSaw = 0;
+                double totalUnitNonsawPP = 0;
+                double totalUnitNonsawSP = 0;
+
                 cdo.Strata.Populate();
                 //  get species groups from LCD
-                List<LCDDO> justGroups = DataLayer.GetLCDgroup("", 5, "C");
-                foreach (LCDDO jg in justGroups)
+                var speciesGroups = DataLayer.GetLCDgroup("", 5, "C")
+                    .Select(x=> x.Species)
+                    .ToArray();
+                foreach (var species in speciesGroups)
                 {
+                    double unitSaw = 0;
+                    double unitNonsawPP = 0;
+                    double unitNonsawSP = 0;
+
                     //  loop through stratum in the current unit
-                    foreach (StratumDO sd in cdo.Strata)
+                    foreach (StratumDO st in cdo.Strata)
                     {
+                        var currMeth = DataLayer.GetCruiseMethod(st.Code);
+
                         //  get group data
-                        List<LCDDO> groupData = LCDmethods.GetCutOrLeave(lcdList, "C", jg.Species, sd.Code, "");
+                        List<LCDDO> groupData = LCDmethods.GetCutOrLeave(lcdList, "C", species, st.Code, "");
                         foreach (LCDDO gd in groupData)
                         {
-                            var currMeth = DataLayer.GetCruiseMethod(sd.Code);
                             if (currMeth == "100" || gd.STM == "Y")
                             {
                                 //pull all trees for current unit
                                 List<TreeCalculatedValuesDO> currentGroup = new List<TreeCalculatedValuesDO>();
-                                List<TreeCalculatedValuesDO> justUnitTrees = DataLayer.getTreeCalculatedValues((int)sd.Stratum_CN, (int)cdo.CuttingUnit_CN);
+                                List<TreeCalculatedValuesDO> justUnitTrees = DataLayer.getTreeCalculatedValues((int)st.Stratum_CN, (int)cdo.CuttingUnit_CN);
                                 if (gd.STM == "Y")
                                 {
                                     //  pull sure-to-measure trees for current unit
@@ -127,7 +132,9 @@ namespace CruiseProcessing.Output
                                 //  find proration factor for current group
                                 List<PRODO> pList = PROmethods.GetMultipleData(proList, "C", gd.Stratum,
                                                                 cdo.Code, gd.SampleGroup, "", "", gd.STM, 1);
-                                if (pList.Count == 1) prorateFactor = (float)pList[0].ProrationFactor;
+                                double prorateFactor = (pList.Count == 1) ? (float)pList[0].ProrationFactor
+                                    : 0.0;
+
                                 //  Sum up weights by product
                                 switch (gd.PrimaryProduct)
                                 {
@@ -138,42 +145,39 @@ namespace CruiseProcessing.Output
                                     default:
                                         unitNonsawPP += gd.SumWgtMSP * prorateFactor;
                                         break;
-                                }   //  end switch
+                                } 
                                 unitNonsawSP += gd.SumWgtMSS * prorateFactor;
-                            }   //  endif
-                        }   //  end foreach loop on group
-                    }   //  end foreach loop on stratum
+                            }
+                        }
+                    }
 
                     if (unitSaw > 0 || unitNonsawPP > 0)
                         WriteCurrentGroupWT4(strWriteOut, ref pageNumb, ref firstLine, unitSaw, unitNonsawPP, unitNonsawSP, cdo.Area,
-                                        cdo.Code, jg.Species);
+                                        cdo.Code, species);
 
                     //  Update subtotals
                     totalUnitSaw += unitSaw / 2000;
                     totalUnitNonsawPP += unitNonsawPP / 2000;
                     totalUnitNonsawSP += unitNonsawSP / 2000;
-                    unitSaw = 0;
-                    unitNonsawPP = 0;
-                    unitNonsawSP = 0;
-                }   //  end foreach loop
+                    
+                    
+                }
+
                 if (totalUnitSaw > 0 || totalUnitNonsawPP > 0 || totalUnitNonsawSP > 0)
                 {
-                    //  Output subtotal line
                     OutputTotalLine(strWriteOut, ref pageNumb, totalUnitSaw, totalUnitNonsawPP, totalUnitNonsawSP, 1);
-                }   //  endif totalUnitSaw
+                }
+
                 //  update grand total
                 grandTotalSaw += totalUnitSaw;
                 grandTotalNonsawPP += totalUnitNonsawPP;
                 grandTotalNonsawSP += totalUnitNonsawSP;
-                totalUnitSaw = 0;
-                totalUnitNonsawPP = 0;
-                totalUnitNonsawSP = 0;
-                firstLine = 1;
-            }   //  end foreach loop
-            //  output grand total here
+
+                
+            }
+
             OutputTotalLine(strWriteOut, ref pageNumb, grandTotalSaw, grandTotalNonsawPP, grandTotalNonsawSP, 2);
-            return;
-        }   //  end processUnits
+        }
 
         private void WriteCurrentGroupWT4(TextWriter strWriteOut, ref int pageNumb, ref int firstLine, double unitSaw,
                                 double unitNonsawPP, double unitNonsawSP, double unitAcres,
@@ -200,7 +204,7 @@ namespace CruiseProcessing.Output
             prtFields.Add(String.Format("{0,5:F2}", unitNonsawPP / 2000).PadLeft(8, ' '));
             prtFields.Add(String.Format("{0,5:F2}", unitNonsawSP / 2000).PadLeft(8, ' '));
             printOneRecord(_fieldLengths, prtFields, strWriteOut);
-        }   //  end WriteCurrentGroup
+        } 
 
         private void OutputTotalLine(TextWriter strWriteOut, ref int pageNumb, double totalValue1, double totalValue2,
                             double totalValue3, int whichTotal)
@@ -228,8 +232,8 @@ namespace CruiseProcessing.Output
                 strWriteOut.Write("{0,9:F2}", totalValue2);
                 strWriteOut.Write("          ");
                 strWriteOut.WriteLine("{0,9:F2}", totalValue3);
-            }   //  endif on type of total line
-            return;
-        }   //  end OutputTotalLine
+            } 
+
+        }
     }
 }
