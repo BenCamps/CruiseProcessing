@@ -89,8 +89,8 @@ namespace CruiseProcessing.Data
             var fiaCode = GetFIACode(species);
             var region = int.Parse(getRegion());
             var forest = getForest();
-            volumeLibrary.LookupWeightFactorsNVB(region, forest, fiaCode, product, out var liveWf, out var deadWf);
-            singleWf = (liveDead == "D") ? deadWf : liveWf;
+            
+            singleWf = volumeLibrary.LookupWeightFactorsNVB(region, forest, fiaCode, product, liveDead);
 
             NVBWeightFactorCache.Add(key, singleWf);
 
@@ -113,7 +113,7 @@ namespace CruiseProcessing.Data
                 return bioEq.PercentRemoved;
             }
 
-            return BiomassOptions.DefaultPercentRemoved;
+            return 0.0f;// BiomassOptions.DefaultPercentRemoved;
         }
     }
 }

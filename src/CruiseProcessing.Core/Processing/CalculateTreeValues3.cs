@@ -6,12 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CruiseProcessing.Processing
 {
@@ -334,11 +329,14 @@ namespace CruiseProcessing.Processing
                 }
             }
 
-            if(volEq.CalcBiomass == 1)
+            var secondaryProduct = tree.SampleGroup.SecondaryProduct;
+            if (volEq.CalcBiomass == 1)
             {
                 // get the weight factor. This will also load the weight factor into the cache which will
                 // be use later when writing the biomass equation report in the out file
                 var wf = DataLayer.GetWeightFactor(volEq.Species, volEq.PrimaryProduct, tree.LiveDead, VolLib);
+                var secondaryWf = DataLayer.GetWeightFactor(volEq.Species, secondaryProduct, tree.LiveDead, VolLib)
+                    .IfZeroThen(wf);
 
                 // volumes might have changed when calling CalculateNetVolume
                 // if so we need to recalculate the main stem and top biomass values from the updated Gross Cuft
@@ -347,7 +345,7 @@ namespace CruiseProcessing.Processing
                     var volumes = volLibOutput.Volumes;
 
                     var newMainStemWt = volumes.GrossCuFt * wf;
-                    var newTopWoodWt = volumes.GrossSecondaryCuFt * wf;
+                    var newTopWoodWt = volumes.GrossSecondaryCuFt * secondaryWf;
 
                     var bioValues = volLibOutput.GreenBio;
                     bioValues.SawWood = newMainStemWt;
@@ -369,8 +367,8 @@ namespace CruiseProcessing.Processing
 
             var percentRemoved = (volEq.CalcBiomass == 1) ? DataLayer.GetPercentRemoved(volEq.Species, volEq.PrimaryProduct) : 0f;
 
-            SetTreeCalculatedValues(tcv, volLibOutput, CUTFLG, BFPFLG, CUPFLG, CDPFLG,
-                             SPFLG, volEq.CalcBiomass, hasRecoverablePrimary, tdv.CullPrimary, hiddenDefect, tree.SeenDefectPrimary, tree.RecoverablePrimary,
+            SetTreeCalculatedValues(tcv, volLibOutput, volEq,
+                hasRecoverablePrimary, tdv.CullPrimary, hiddenDefect, tree.SeenDefectPrimary, tree.RecoverablePrimary,
                              percentRemoved, Region, DataLayer);
 
             //  update volume calcs in logstock if log volume calculated
@@ -624,12 +622,7 @@ namespace CruiseProcessing.Processing
 
         public static void SetTreeCalculatedValues(TreeCalculatedValuesDO tcv,
             VolLibNVBoutput volLibNVBoutput,
-            int calcTotal,
-            int calcBoard,
-            int calcCubic,
-            int calcCord,
-            int calcTopwood,
-            long calcBiomass,
+            VolumeEquationDO volEq,
             bool hasRecoverablePrimary,
             float cullDef,
             float hidDef,
@@ -639,6 +632,15 @@ namespace CruiseProcessing.Processing
             string currRegion,
             IErrorLogDataService errorLogDataService)
         {
+            bool calcTotal = volEq.CalcTotal == 1;
+            bool calcBoard = volEq.CalcBoard == 1;
+            bool calcCubic = volEq.CalcCubic == 1;
+            bool calcCord = volEq.CalcCord == 1;
+            bool calcTopwood = volEq.CalcTopwood == 1;
+            bool calcBiomass = volEq.CalcBiomass == 1;
+
+
+
             Volumes VOL = volLibNVBoutput.Volumes;
             VolLibNVBCalculatedBiomass greenBio = volLibNVBoutput.GreenBio;
             int TLOGS = volLibNVBoutput.TotalLogs;
@@ -648,22 +650,22 @@ namespace CruiseProcessing.Processing
 
 
             //  updates tree record in tree calculated values list
-            if (calcTotal == 1) tcv.TotalCubicVolume = VOL[0];
-            if (calcBoard == 1)         //  board foot volume
+            if (calcTotal) tcv.TotalCubicVolume = VOL[0];
+            if (calcBoard)         //  board foot volume
             {
                 tcv.GrossBDFTPP = VOL[1];
                 tcv.NetBDFTPP = VOL[2];
             }   //  endif GBDFTflag
 
-            if (calcCubic == 1)         //  cubic foot volume
+            if (calcCubic)         //  cubic foot volume
             {
                 tcv.GrossCUFTPP = VOL[3];
                 tcv.NetCUFTPP = VOL[4];
             }   //  endif GCUFTflag
 
-            if (calcCord == 1) tcv.CordsPP = VOL[5];
+            if (calcCord) tcv.CordsPP = VOL[5];
 
-            if (calcTopwood == 1)          //  secondary product was calculated
+            if (calcTopwood)          //  secondary product was calculated
             {
                 tcv.GrossCUFTSP = VOL[6];
                 tcv.NetCUFTSP = VOL[7];
@@ -671,7 +673,7 @@ namespace CruiseProcessing.Processing
                 tcv.GrossBDFTSP = VOL[11];
                 tcv.NetBDFTSP = VOL[12];
             }
-            else if (calcTopwood == 0)
+            else if (calcTopwood)
             {
                 //  reset secondary buckets to zero
                 tcv.GrossCUFTSP = 0;
@@ -707,7 +709,7 @@ namespace CruiseProcessing.Processing
                 SetTcvRecoveredVolume(tcv, cullDef, hidDef, seenDef, recvDef, currRegion, errorLogDataService);
             }
 
-            if (calcBiomass == 1)
+            if (calcBiomass)
             {
                 SetTreeCalculatedValuesBiomass(tcv, greenBio, percentRemoved);
             }
@@ -715,6 +717,7 @@ namespace CruiseProcessing.Processing
             static void SetTcvRecoveredVolume(TreeCalculatedValuesDO tcv, float cullDef, float hidDef,
                                             float seenDef, float recvDef, string currRegion, IErrorLogDataService errorLogDataService)
             {
+                
                 //  Check if recoverable defect is greater than the sum
                 //  of the defects.  Is so, use the sum of the defects in place
                 //  of the entered recoverable defect.  Issue a warning for this tree.
@@ -751,9 +754,11 @@ namespace CruiseProcessing.Processing
             }   //  end RecoveredVolume
         }
 
-        protected static void SetTreeCalculatedValuesBiomass(TreeCalculatedValuesDO tcv, VolLibNVBCalculatedBiomass greenBio, float percentRemoved)
+        protected static void SetTreeCalculatedValuesBiomass(TreeCalculatedValuesDO tcv, VolLibNVBCalculatedBiomass greenBio,
+            float percentRemoved)
         {
-            var prFactor = percentRemoved / 100.0f;
+            var prFactor = (percentRemoved > 0) ? percentRemoved / 100.0f : 1.0f;
+            //var prFactorSecondary = percentRemovedSecondary / 100f;
 
             tcv.Biomasstotalstem = greenBio.AboveGroundTotal * prFactor;
             tcv.Biomasslivebranches = greenBio.Branches * prFactor;

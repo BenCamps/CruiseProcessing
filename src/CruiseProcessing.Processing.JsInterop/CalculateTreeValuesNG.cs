@@ -201,8 +201,11 @@ namespace CruiseProcessing.Processing
                 // get the weight factor. This will also load the weight factor into the cache which will
                 // be use later when writing the biomass equation report in the out file
                 var sForest = Forest.ToString().PadLeft(2, '0');
-                VolLib.LookupWeightFactorsNVB(REGN, sForest, iFiaCode, tree.PrimaryProduct, out var liveWf, out var deadWf);
-                var wf = tree.LiveDead switch { "L" => liveWf, "D" => deadWf, _ => throw new ArgumentException(nameof(tree), "Invalid LiveDead Value") };
+                var wf =  VolLib.LookupWeightFactorsNVB(REGN, sForest, iFiaCode, tree.PrimaryProduct, tree.LiveDead);
+
+
+                var secondaryWf = VolLib.LookupWeightFactorsNVB(REGN, sForest, iFiaCode, tree.SecondaryProduct, tree.LiveDead)
+                    .IfZeroThen(wf);
 
                 // volumes might have changed when calling CalculateNetVolume
                 // if so we need to recalculate the main stem and top biomass values from the updated Gross Cuft
@@ -211,7 +214,7 @@ namespace CruiseProcessing.Processing
                     var volumes = volLibOutput.Volumes;
 
                     var newMainStemWt = volumes.GrossCuFt * wf;
-                    var newTopWoodWt = volumes.GrossSecondaryCuFt * wf;
+                    var newTopWoodWt = volumes.GrossSecondaryCuFt * secondaryWf;
 
                     var bioValues = volLibOutput.GreenBio;
                     bioValues.SawWood = newMainStemWt;

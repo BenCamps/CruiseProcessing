@@ -18,7 +18,9 @@ namespace CruiseProcessing.Processing.Models
 
         // sample group fields
         public string PrimaryProduct { get; set; }
-        
+
+        public string SecondaryProduct { get; set; }
+
 
         // species table fields
         public string FiaCode { get; set; }

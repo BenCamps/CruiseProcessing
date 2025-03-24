@@ -355,6 +355,17 @@ namespace CruiseProcessing.Interop
             NativeMethods.GETREGNWFCS(ref regin, FORST, ref fiaCode, PROD, out greenWf, out deadWf, STRING_BUFFER_SIZE, STRING_BUFFER_SIZE);
         }
 
+        public float LookupWeightFactorsNVB(int regin, string forest, int fiaCode, string prod, string liveDead)
+        {
+            LookupWeightFactorsNVB(regin, forest, fiaCode, prod, out float greenWf, out float deadWf);
+            return liveDead.Trim().ToUpper() switch
+            {
+                "L" => greenWf,
+                "D" => deadWf,
+                _ => throw new ArgumentException("Invalid Tree Live Dead Value", nameof(liveDead))
+            };
+        }
+
         public void BrownCrownFraction(int fiaCode, float DBH, float THT, float CR, float[] crownFractionWGT)
         {
             NativeMethods.BROWNCROWNFRACTION(ref fiaCode, ref DBH, ref THT, ref CR, crownFractionWGT);

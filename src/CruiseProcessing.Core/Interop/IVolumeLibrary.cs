@@ -60,6 +60,8 @@ namespace CruiseProcessing.Interop
 
         void LookupWeightFactorsNVB(int regin, string forest, int fiaCode, string prod, out float greenWf, out float deadWf);
 
+        float LookupWeightFactorsNVB(int regin, string forest, int fiaCode, string prod, string liveDead);
+
         [Obsolete]
         void BrownCrownFraction(int fiaCode, float DBH, float THT, float CR, float[] crownFractionWGT);
 
