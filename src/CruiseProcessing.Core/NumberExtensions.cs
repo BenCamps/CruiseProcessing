@@ -168,5 +168,24 @@ namespace CruiseProcessing
         {
             return @this.IsApproximatelyEqual(right, 3);
         }
+
+
+        public static double IfZeroThen(this double @this, double elseValue)
+        {
+            if(@this.IsExactlyZero())
+            {
+                return elseValue;
+            }
+            return @this;
+        }
+
+        public static float IfZeroThen(this float @this, float elseValue)
+        {
+            if (@this.IsExactlyZero())
+            {
+                return elseValue;
+            }
+            return @this;
+        }
     }
 }
