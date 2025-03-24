@@ -39,32 +39,21 @@ namespace CruiseProcessing
             if ((currentReport == "CSV5" || currentReport == "L1") && currentRegion == "10")
             {
                 DialogService.ShowInformation("This could take awhile.\r\nPlease wait");
-                List<CSVlist> ListToOutput = new List<CSVlist>();
-                //  loop twice for cut or leave
-                for (int k = 0; k < 2; k++)
-                {
-                    switch (k)
-                    {
-                        case 0:             //  cut trees
-                            ListToOutput.Clear();
-                            ListToOutput = LoadLogStockR10("C");
-                            string cutOutFile = System.IO.Path.ChangeExtension(FilePath, "L1cut.csv");
-                            if (File.Exists(cutOutFile))
-                                File.Delete(cutOutFile);
-                            writeCSV(cutOutFile, ListToOutput);
-                            break;
 
-                        case 1:             //  leave trees
-                            ListToOutput.Clear();
-                            ListToOutput = LoadLogStockR10("L");
-                            string leaveOutFile = System.IO.Path.ChangeExtension(FilePath, "L1leave.csv");
-                            if (File.Exists(leaveOutFile))
-                                File.Delete(leaveOutFile);
-                            if (ListToOutput.Count > 0) writeCSV(leaveOutFile, ListToOutput);
-                            break;
-                    }   //  end switch
-                }   //  end for k loop
-                return;
+                //  cut trees
+                var ListToOutput = LoadLogStockR10("C");
+                string cutOutFile = System.IO.Path.ChangeExtension(FilePath, "L1cut.csv");
+                if (File.Exists(cutOutFile))
+                    File.Delete(cutOutFile);
+                writeCSV(cutOutFile, ListToOutput);
+
+                //  leave trees
+                ListToOutput = LoadLogStockR10("L");
+                string leaveOutFile = System.IO.Path.ChangeExtension(FilePath, "L1leave.csv");
+                if (File.Exists(leaveOutFile))
+                    File.Delete(leaveOutFile);
+                if (ListToOutput.Count > 0) writeCSV(leaveOutFile, ListToOutput);
+
             }   //  endif region 10 and report is L1 (CSV5)
 
             //  find report to use in text output file
