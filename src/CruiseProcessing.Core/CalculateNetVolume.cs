@@ -50,7 +50,7 @@ namespace CruiseProcessing
             //  some regions have multiple routines called
             if (currRegion == "05" || currRegion == "07" || currRegion == "10")
             {
-                if (logStockList.Count() <= 0 || TLOGS <= 0)
+                if (logStockList.Count <= 0 || TLOGS <= 0)
                     VolumeTreeDefect(currRegion, currPP, ref VOL,
                                      defectLogic, currTree.TreeDefaultValue.CullPrimary,
                                      hiddenDefectPrimary, currTree.SeenDefectPrimary,
@@ -89,7 +89,7 @@ namespace CruiseProcessing
             }
             else if (currRegion == "06")
             {
-                if (logStockList.Count() > 0)
+                if (logStockList.Count > 0)
                 {
                     GetR6LogGrade(currTree.Grade, logStockList, TLOGS, (int)NOLOGP, MTOPP);
                     VolumeLogDefect(currRegion, LOGVOL, VOL, logStockList, currTree.TreeDefaultValue.CullPrimary,
@@ -136,15 +136,12 @@ namespace CruiseProcessing
                 VOL[10] = VOL[9] * totalPrimDef;        //  Net International volume
 
                 //  Region 9 applies defect weirdly.  Per MVanDyck, this is how it is to be applied.  June 2008 -- bem
-                if (currRegn == "9" || currRegn == "09")
+                if ((currRegn == "9" || currRegn == "09") && pProd != "01")
                 {
-                    if (pProd != "01")
-                    {
-                        //  Apply secondary defect to primary products
-                        VOL[4] = VOL[3] * totalSecDef;      //  Net CUFT primary volume
-                        VOL[2] = VOL[1] * totalSecDef;      //  Net BDFT primary volume
-                    }   //  endif currPP
-                }   //  endif currRegn
+                    //  Apply secondary defect to primary products
+                    VOL[4] = VOL[3] * totalSecDef;      //  Net CUFT primary volume
+                    VOL[2] = VOL[1] * totalSecDef;      //  Net BDFT primary volume
+                }
             }
             else if (defectLogic == 2)
             {
@@ -238,17 +235,14 @@ namespace CruiseProcessing
                     }   //  endif current Region
                 }   //  endif n
 
-                if (currRegn == "10")
+                if (currRegn == "10"
+                    && ((String.IsNullOrEmpty(logStockList[n].Grade) && (currTG == "8" || currTG == "9"))
+                        || (logStockList[n].Grade == "8" || logStockList[n].Grade == "9")))
                 {
-                    if ((logStockList[n].Grade == "" || logStockList[n].Grade == " ") &&
-                        (currTG == "8" || currTG == "9") ||
-                        (logStockList[n].Grade == "8" || logStockList[n].Grade == "9"))
-                    {
-                        logStockList[n].SeenDefect = 100;
-                        logStockList[n].PercentRecoverable = 0;
-                    }   //  endif
-                }   //  endif current region
-            }   //  end for n loop
+                    logStockList[n].SeenDefect = 100;
+                    logStockList[n].PercentRecoverable = 0;
+                } 
+            }
 
             //  if no logs, should skip the loop to here
             if (logStockList.Count == 0)
@@ -262,13 +256,12 @@ namespace CruiseProcessing
             }   //  endif no logs
 
             //  For Regions 7 (BLM) or 10, if the first log has a blank grade, reset it to zero.  Per KCormier June 2003 -- bem
-            if (currRegn == "07" || currRegn == "10")
+            if ((currRegn == "07" || currRegn == "10")
+                && String.IsNullOrEmpty(logStockList[0].Grade))
             {
-                if (logStockList[0].Grade == "" || logStockList[0].Grade == " ")
-                    logStockList[0].Grade = "0";
-            }   //  endif current region
-            return;
-        }   //  end SetLogGrades
+                logStockList[0].Grade = "0";
+            }
+        } 
 
         private static void VolumeLogDefect(string currRegn, float[,] LOGVOL, float[] VOL, List<LogStockDO> logStockList,
                                             float cullDefPrimary, float hiddenDefPrimary, float seenDefPrimary,
@@ -606,8 +599,7 @@ namespace CruiseProcessing
                 VOL[11] += LOGVOL[n, 0];
                 VOL[12] += LOGVOL[n, 2];
             }   //  end for n loop
-            return;
-        }   //  end LogUtil
+        }
 
         protected static void SetDiameterClass(string currRegn, IReadOnlyList<LogStockDO> logStockList, int TLOGS)
         {
@@ -698,10 +690,8 @@ namespace CruiseProcessing
                     logStockList[n].Grade = "9";
                     logStockList[n].SeenDefect = 100;
                 }   //  end for n loop
-            }   //  endif
-
-            return;
-        }   //  end GetR6LogGrade
+            } 
+        }  
 
         private static void VariableLogLength(float[] VOL, float[,] LOGVOL, List<LogStockDO> logStockList, int TLOGS,
                                                 string currPP, float currentDef1, float currentDef2, float currentDef3)
@@ -740,9 +730,8 @@ namespace CruiseProcessing
                     VOL[2] += LOGVOL[n, 2];
                     VOL[3] += LOGVOL[n, 3];
                     VOL[4] += LOGVOL[n, 5];
-                }   //  endif
-            }   //  end for n loop
-            return;
-        }   //  end VariableLogLength
+                }  
+            } 
+        } 
     }
 }
