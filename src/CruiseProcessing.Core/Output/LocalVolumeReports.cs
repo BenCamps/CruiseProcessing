@@ -598,9 +598,7 @@ namespace CruiseProcessing
                 foreach (RegressionDO jg in justGroups)
                 {
                     createHeader(2, justGroups, 0, 0,jg.rSpeices, jg.rProduct, jg.rLiveDead);
-                    if (numOlines == 0 || numOlines >= 50)
-                        outputHeader(strWriteOut, 2,numOlines);
-                    else outputHeader(strWriteOut, 2, numOlines);
+                    outputHeader(strWriteOut, 2, numOlines);
 
                     //  write group line
                     strWriteOut.Write("      ");
