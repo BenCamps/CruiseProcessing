@@ -1487,8 +1487,7 @@ namespace CruiseProcessing
                     //  board foot report
                     finnishHeader = columnHeaderI;
                     finnishHeader[2] = finnishHeader[2].Replace("STRATA", "UNIT  ");
-                    finnishHeader[3] = finnishHeader[3].Replace("XXXX", "BDFT");
-                    finnishHeader[3] = finnishHeader[3].Replace("TREES*", "TREES");
+                    finnishHeader[3] = finnishHeader[3].Replace("XXXX", "BDFT").Replace("TREES*", "TREES");
                     break;
 
                 case "BLM05":
@@ -1513,8 +1512,7 @@ namespace CruiseProcessing
                     // cubic foot report
                     finnishHeader = columnHeaderI;
                     finnishHeader[2] = finnishHeader[2].Replace("STRATA", "UNIT  ");
-                    finnishHeader[3] = finnishHeader[3].Replace("XXXX", "CUFT");
-                    finnishHeader[3] = finnishHeader[3].Replace("TREES*", "TREES");
+                    finnishHeader[3] = finnishHeader[3].Replace("XXXX", "CUFT").Replace("TREES*", "TREES");
                     break;
 
                 case "BLM06":
