@@ -1054,7 +1054,7 @@ namespace CruiseProcessing
                     listToOutput[nthRow].value8 += pv.SumGCUFT;
                     listToOutput[nthRow].value9 += pv.SumNBDFT;
                     listToOutput[nthRow].value10 += pv.SumNCUFT;
-                    //  also add any secondaary volume
+                    //  also add any secondary volume
                     listToOutput[nthRow].value11 += pv.SumGBDFTtop;
                     listToOutput[nthRow].value12 += pv.SumGCUFTtop;
                     listToOutput[nthRow].value13 += pv.SumNBDFTtop;
@@ -1077,7 +1077,7 @@ namespace CruiseProcessing
                     rr.value14 = pv.SumNCUFTtop;
                     listToOutput.Add(rr);
                 }
-            }       //  end foreaach
+            }       //  end foreach
         }   // end Accumulate Totals
 
         private void WriteSectionOne(TextWriter strWriteOut, ref int pagenumber)

@@ -170,33 +170,5 @@ namespace CruiseProcessing
         }   //  end AverageDefectPercent
 
 
-        public static double Calculate3PTrees(List<LCDDO> currentGroup, string currMeth)
-        {
-            //  Calculates number of trees for 3P method only
-            double totalTalliedTrees = 0.0;
-            double totalExpFac = 0.0;
-
-            if (currMeth == "S3P" || currMeth == "3P")
-                return currentGroup.Sum(l => l.TalliedTrees);
-            else
-            {
-                //  sum expansion factors based on STM
-                totalTalliedTrees = currentGroup.Sum(l => l.TalliedTrees);
-                for (int k = 0; k < currentGroup.Count; k++)
-                {
-                    if (currentGroup[k].STM == "Y")
-                        totalExpFac += currentGroup[k].SumExpanFactor;
-                    else if (currentGroup[k].STM == "N")
-                    {
-                        if (currentGroup[k].SumExpanFactor > 0)
-                            totalExpFac += currentGroup[k].SumExpanFactor * totalTalliedTrees / currentGroup[k].SumExpanFactor;
-                        else totalExpFac += totalTalliedTrees;
-                    }   //  endif
-                }   //  end for k loop
-                return totalExpFac;
-            }   //  endif current method
-        }   //  end Calculate 3PTrees
-
-
     }   //  end class CommonEquations
 }

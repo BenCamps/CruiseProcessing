@@ -102,7 +102,7 @@ namespace CruiseProcessing.Output
                             });
                         //  Store stratum values
                         CalculateComponentValues(justTrees, currAcres, jg, bList, currReg);
-                    }   //  end foreach loop on groups
+                    }
                 }   //  end for j loop on stratum
                     //  print cutting unit page here
                 List<BiomassData> unitList = SumUpUnitList(strWriteOut, ref pageNumb, bList, c.Code,

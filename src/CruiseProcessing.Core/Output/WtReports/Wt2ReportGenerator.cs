@@ -89,7 +89,7 @@ namespace CruiseProcessing.Output
                         });
                     //  Calculate and store stratum values
                     CalculateComponentValues(tcvList, currAcres, jg, bList, currReg);
-                }   //  end foreach loop
+                }
                     //  if any one bioSpecies in the bList is zero, skip reporet
                 foreach (BiomassData bl in bList)
                 {
