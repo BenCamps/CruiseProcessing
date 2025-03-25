@@ -61,7 +61,7 @@
                             Command="{Binding DeleteVolumeEquationCommand}" />
             </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTemplateColumn Width="121">
+                <DataGridTemplateColumn Width="121" SortMemberPath="VolumeEquationNumber">
                     <DataGridTemplateColumn.Header>
                         <TextBlock Text="Volume Equation Number"
                                    TextWrapping="Wrap" />
@@ -89,7 +89,7 @@
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
 
-                <DataGridTemplateColumn Header="Species">
+                <DataGridTemplateColumn Header="Species" SortMemberPath="Species">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <ComboBox IsEditable="True"
@@ -99,7 +99,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn>
+                <DataGridTemplateColumn SortMemberPath="PrimaryProduct">
                     <DataGridTemplateColumn.Header>
                         <TextBlock>
                             <Run Text="Primary" /><LineBreak />
