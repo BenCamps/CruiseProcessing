@@ -57,22 +57,7 @@ namespace CruiseProcessing
                                      currTree.TreeDefaultValue.CullSecondary, currTree.TreeDefaultValue.HiddenSecondary, currTree.SeenDefectSecondary);
                 else
                 {
-                    if (currRegion == "10")
-                    {
-                        if (TLOGS > 0)
-                            SetLogGrades(currRegion, logStockList, currTree.Grade, (int)NOLOGP, TLOGS, currTree.RecoverablePrimary);
-                        else
-                        {
-                            //  check for cull tree grades
-                            if (currTree.Grade == "8" || currTree.Grade == "9")
-                            {
-                                foreach (LogStockDO lsdo in logStockList)
-                                    lsdo.SeenDefect = 100;
-                            }   //  endif tree grade is cull
-                        }   //  endif
-                    }
-                    else
-                        SetLogGrades(currRegion, logStockList, currTree.Grade, (int)NOLOGP, TLOGS, currTree.RecoverablePrimary);
+                    SetLogGrades(currRegion, logStockList, currTree.Grade, (int)NOLOGP, TLOGS, currTree.RecoverablePrimary);
 
                     VolumeLogDefect(currRegion, LOGVOL, VOL, logStockList, currTree.TreeDefaultValue.CullPrimary,
                                     hiddenDefectPrimary, currTree.SeenDefectPrimary,
@@ -173,6 +158,15 @@ namespace CruiseProcessing
         protected static void SetLogGrades(string currRegn, IReadOnlyList<LogStockDO> logStockList, string currTG,
                                           int numPPlogs, int TLOGS, float currDefRec)
         {
+            if(currRegn == "10" && TLOGS == 0)
+            {
+                if (currTG == "8" || currTG == "9")
+                {
+                    foreach (LogStockDO lsdo in logStockList)
+                        lsdo.SeenDefect = 100;
+                }   //  endif tree grade is cull
+            }
+
             //  skip first log record (0) -- loop starts with next log (1)
             for (int n = 0; n < TLOGS; n++)
             {
