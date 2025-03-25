@@ -421,14 +421,6 @@ namespace CruiseProcessing.ViewModels
                 {
                     errors.Add("Volume Equation Number must be 10 characters or less");
                 }
-                if (veq.VolumeEquationNumber.Contains("DVE"))
-                {
-                    if (veq.CalcTopwood == 1
-                                && (veq.CalcBoard == 0 && veq.CalcCubic == 0 && veq.CalcCord == 0))
-                    {
-                        errors.Add("On DVE Volume Equation Topwood calculation requires at least one volume calculation (Calc Board, Calc Cubic, Calc Cord)");
-                    }
-                }
             }
 
             if (veq.CalcBoard == 0 && veq.CalcCubic == 0 && veq.CalcCord == 0)

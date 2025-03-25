@@ -172,9 +172,15 @@ public class TestBase : IDisposable
         {
             var db = new DAL(filePath);
             RegisterObjectForDisposal(db);
-            return new CpDataLayer(db, CreateLogger<CpDataLayer>(), biomassOptions: null);
+            return GetCpDataLayer(db);
         }
     }
+
+    protected CpDataLayer GetCpDataLayer(DAL db)
+    {
+        return new CpDataLayer(db, CreateLogger<CpDataLayer>(), biomassOptions: null);
+    }
+
 
     public void RegesterFileForCleanUp(string path)
     {

@@ -50,7 +50,7 @@ namespace CruiseProcessing
             return errors;
         }
 
-        private static void ValidateSale(CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateSale(CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             List<SaleDO> saleList = dataLayer.GetAllSaleRecords();
             var saleCount = saleList.Count;
@@ -74,7 +74,7 @@ namespace CruiseProcessing
             }
         }
 
-        private static void ValidateCountTrees(CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateCountTrees(CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             List<StratumDO> strList = dataLayer.GetStrata();
 
@@ -108,14 +108,14 @@ namespace CruiseProcessing
             }
         }
 
-        private static void ValidateUnits(CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateUnits(CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             List<CuttingUnitDO> cuList = dataLayer.getCuttingUnits();
             if (cuList.Count == 0)
                 errors.AddError("Cutting Unit", "E", "25", 0, "NoName"); // cruise has no units
         }
 
-        private static void ValidateStrata(CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateStrata(CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             List<StratumDO> strList = dataLayer.GetStrata();
             if (strList.Count == 0)
@@ -131,7 +131,7 @@ namespace CruiseProcessing
             }
         }
 
-        private static void ValidateStratum(StratumDO sdo, CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateStratum(StratumDO sdo, CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             //  check for valid fixed plot size or BAF for each stratum
             float BAForFPSvalue = (float)StratumMethods.GetBafOrFps(sdo);
@@ -190,7 +190,7 @@ namespace CruiseProcessing
             }
         }
 
-        private static void ValidateSampleGroups(CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateSampleGroups(CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             List<StratumDO> strList = dataLayer.GetStrata();
             List<SampleGroupDO> sampGroups = dataLayer.getSampleGroups();
@@ -220,7 +220,7 @@ namespace CruiseProcessing
             }   //  end foreach loop
         }
 
-        private static bool ValidateTrees(CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static bool ValidateTrees(CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             var currRegion = dataLayer.getRegion();
             var trees = dataLayer.getTrees().ToArray();
@@ -309,7 +309,7 @@ namespace CruiseProcessing
             return true;
         }
 
-        private static void ValidateLogs(string currentRegion, bool isVLL, CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateLogs(string currentRegion, bool isVLL, CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             List<LogDO> logList = dataLayer.getLogs();
             if (logList.Count > 0) { return; }
@@ -378,7 +378,7 @@ namespace CruiseProcessing
             }
         }
 
-        private static void ValidateVolumeEqs(bool isVLL, CpDataLayer dataLayer, ErrorLogCollection errors)
+        public static void ValidateVolumeEqs(bool isVLL, CpDataLayer dataLayer, ErrorLogCollection errors)
         {
             List<VolumeEquationDO> volList = dataLayer.getVolumeEquations();
             //  pull region
@@ -432,14 +432,9 @@ namespace CruiseProcessing
                     errors.AddError("VolumeEquation", "E", "1", volEq.rowID.Value, "VolumeEquationNumber");
                 }
 
-                if (volEq.VolumeEquationNumber.Contains("DVE"))
+                if (volEq.CalcBoard == 0 && volEq.CalcCubic == 0 && volEq.CalcCord == 0)
                 {
-                    if (volEq.CalcTopwood == 1
-                        && (volEq.CalcBoard == 0 && volEq.CalcCubic == 0 && volEq.CalcCord == 0))
-                    {
-                        errors.AddError("VolumeEquation", "E", "3", volEq.rowID.Value, "VolumeFlags");
-                    }
-
+                    errors.AddError("VolumeEquation", "E", "At least one volume calculation must be selected (Calc Board, Calc Cubic, Calc Cord)", volEq.rowID.Value, "VolumeFlags");
                 }
 
                 if (volEq.TopDIBSecondary > volEq.TopDIBPrimary)

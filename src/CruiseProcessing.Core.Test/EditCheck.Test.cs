@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 
 namespace CruiseProcessing.Test
 {
-    public class EditCheckTest : TestBase
+    public partial class EditCheckTest : TestBase
     {
         public EditCheckTest(ITestOutputHelper output) : base(output)
         {
