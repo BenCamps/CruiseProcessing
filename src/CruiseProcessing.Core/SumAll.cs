@@ -407,18 +407,13 @@ namespace CruiseProcessing
         private static void CalculateRatios(IList<TempPOPvalues> tpopList, CpDataLayer dataLayer, List<TreeCalculatedValuesDO> tcvList, string currMethod,
                                                 POPDO pdo, double recvSum)
         {
-            //  need to capture plot number as methods such as 3P will have a plot_cn of zero instead a blank plot number
-            //  like in the current CP --  so need a variable for plot number
-            int currPlot;
 
             //  calculate ratio based on method and UOM
             //  for current sample group
             foreach (TreeCalculatedValuesDO tcv in tcvList)
             {
-                //  check plot_cn here
-                if (tcv.Tree.Plot_CN == 0 || tcv.Tree.Plot == null)
-                    currPlot = 0;
-                else currPlot = (int)tcv.Tree.Plot.PlotNumber;
+                var tree = tcv.Tree;
+                int plotNumber = (tree.Plot_CN == null) ? 0 : (int)tree.Plot.PlotNumber;
 
                 double theDenom = 0.0;
 
@@ -458,13 +453,13 @@ namespace CruiseProcessing
                         theNetNumer = tcv.NetBDFTPP;
                         theValNumer = tcv.ValuePP;
                         CalcAndStorePrimary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         //  Secondary product
                         theGrossNumer = tcv.GrossBDFTSP;
                         theNetNumer = tcv.NetBDFTSP;
                         theValNumer = tcv.ValueSP;
                         CalcAndStoreSecondary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         //  Recovered product
                         if (recvSum > 0)
                         {
@@ -472,7 +467,7 @@ namespace CruiseProcessing
                             theNetNumer = theGrossNumer;
                             theValNumer = tcv.ValueRP;
                             CalcAndStoreRecovered(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         }   //  endif recovered
                         break;
 
@@ -482,13 +477,13 @@ namespace CruiseProcessing
                         theNetNumer = theGrossNumer;
                         theValNumer = tcv.ValuePP;
                         CalcAndStorePrimary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         //  secondary product
                         theGrossNumer = tcv.CordsSP;
                         theNetNumer = theGrossNumer;
                         theValNumer = tcv.ValueSP;
                         CalcAndStoreSecondary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         //  recovered product
                         if (recvSum > 0)
                         {
@@ -496,7 +491,7 @@ namespace CruiseProcessing
                             theNetNumer = theGrossNumer;
                             theValNumer = tcv.ValueRP;
                             CalcAndStoreRecovered(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         }   //  endif recovered
                         break;
 
@@ -506,13 +501,13 @@ namespace CruiseProcessing
                         theNetNumer = tcv.NetCUFTPP;
                         theValNumer = tcv.ValuePP;
                         CalcAndStorePrimary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         //  secondary product
                         theGrossNumer = tcv.GrossCUFTSP;
                         theNetNumer = tcv.NetCUFTSP;
                         theValNumer = tcv.ValueSP;
                         CalcAndStoreSecondary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         //  recovered product
                         if (recvSum > 0)
                         {
@@ -520,32 +515,31 @@ namespace CruiseProcessing
                             theNetNumer = theGrossNumer;
                             theValNumer = tcv.ValueRP;
                             CalcAndStoreRecovered(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                                                plotNumber);
                         }   //  endif recovered
                         break;
 
                     case "05":      //  weight
                         //  primary product
-                        theGrossNumer = tcv.BiomassMainStemPrimary;
-                        theNetNumer = theGrossNumer;
-                        theValNumer = 0;
-                        CalcAndStorePrimary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                        CalcAndStorePrimary(tpopList,
+                            tcv.BiomassMainStemPrimary,
+                            theNetNumer: tcv.BiomassMainStemPrimary,
+                            theValNumer : 0,
+                            theDenom, pdo, plotNumber);
+
                         //  secondary product
-                        theGrossNumer = tcv.BiomassMainStemSecondary;
-                        theNetNumer = theGrossNumer;
-                        theValNumer = 0;
-                        CalcAndStoreSecondary(tpopList, theGrossNumer, theNetNumer, theValNumer, theDenom, pdo,
-                                                currPlot);
+                        CalcAndStoreSecondary(tpopList, tcv.BiomassMainStemSecondary,
+                            theNetNumer : tcv.BiomassMainStemSecondary,
+                            theValNumer : 0, theDenom, pdo,
+                                                plotNumber);
                         //  no recovered for weight
                         //  log a warning if theGrossNumer is zero--means flag not checked
-                        if (theGrossNumer == 0)
-                            dataLayer.LogError("TreeCalculatedValues", (int)tcv.Tree_CN, "W", "21");
+                        if (tcv.BiomassMainStemPrimary.IsExactlyZero() && tcv.BiomassMainStemSecondary.IsExactlyZero())
+                        { dataLayer.LogError("TreeCalculatedValues", (int)tcv.Tree_CN, "W", "21"); }
                         break;
-                }   //  end switch
-            }   //  end foreach loop
-            return;
-        }   //  end CalculateRatios
+                }
+            }
+        }
 
         private static void CalcAndStorePrimary(IList<TempPOPvalues> tpopList, double theGrossNumer, double theNetNumer, double theValNumer,
                                                 double theDenom, POPDO pdo, long currPlot)
@@ -871,13 +865,13 @@ namespace CruiseProcessing
                                     netSumSP += pt.BiomassMainStemSecondary * theExpanFac;
                                     //  no recovered product for weight
                                     //  log warning messages if values equal zero - means biomass flag not checked
-                                    if (grossSumPP == 0 && netSumPP == 0)
+                                    if (grossSumPP.IsExactlyZero() && netSumPP.IsExactlyZero())
                                         dataLayer.LogError("TreeCalculatedValues", (int)pt.Tree_CN, "W", "21");
                                     break;
-                            }   //  end switch on unit of measure
-                        }   //  endif on method
-                    }   //  end foreach loop
-                }   //  endif on currMethod
+                            } 
+                        } 
+                    }
+                } 
 
                 //  store plot sums
                 TempPOPvalues tpop = new TempPOPvalues();

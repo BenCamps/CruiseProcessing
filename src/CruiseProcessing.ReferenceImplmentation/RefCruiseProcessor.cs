@@ -313,23 +313,22 @@ namespace CruiseProcessing.ReferenceImplmentation
         }  //  end UpdateSTRtally
 
 
-
-        private void UpdateExpansionFactors(List<TreeDO> justCurrST, List<TreeCalculatedValuesDO> tcvList)
+        private static void UpdateExpansionFactors(List<TreeDO> justCurrST, List<TreeCalculatedValuesDO> tcvList)
         {
+            var tcvTree_CNLookup = tcvList.ToDictionary(tcv => tcv.Tree_CN.Value);
+
             //  find tree calculated volume to see if expansion factor needs to be reset
             foreach (TreeDO t in justCurrST)
             {
-                int nthRow = tcvList.FindIndex(
-                    delegate (TreeCalculatedValuesDO tcv)
+                if (tcvTree_CNLookup.TryGetValue(t.Tree_CN.Value, out var tcv))
+                {
+                    if (tcv.GrossBDFTPP.IsExactlyZero() && tcv.GrossCUFTPP.IsExactlyZero())
                     {
-                        return tcv.Tree_CN == t.Tree_CN && tcv.GrossBDFTPP == 0 && tcv.GrossCUFTPP == 0;
-                    });
-                if (nthRow >= 0)
-                    t.ExpansionFactor = 0;
-            }   //  end foreach loop
-
-            return;
-        }   //  end UpdateExpansionFactors
+                        t.ExpansionFactor = 0;
+                    }
+                }
+            }
+        }
 
         private void DefaultSecondaryProduct()
         {

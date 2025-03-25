@@ -221,12 +221,14 @@ namespace CruiseProcessing
                 //  expansion factor
                 if (sList[nthRow].Method == "S3P" || sList[nthRow].Method == "3P")
                 {
-                    if (js.SumExpanFactor > 0 && js.STM == "N")
-                        currEF += js.SumExpanFactor * js.TalliedTrees / js.SumExpanFactor;
-                    else if (js.STM == "Y")
+                    if (js.STM == "Y")
+                    {
                         currEF += js.SumExpanFactor * currAC;
-                    else if(js.SumExpanFactor == 0)
+                    }
+                    else
+                    {
                         currEF += js.TalliedTrees;
+                    }
                 }
                 else currEF += js.SumExpanFactor * currAC;
             }   //  end foreach loop
@@ -249,12 +251,7 @@ namespace CruiseProcessing
         {
             //R403/R404
             double unitAC = 0;
-            double currGRS = 0;
-            double currNET = 0;
-            double currEF = 0;
-            double currDBH2 = 0;
-            double currLOGS = 0;
-            double currHGT = 0;
+
 
             List<CuttingUnitDO> cutList = DataLayer.getCuttingUnits();
             List<PRODO> proList = DataLayer.getPRO();
@@ -280,6 +277,13 @@ namespace CruiseProcessing
                                                                         "C", stratum.Code, "");
                         foreach (LCDDO js in justStrata)
                         {
+                            double currGRS = 0;
+                            double currNET = 0;
+                            double currEF = 0;
+                            double currDBH2 = 0;
+                            double currLOGS = 0;
+                            double currHGT = 0;
+
                             //  find proration factor for the group
                             int nthRow = proList.FindIndex(
                                 delegate(PRODO p)
@@ -324,30 +328,27 @@ namespace CruiseProcessing
                             //  expansion factor
                             if (stratum.Method == "S3P" || stratum.Method == "3P")
                             {
-                                if (js.SumExpanFactor > 0 && js.STM == "N")
-                                    currEF += js.SumExpanFactor * js.TalliedTrees / js.SumExpanFactor;
-                                else if (js.STM == "Y")
+                                if (js.STM == "Y")
+                                {
                                     currEF += js.SumExpanFactor * proratFactor;
-                                else if (js.SumExpanFactor == 0)
+                                }
+                                else
+                                {
                                     currEF += js.TalliedTrees;
+                                }
                             }
                             else currEF += js.SumExpanFactor * proratFactor;
 
                             //  load listToOutput
                             loadListToOutput(jm.LoggingMethod, js.PrimaryProduct, currGRS, currNET, 
                                                 currDBH2, currHGT, currLOGS, unitAC, currEF);
+
                             unitAC = 0;
-                            currGRS = 0;
-                            currNET = 0;
-                            currEF = 0;
-                            currDBH2 = 0;
-                            currLOGS = 0;
-                            currHGT = 0;
-                        }   //  end foreach loop on justStrata
-                    }   //  end for loop on strata list
-                }   //  end foreach loop on justUnits
-            }   //  end foreach loop on justMethods
-        }   // end AccumulateByLogMethod
+                        }  
+                    } 
+                }  
+            } 
+        }
 
 
         private void loadListToOutput(string currLM, string currPP, double currGRS, double currNET, 

@@ -123,8 +123,8 @@ namespace CruiseProcessing.Processing
                 }
                 else
                 {
-                    if (td.DBH == 0 && td.DRC == 0
-                        || td.TotalHeight == 0 && td.MerchHeightPrimary == 0 && td.MerchHeightSecondary == 0 && td.UpperStemHeight == 0)
+                    if (td.DBH.IsExactlyZero() && td.DRC.IsExactlyZero()
+                        || td.TotalHeight.IsExactlyZero() && td.MerchHeightPrimary.IsExactlyZero() && td.MerchHeightSecondary.IsExactlyZero() && td.UpperStemHeight.IsExactlyZero())
                     { continue; } // if tree missing diameters or heights skip
 
                     var tcv = CalculateTreeVolume(td, hasRecoverablePrimary, REGN, IDIST, CTYPE);
@@ -549,7 +549,7 @@ namespace CruiseProcessing.Processing
             tcv.NumberlogsMS = numberOfLogsPrimary;
 
             //  Make sure secondary was not calculated to get correct number of logs for secondary
-            if (VOL[6] != 0 || VOL[7] != 0 || VOL[8] != 0 || VOL[11] != 0 || VOL[12] != 0)
+            if (VOL[6] > 0 || VOL[7] > 0 || VOL[8] > 0 || VOL[11] > 0 || VOL[12] > 0)
                 tcv.NumberlogsTPW = numberOfLogsSecondary;
 
             //  Sum removed volume into tree removed

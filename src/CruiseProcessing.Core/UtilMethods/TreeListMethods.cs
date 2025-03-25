@@ -116,7 +116,7 @@ namespace CruiseProcessing
 
             var fieldsToPrint = new List<string>();
             double summedValue = 0;
-            int numRows = tList.Count();
+            int numRows = tList.Count;
             int munRows = 0;
             //int nullRows = 0;
             //  load constants into fields to print
@@ -134,7 +134,7 @@ namespace CruiseProcessing
                         break;
 
                     case 11:        //  unit of measure -- just add to list
-                        summedValue = numRows;
+                        summedValue = 1;
                         break;
 
                     case 12:        //  KPI
@@ -156,12 +156,9 @@ namespace CruiseProcessing
                         //if (nullRows == 0)
                         //    summedValue = tList.Sum(tdo => tdo.HiddenPrimary);
                         //else summedValue = 0;
-                        summedValue = tList.Sum(tdo => tdo.HiddenPrimary);
-                        if (summedValue == 0)
-                        {
-                            //  check for hidden in TreeDefaultValue
-                            summedValue = tList.Sum(tdo => tdo.TreeDefaultValue.HiddenPrimary);
-                        }   //  endif
+                        summedValue = tList.Any(tdo => tdo.HiddenPrimary > 0)
+                            || tList.Any(tdo => tdo.TreeDefaultValue.HiddenPrimary > 0)
+                            ? 1 : 0;
                         break;
 
                     case 15:        //  Seen defect primary product
@@ -169,15 +166,12 @@ namespace CruiseProcessing
                         break;
 
                     case 16:        //  Recoverable
-                        munRows = tList.Count(
-                            delegate (TreeDO tdo)
-                            {
-                                return tdo.RecoverablePrimary == 0.0;
-                            });
-                        if (munRows == numRows)
-                            summedValue = tList.Sum(tdo => tdo.TreeDefaultValue.Recoverable);
-                        else if (munRows < numRows)
-                            summedValue = tList.Sum(tdo => tdo.RecoverablePrimary);
+                        if(tList.All(t => t.RecoverablePrimary > 0))
+                        { summedValue = 1; }
+                        else if (tList.Any(t => t.TreeDefaultValue.HiddenPrimary > 0))
+                        { summedValue = 1; }
+                        else
+                        {  summedValue = 0; }
                         break;
 
                     case 17:        //  Cull defect secondary product
@@ -378,7 +372,7 @@ namespace CruiseProcessing
             }   //  end for n loop
 
             return fieldsToPrint;
-        }   //  end CheckForData
+        }  
 
         public static string[] BuildColumnHeaders(string[] reportColumns, List<string> FieldsToPrint)
         {
@@ -556,9 +550,10 @@ namespace CruiseProcessing
                         break;
 
                     case 12:        //  KPI
-                        if (tdo.KPI == 0)
-                            prtFields.Add(" ");
-                        else prtFields.Add(tdo.KPI.ToString().PadLeft(5, ' '));
+                        if (tdo.KPI > 0)
+                        { prtFields.Add(tdo.KPI.ToString().PadLeft(5, ' ')); }
+                        else
+                        { prtFields.Add(" "); }
                         fieldLengths.SetValue(6, k);
                         break;
 
@@ -569,14 +564,14 @@ namespace CruiseProcessing
 
                     case 14:        //  hidden defect primary product
                         //  check hidden defect from tree; if zero check in TreeDefaultValue
-                        if (tdo.HiddenPrimary == 0)
-                        {
-                            if (tdo.TreeDefaultValue.HiddenPrimary > 0)
-                                prtFields.Add(tdo.TreeDefaultValue.HiddenPrimary.ToString().PadLeft(3, ' '));
-                            else prtFields.Add("  0");
-                        }
-                        else prtFields.Add(tdo.HiddenPrimary.ToString().PadLeft(3, ' '));
+                        if (tdo.HiddenPrimary > 0)
+                        { prtFields.Add(tdo.HiddenPrimary.ToString().PadLeft(3, ' ')); }
+                        else if(tdo.TreeDefaultValue.HiddenPrimary > 0)
+                        { prtFields.Add(tdo.TreeDefaultValue.HiddenPrimary.ToString().PadLeft(3, ' '));  }
+                        else
+                        { prtFields.Add("  0"); }
                         fieldLengths.SetValue(4, k);
+                            
                         break;
 
                     case 15:        //  seen defect primary product
@@ -585,9 +580,11 @@ namespace CruiseProcessing
                         break;
 
                     case 16:        //  recoverable defect percent primary
-                        if (tdo.RecoverablePrimary == 0.0)
-                            prtFields.Add(tdo.TreeDefaultValue.Recoverable.ToString().PadLeft(3, ' '));
-                        else prtFields.Add(tdo.RecoverablePrimary.ToString().PadLeft(3, ' '));
+                        if(tdo.RecoverablePrimary > 0)
+                        { prtFields.Add(tdo.RecoverablePrimary.ToString().PadLeft(3, ' ')); }
+                        else
+                        { prtFields.Add(tdo.TreeDefaultValue.Recoverable.ToString().PadLeft(3, ' ')); }
+
                         fieldLengths.SetValue(4, k);
                         break;
 
@@ -708,9 +705,11 @@ namespace CruiseProcessing
                         break;
 
                     case 38:        //  form class
-                        if (tdo.FormClass == 0)
-                            prtFields.Add(tdo.TreeDefaultValue.FormClass.ToString().PadLeft(2, ' '));
-                        else prtFields.Add(tdo.FormClass.ToString().PadLeft(2, ' '));
+                        if (tdo.FormClass > 0)
+                        { prtFields.Add(tdo.FormClass.ToString().PadLeft(2, ' ')); }
+                        else
+                        { prtFields.Add(tdo.TreeDefaultValue.FormClass.ToString().PadLeft(2, ' ')); }
+ 
                         fieldLengths.SetValue(3, k);
                         break;
 

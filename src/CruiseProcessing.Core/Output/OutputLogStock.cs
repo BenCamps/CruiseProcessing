@@ -521,7 +521,6 @@ namespace CruiseProcessing
         {
             string verticalBar = "|";
             List<string> pageTotals = new List<string>();
-            pageTotals.Clear();
             pageTotals.Add("");
             pageTotals.Add("TOTALS");
             if (currentReport == "L10") pageTotals.Add(verticalBar);
@@ -592,8 +591,7 @@ namespace CruiseProcessing
             strWriteOut.WriteLine(reportConstants.longLine);
             printOneRecord(fieldLengths, pageTotals, strWriteOut);
             numOlines = 0;
-            return;
-        }   //  end UpdateAndOutputTotal
+        } 
 
         private StringBuilder LoadExtraHeading(int pageToLoad)
         {

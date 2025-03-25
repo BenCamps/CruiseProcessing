@@ -21,17 +21,11 @@ namespace CruiseProcessing.Processing
             volumesDirtyFlag = false;
             var defectLogic = 1;
 
-            float tempHidden = 0;
             var tdv = tree.TreeDefaultValue;
-            if (tree.HiddenPrimary == 0)
-            {
+            float tempHidden = tree.HiddenPrimary.IsApproximatelyZero(0) ?
+                tree.HiddenPrimary : Math.Max(tdv.HiddenPrimary, 0);
 
-                //  now check hidden primary in TreeDefaultValue
-                if (tdv.HiddenPrimary > 0)
-                    tempHidden = tdv.HiddenPrimary;
-                else tempHidden = 0;
-            }
-            else tempHidden = tree.HiddenPrimary;
+
             if (cType == "V")
             {
                 VariableLogLength(volOutput, pProd, logStockList, tdv.CullPrimary, tempHidden, tree.SeenDefectPrimary);

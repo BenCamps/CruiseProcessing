@@ -531,7 +531,7 @@ namespace CruiseProcessing
                 {
                     WriteReportHeading(strWriteOut, reportTitles[0], "PLOT TABLE INFORMATION",
                                     reportTitles[2], A13plot, 7, ref pageNumb, "");
-                    prtFields = PlotMethods.buildPrintArray(pl, pl.Stratum.Code, pl.CuttingUnit.Code);
+                    prtFields = buildPrintArray_plot(pl, pl.Stratum.Code, pl.CuttingUnit.Code);
                     if (prtFields.Count > 0 && prtFields[0] != null)
                     {
                         printOneRecord(fieldLengths, prtFields, strWriteOut);
@@ -579,7 +579,43 @@ namespace CruiseProcessing
                     }   //  endif not null
                 }   //  end foreach loop
             }   //  endif currentReport
-        }   //  end WritePlot
+
+
+            static List<string> buildPrintArray_plot(PlotDO pl, string stratumCode, string unitCode)
+        {
+            //  overloaded to build array for report A13 (A14) -- plot page
+            var plotArray = new List<string>();
+            string fieldFormat1 = "{0,10:F2}";
+            string fieldFormat2 = "{0,9:F2}";
+
+            //  print plot table
+            if (pl.XCoordinate > 0.0)
+            {
+                plotArray.Add("");
+                plotArray.Add(pl.PlotNumber.ToString().PadLeft(4, ' '));
+                plotArray.Add(unitCode.PadLeft(3, ' '));
+                plotArray.Add(stratumCode.PadLeft(2, ' '));
+                plotArray.Add(String.Format(fieldFormat1, pl.XCoordinate));
+                if (pl.YCoordinate > 0.0)
+                {
+                    plotArray.Add(String.Format(fieldFormat2, pl.YCoordinate));
+                }
+                else
+                { plotArray.Add("---------"); }
+                if (pl.ZCoordinate > 0.0)
+                {
+                    plotArray.Add(String.Format(fieldFormat1, pl.ZCoordinate));
+                }
+                else
+                {
+                    plotArray.Add("---------");
+                }
+
+                plotArray.Add(pl.MetaData ?? (" "));
+            }
+            return plotArray;
+        }
+        }
 
         private void WriteTree(TextWriter strWriteOut, ref int pageNumb)
         {

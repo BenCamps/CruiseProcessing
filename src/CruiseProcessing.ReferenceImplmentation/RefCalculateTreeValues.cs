@@ -626,7 +626,7 @@ namespace CruiseProcessing.ReferenceImplmentation
             tcvList[nthRow].NumberlogsMS = NOLOGP;
 
             //  Make sure secondary was not calculated to get correct number of logs for secondary
-            if (VOL[6] != 0 || VOL[7] != 0 || VOL[8] != 0 || VOL[11] != 0 || VOL[12] != 0)
+            if (VOL[6] > 0 || VOL[7] > 0 || VOL[8] > 0 || VOL[11] > 0 || VOL[12] > 0)
                 tcvList[nthRow].NumberlogsTPW = NOLOGS;
 
             //  Sum removed volume into tree removed
@@ -731,7 +731,7 @@ namespace CruiseProcessing.ReferenceImplmentation
             tcvdo.NumberlogsMS = NOLOGP;
 
             //  Make sure secondary was not calculated to get correct number of logs for secondary
-            if (VOL[6] != 0 || VOL[7] != 0 || VOL[8] != 0 || VOL[11] != 0 || VOL[12] != 0)
+            if (VOL[6] > 0 || VOL[7] > 0 || VOL[8] > 0 || VOL[11] > 0 || VOL[12] > 0)
                 tcvdo.NumberlogsTPW = NOLOGS;
 
             //  SUm removed volume into tree removed

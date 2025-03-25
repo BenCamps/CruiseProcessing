@@ -40,33 +40,9 @@ namespace CruiseProcessing
             else plotArray.Add("   ");
 
             return plotArray;
-        }   //  end buildPrintArray
+        } 
 
-        public static List<string> buildPrintArray(PlotDO pl, string stratumCode, string unitCode)
-        {
-            //  overloaded to build array for report A13 (A14) -- plot page
-            var plotArray = new List<string>();
-            string fieldFormat1 = "{0,10:F2}";
-            string fieldFormat2 = "{0,9:F2}";
-          
-            //  print plot table
-            if (pl.XCoordinate != 0.0)
-            {
-                plotArray.Add("");
-                plotArray.Add(pl.PlotNumber.ToString().PadLeft(4, ' '));
-                plotArray.Add(unitCode.PadLeft(3, ' '));
-                plotArray.Add(stratumCode.PadLeft(2, ' '));
-                plotArray.Add(String.Format(fieldFormat1, pl.XCoordinate));
-                if (pl.YCoordinate == 0.0)
-                    plotArray.Add("---------");
-                else plotArray.Add(String.Format(fieldFormat2, pl.YCoordinate));
-                if (pl.ZCoordinate == 0.0)
-                    plotArray.Add("---------");
-                else plotArray.Add(String.Format(fieldFormat1, pl.ZCoordinate));
-                plotArray.Add(pl.MetaData??(" "));
-            }   //  endif coordinates exist
-            return plotArray;
-        }   //  end buildPrintArray
+
 
     }
 }
