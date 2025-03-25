@@ -121,7 +121,7 @@ namespace CruiseProcessing
             if (strList.Count == 0)
             {
                 errors.AddError("Stratum", "E", "25", 25, "NoName"); // cruise has no strata
-            } 
+            }
             else
             {
                 foreach (StratumDO sdo in strList)
@@ -257,7 +257,7 @@ namespace CruiseProcessing
             {
                 // fixcnt is not required to have height and typically doesn't have any measurements other than dbh
                 // however, this check might not be necessary because FixCNT doesn't have measure trees
-                if(st.Method == CruiseMethods.FIXCNT) { continue; }
+                if (st.Method == CruiseMethods.FIXCNT) { continue; }
 
                 var stratumMeasureTrees = dataLayer.JustMeasuredTrees(st.Stratum_CN.Value);
 
@@ -385,136 +385,116 @@ namespace CruiseProcessing
             if (volList.Count == 0)
             {
                 errors.AddError("VolumeEquation", "E", "25", 0, "NoName");
+                return;
             }
-            else //  means the table is not empty and checks can proceed
+
+
+            // check all sp prod combos have a volume equation
+            var spProdTrees = dataLayer.DAL.Query<SpeciesProduct>("SELECT t.Tree_CN as RecID,  t.Species, sg.PrimaryProduct " +
+                "FROM Tree as t " +
+                "JOIN SampleGroup AS sg USING (SampleGroup_CN) " +
+                "WHERE Species IS NOT NULL AND SampleGroup_CN IS NOT NULL " +
+                "GROUP BY t.Species, sg.PrimaryProduct;").ToArray();
+
+            var volEqSpeciesProdLookup = volList.ToLookup(x => (x.Species, x.PrimaryProduct));
+
+            // TODO should this only check measure trees? Would this be better to do the check at the SG level?
+            foreach (var spProd in spProdTrees)
             {
-                // check all sp prod combos have a volume equation
-                var spProdTrees = dataLayer.DAL.Query<SpeciesProduct>("SELECT t.Tree_CN as RecID,  t.Species, sg.PrimaryProduct " +
-                    "FROM Tree as t " +
-                    "JOIN SampleGroup AS sg USING (SampleGroup_CN) " +
-                    "WHERE Species IS NOT NULL AND SampleGroup_CN IS NOT NULL " +
-                    "GROUP BY t.Species, sg.PrimaryProduct;").ToArray();
+                var volEqs = volEqSpeciesProdLookup[(spProd.Species, spProd.PrimaryProduct)];
 
-                var volEqSpeciesProdLookup = volList.ToLookup(x => (x.Species, x.PrimaryProduct));
-
-                // TODO should this only check measure trees? Would this be better to do the check at the SG level?
-                foreach (var spProd in spProdTrees)
+                if (!volEqs.Any())
                 {
-                    var volEqs = volEqSpeciesProdLookup[(spProd.Species, spProd.PrimaryProduct)];
-
-                    if (!volEqs.Any())
+                    errors.AddError("Tree", "E", "12", spProd.RecID, "Species");
+                }
+                else
+                {
+                    if (volEqs.Count(x => x.CalcBoard > 0) > 1
+                        || volEqs.Count(x => x.CalcCubic > 0) > 1
+                        || volEqs.Count(x => x.CalcCord > 0) > 1
+                        || volEqs.Count(x => x.CalcTopwood > 0) > 1
+                        || volEqs.Count(x => x.CalcBiomass > 0) > 1
+                        || volEqs.Count(x => x.CalcTotal > 0) > 1
+                        )
                     {
-                        errors.AddError("Tree", "E", "12", spProd.RecID, "Species");
-                    }
-                    else
-                    {
-                        if(volEqs.Count(x => x.CalcBoard > 0) > 1
-                            || volEqs.Count(x => x.CalcCubic > 0) > 1
-                            || volEqs.Count(x => x.CalcCord > 0) > 1
-                            || volEqs.Count(x => x.CalcTopwood > 0) > 1
-                            || volEqs.Count(x => x.CalcBiomass > 0) > 1
-                            || volEqs.Count(x => x.CalcTotal > 0) > 1
-                            )
-                        {
-                            errors.AddError("VolumeEquation", "E", $"Multiple Volume Equations for {spProd.Species} {spProd.PrimaryProduct} Calculating The Same Components", volEqs.First().RowID.Value, "-");
-                        }
-
+                        errors.AddError("VolumeEquation", "E", $"Multiple Volume Equations for {spProd.Species} {spProd.PrimaryProduct} Calculating The Same Components", volEqs.First().RowID.Value, "-");
                     }
 
                 }
 
-                //  check for same equation number with different primary top diameters (DVE only)
-                var dissimmilarTopDIBs = volList.Where(x => x.VolumeEquationNumber.Contains("DVE"))
-                    .GroupBy(x => (x.VolumeEquationNumber, x.PrimaryProduct))
-                    .Where(grp => grp.Select(x => x.TopDIBPrimary.RoundDiameter()).Distinct().Count() > 1)
-                    .SelectMany(grp => grp).ToArray();
-
-                foreach (var volEq in dissimmilarTopDIBs)
-                {
-                    //errors.AddError("VolumeEquation", "E", "6", volEq.rowID.Value, "TopDIBPrimary");
-                    errors.AddError("VolumeEquation", "E", $"DVE equation TopDIB should be the the same Prod:{volEq.PrimaryProduct} {volEq.VolumeEquationNumber}", volEq.rowID.Value, "TopDibPrimary");
-                }
-
-                foreach (var volEq in volList)
-                {
-                    if (volEq.VolumeEquationNumber.Length > 10)
-                    {
-                        errors.AddError("VolumeEquation", "E", "1", volEq.rowID.Value, "VolumeEquationNumber");
-                    }
-
-                    if (volEq.VolumeEquationNumber.Contains("DVE"))
-                    {
-                        if (volEq.CalcTopwood == 1
-                            && (volEq.CalcBoard == 0 && volEq.CalcCubic == 0 && volEq.CalcCord == 0))
-                        {
-                            errors.AddError("VolumeEquation", "E", "3", volEq.rowID.Value, "VolumeFlags");
-                        }
-
-                        //    //  check for same equation number with different primary top diameters (DVE only)
-                        //    if (volList.Any(x =>
-                        //        x.rowID != volEq.rowID
-                        //        && x.VolumeEquationNumber == volEq.VolumeEquationNumber
-                        //        && x.PrimaryProduct == volEq.PrimaryProduct
-                        //        && !x.TopDIBPrimary.ApproximatelyEquals(volEq.TopDIBPrimary)))
-                        //    {
-                        //        //errors.AddError("VolumeEquation", "E", "6", volEq.rowID.Value, "TopDIBPrimary");
-                        //        errors.AddError("VolumeEquation", "E", $"For DVE equations TopDIB should be the the same Prod:{volEq.PrimaryProduct} {volEq.VolumeEquationNumber}", volEq.rowID.Value, "TopDibPrimary");
-                        //    }
-                    }
-
-                    if (volEq.TopDIBSecondary > volEq.TopDIBPrimary)
-                    {
-                        errors.AddError("VolumeEquation", "E", "4", volEq.rowID.Value, "TopDIBSecondary");
-                    }
-
-                    // check for duplicate volEqs
-                    if (volList.Any(x =>
-                    {
-                        return x.rowID != volEq.rowID
-                        && x.VolumeEquationNumber == volEq.VolumeEquationNumber
-                        && x.Species == volEq.Species
-                        && x.PrimaryProduct == volEq.PrimaryProduct;
-                    }))
-                    {
-                        errors.AddError("VolumeEquation", "E", "5", volEq.rowID.Value, "VolumeEquationNumber");
-                    }
-
-                    // removed check for biomass equations because we don't know if the volume equation is actually being used
-                    // before CP solved this issue by deleting unused volume equations, but since we don't want volume equations
-                    // to be automatically deleted, we can't trust this audit to be helpful
-                    // instead if biomass eq info is missing while processing there will be a warning in the output.
-
-                    //if(volEq.CalcBiomass > 0
-                    //    && !dataLayer.GetBiomassEquations(volEq.Species, volEq.PrimaryProduct).Any())
-                    //{
-                    //    errors.AddError("VolumeEquation", "W", "VolumeEquation has Calculate Biomass Flag but biomass equations haven't been defined", volEq.rowID.Value, "NoName");
-
-                    //}
-                }
-
-                if (isVLL)
-                {
-                    foreach (VolumeEquationDO ved in volList)
-                    {
-                        if (ved.VolumeEquationNumber.Contains("BEH"))
-                        {
-                            errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with BEH equations", (long)ved.rowID, "NoName");
-                        }
-                        else if (ved.VolumeEquationNumber.Contains("MAT"))
-                        {
-                            errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with MAT equations", (long)ved.rowID, "NoName");
-                        }
-                        else if (ved.VolumeEquationNumber.Contains("DVE"))
-                        {
-                            errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with DVE equations", (long)ved.rowID, "NoName");
-                        }
-                        else if (ved.VolumeEquationNumber.Contains("CLK"))
-                        {
-                            errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with CLK equations", (long)ved.rowID, "NoName");
-                        }   //  endif on equation number
-                    }   //  end foreach loop
-                }
             }
+
+
+            foreach (var volEq in volList)
+            {
+                if (volEq.VolumeEquationNumber.Length > 10)
+                {
+                    errors.AddError("VolumeEquation", "E", "1", volEq.rowID.Value, "VolumeEquationNumber");
+                }
+
+                if (volEq.VolumeEquationNumber.Contains("DVE"))
+                {
+                    if (volEq.CalcTopwood == 1
+                        && (volEq.CalcBoard == 0 && volEq.CalcCubic == 0 && volEq.CalcCord == 0))
+                    {
+                        errors.AddError("VolumeEquation", "E", "3", volEq.rowID.Value, "VolumeFlags");
+                    }
+
+                }
+
+                if (volEq.TopDIBSecondary > volEq.TopDIBPrimary)
+                {
+                    errors.AddError("VolumeEquation", "E", "4", volEq.rowID.Value, "TopDIBSecondary");
+                }
+
+                // check for duplicate volEqs
+                if (volList.Any(x =>
+                {
+                    return x.rowID != volEq.rowID
+                    && x.VolumeEquationNumber == volEq.VolumeEquationNumber
+                    && x.Species == volEq.Species
+                    && x.PrimaryProduct == volEq.PrimaryProduct;
+                }))
+                {
+                    errors.AddError("VolumeEquation", "E", "5", volEq.rowID.Value, "VolumeEquationNumber");
+                }
+
+                // removed check for biomass equations because we don't know if the volume equation is actually being used
+                // before CP solved this issue by deleting unused volume equations, but since we don't want volume equations
+                // to be automatically deleted, we can't trust this audit to be helpful
+                // instead if biomass eq info is missing while processing there will be a warning in the output.
+
+                //if(volEq.CalcBiomass > 0
+                //    && !dataLayer.GetBiomassEquations(volEq.Species, volEq.PrimaryProduct).Any())
+                //{
+                //    errors.AddError("VolumeEquation", "W", "VolumeEquation has Calculate Biomass Flag but biomass equations haven't been defined", volEq.rowID.Value, "NoName");
+
+                //}
+            }
+
+            if (isVLL)
+            {
+                foreach (VolumeEquationDO ved in volList)
+                {
+                    if (ved.VolumeEquationNumber.Contains("BEH"))
+                    {
+                        errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with BEH equations", (long)ved.rowID, "NoName");
+                    }
+                    else if (ved.VolumeEquationNumber.Contains("MAT"))
+                    {
+                        errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with MAT equations", (long)ved.rowID, "NoName");
+                    }
+                    else if (ved.VolumeEquationNumber.Contains("DVE"))
+                    {
+                        errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with DVE equations", (long)ved.rowID, "NoName");
+                    }
+                    else if (ved.VolumeEquationNumber.Contains("CLK"))
+                    {
+                        errors.AddError("VolumeEquation", "W", "Variable log length diameters cannot be computed with CLK equations", (long)ved.rowID, "NoName");
+                    }   //  endif on equation number
+                }   //  end foreach loop
+            }
+
         }
 
         private class SpeciesProduct
