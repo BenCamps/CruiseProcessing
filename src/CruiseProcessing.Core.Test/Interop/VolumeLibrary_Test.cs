@@ -11,7 +11,7 @@ namespace CruiseProcessing.Test.Interop
 {
     public class VolumeLibrary_Test : TestBase
     {
-        const int VOLLIB_VERSION = 20250227;
+        const int VOLLIB_VERSION = 20250325;
 
         public VolumeLibrary_Test(ITestOutputHelper output) : base(output)
         {
