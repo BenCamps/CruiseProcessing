@@ -19,7 +19,7 @@ namespace CruiseProcessing.Interop
                     case 3: return GrossCubicFoot;
                     case 4: return GrossRemovedCubicFoot;
                     case 5: return NetCubicFoot;
-                    case 6: return GrossBoardFootInternational;
+                    case 6: return Extra;
                     default: throw new ArgumentOutOfRangeException(nameof(i));
                 }
             }
@@ -33,7 +33,7 @@ namespace CruiseProcessing.Interop
                     case 3: GrossCubicFoot = value; break;
                     case 4: GrossRemovedCubicFoot = value; break;
                     case 5: NetCubicFoot = value; break;
-                    case 6: GrossBoardFootInternational = value; break;
+                    case 6: Extra = value; break;
                     default: throw new ArgumentOutOfRangeException(nameof(i));
                 }
             }
@@ -45,22 +45,10 @@ namespace CruiseProcessing.Interop
         public float GrossCubicFoot { get; set; }
         public float GrossRemovedCubicFoot { get; set; }
         public float NetCubicFoot { get; set; }
-        public float GrossBoardFootInternational { get; set; }
 
-        //public void FromArray(float[] values)
-        //{
-        //    if (values.Length != 7)
-        //    {
-        //        throw new ArgumentException("values must have 7 elements");
-        //    }
-        //    GrossBoardFoot = values[0];
-        //    GrossRemovedBoardFoot = values[1];
-        //    NetBoardFoot = values[2];
-        //    GrossCubicFoot = values[3];
-        //    GrossRemovedCubicFoot = values[4];
-        //    NetCubicFoot = values[5];
-        //    GrossBoardFootInternational = values[6];
-        //}
+        // When Ctype is 'C' this returns log weight
+        // otherwise GrossBoardFootInternational
+        public float Extra { get; set; }
 
         public LogVolume FromArray(float[,] values, int row)
         {
@@ -74,7 +62,7 @@ namespace CruiseProcessing.Interop
             GrossCubicFoot = values[row, 3];
             GrossRemovedCubicFoot = values[row, 4];
             NetCubicFoot = values[row, 5];
-            GrossBoardFootInternational = values[row, 6];
+            Extra = values[row, 6];
 
             return this;
         }

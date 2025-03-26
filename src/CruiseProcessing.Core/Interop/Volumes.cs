@@ -76,7 +76,7 @@ namespace CruiseProcessing.Interop
         public float Stump { get; set; }
         public float Tip { get; set; }
 
-        public void FromArray(float[] values)
+        public Volumes FromArray(float[] values)
         {
             if (values.Length != 15)
             {
@@ -97,6 +97,8 @@ namespace CruiseProcessing.Interop
             NetSecondaryBdFt = values[12];
             Stump = values[13];
             Tip = values[14];
+
+            return this;
         }
     }
 }

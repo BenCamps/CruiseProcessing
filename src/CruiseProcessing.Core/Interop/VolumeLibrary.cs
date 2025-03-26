@@ -261,7 +261,7 @@ namespace CruiseProcessing.Interop
                 Log?.LogInformation($"CRZBIOMASSCS Error Flag {errflg} - " + ErrorReport.GetWarningMessage(errflg.ToString()));
             }
 
-            return CrzBiomassResult.FromArray(calculatedBiomass);
+            return new CrzBiomassResult().FromArray(calculatedBiomass);
         }
 
         public string LookupVolumeEquation(int region, string forest, string district, int fiaCode, string product, out int error)
@@ -375,7 +375,7 @@ namespace CruiseProcessing.Interop
         {
             var crownFractionWGT = new float[CROWN_FACTOR_WEIGHT_ARRAY_LENGTH];
             NativeMethods.BROWNCROWNFRACTION(ref fiaCode, ref DBH, ref THT, ref CR, crownFractionWGT);
-            return CrownFractionWeight.FromArray(crownFractionWGT);
+            return new CrownFractionWeight().FromArray(crownFractionWGT);
         }
 
         public void BrownTopwood(int fiaCode, float grsVol, out float topwoodWGT)

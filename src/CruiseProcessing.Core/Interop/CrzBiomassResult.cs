@@ -5,23 +5,23 @@ namespace CruiseProcessing.Interop
 {
     public class CrzBiomassResult
     {
-        public static CrzBiomassResult FromArray(float[] values)
+        public CrzBiomassResult FromArray(float[] values)
         {
             // NOTE: there is an 8 element array in the original code, but as far as I can tell, only 7 elements are used
             if (values.Length != VolumeLibrary.CRZBIOMASSCS_BMS_SIZE)
             {
                 throw new ArgumentException("values must have 8 elements");
             }
-            return new CrzBiomassResult
-            {
-                AboveGroundTotal = values[0],
-                BranchesAndTop = values[1],
-                DeadBranches = values[2],
-                Foliage = values[3],
-                PrimaryProduct = values[4],
-                SecondaryProduct = values[5],
-                StemTip = values[6],
-            };
+
+            AboveGroundTotal = values[0];
+            BranchesAndTop = values[1];
+            DeadBranches = values[2];
+            Foliage = values[3];
+            PrimaryProduct = values[4];
+            SecondaryProduct = values[5];
+            StemTip = values[6];
+
+            return this;
         }
 
         public float AboveGroundTotal { get; set; }

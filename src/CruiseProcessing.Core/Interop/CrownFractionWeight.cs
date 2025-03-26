@@ -10,18 +10,20 @@ namespace CruiseProcessing.Interop
     {
         public CrownFractionWeight() { }
 
-        protected CrownFractionWeight(float[] volLibArray)
+        public CrownFractionWeight(float[] volLibArray)
+        {
+            FromArray(volLibArray);
+        }
+
+        public CrownFractionWeight FromArray(float[] volLibArray)
         {
             Needles = volLibArray[0];
             QuarterInch = volLibArray[1];
             OneInch = volLibArray[2];
             ThreeInch = volLibArray[3];
             ThreePlus = volLibArray[4];
-        }
 
-        public static CrownFractionWeight FromArray(float[] volLibArray)
-        {
-            return new CrownFractionWeight(volLibArray);
+            return this;
         }
 
         public float Needles { get; set; }
