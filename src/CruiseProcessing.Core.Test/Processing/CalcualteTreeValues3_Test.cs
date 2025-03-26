@@ -70,6 +70,7 @@ namespace CruiseProcessing.Test.Processing
             {
                 sc.AddTransient<CpDataLayer>(x => dataLayer);
                 sc.AddTransient<CalculateTreeValues2>();
+                sc.AddTransient<CalculateTreeValues3>();
             });
 
             //var volEqs = dataLayer.getVolumeEquations();

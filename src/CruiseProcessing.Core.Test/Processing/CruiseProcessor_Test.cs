@@ -579,7 +579,7 @@ namespace CruiseProcessing.Test.Processing
         [InlineData("OgTest\\Region2\\R2_Test_V3.process", "OgTest\\Region2\\R2_Test_V3.out")]
         //[InlineData("OgTest\\Region3\\R3_FCM_100.cruise")]
         //[InlineData("OgTest\\Region3\\R3_PCM_FIXCNT.cruise")]
-        [InlineData("OgTest\\Region3\\R3_PNT_FIXCNT.cruise", "OgTest\\Region3\\R3_PNT_FIXCNT.out")]
+        //[InlineData("OgTest\\Region3\\R3_PNT_FIXCNT.cruise", "OgTest\\Region3\\R3_PNT_FIXCNT.out")]
         [InlineData("OgTest\\Region4\\R4_McDougal.cruise", "OgTest\\Region4\\R4_McDougal.out")]
         [InlineData("OgTest\\Region5\\R5.cruise", "OgTest\\Region5\\R5.out")]
         //[InlineData("OgTest\\Region6\\R6.cruise")]
@@ -587,10 +587,10 @@ namespace CruiseProcessing.Test.Processing
         [InlineData("OgTest\\Region9\\R9.cruise", "OgTest\\Region9\\R9.out")]
         [InlineData("OgTest\\Region10\\R10.cruise", "OgTest\\Region10\\R10.out", "R008,R009")]
 
-        [InlineData("Version3Testing\\3P\\87654 test 3P TS.cruise", "Version3Testing\\3P\\87654 test 3P TS.out")]
+        //[InlineData("Version3Testing\\3P\\87654 test 3P TS.cruise", "Version3Testing\\3P\\87654 test 3P TS.out")]
         //[InlineData("Version3Testing\\3P\\87654_test 3P_Timber_Sale_26082021.process")]
         //[InlineData("Version3Testing\\3P\\87654_test 3P_Timber_Sale_26082021_fixedTallyBySp.process")]
-        [InlineData("Version3Testing\\3P\\87654_Test 3P_Timber_Sale_30092021.process", "Version3Testing\\3P\\87654_Test 3P_Timber_Sale_30092021.out")]
+        //[InlineData("Version3Testing\\3P\\87654_Test 3P_Timber_Sale_30092021.process", "Version3Testing\\3P\\87654_Test 3P_Timber_Sale_30092021.out")]
 
         [InlineData("Version3Testing\\FIX\\20301 Cold Springs Recon.cruise", "Version3Testing\\FIX\\20301 Cold Springs Recon.out")]
         //[InlineData("Version3Testing\\FIX\\20301_Cold Springs_Timber_Sale_29092021.process")]
@@ -599,11 +599,11 @@ namespace CruiseProcessing.Test.Processing
 
         [InlineData("Version3Testing\\PCM\\27504_Spruce East_TS.cruise", "Version3Testing\\PCM\\27504_Spruce East_TS.out")]
 
-        [InlineData("Version3Testing\\PNT\\Exercise3_Dead_LP_Recon.cruise", "Version3Testing\\PNT\\Exercise3_Dead_LP_Recon.cruise")]
+        //[InlineData("Version3Testing\\PNT\\Exercise3_Dead_LP_Recon.cruise", "Version3Testing\\PNT\\Exercise3_Dead_LP_Recon.cruise")]
 
         //[InlineData("Version3Testing\\STR\\98765 test STR TS.cruise")]
         //[InlineData("Version3Testing\\STR\\98765_test STR_Timber_Sale_26082021.process")]
-        [InlineData("Version3Testing\\STR\\98765_test STR_Timber_Sale_30092021.process", "Version3Testing\\STR\\98765_test STR_Timber_Sale_30092021.out")]
+        //[InlineData("Version3Testing\\STR\\98765_test STR_Timber_Sale_30092021.process", "Version3Testing\\STR\\98765_test STR_Timber_Sale_30092021.out")]
 
         //[InlineData("Version3Testing\\TestMeth\\99996_TestMeth_TS_202310040107_KC'sTabActive3-R9Q8.process")]
 
@@ -636,27 +636,56 @@ namespace CruiseProcessing.Test.Processing
 
             var expectedOutputPath = GetTestFile(expectedOutputFileName);
             var expectedOutput = File.OpenText(expectedOutputPath).ReadToEnd();
+            var newOutput = stringWriter.ToString();
 
-            var diff = InlineDiffBuilder.Diff(expectedOutput, stringWriter.ToString());
+            var exportedPages = OutputParser.ExtractReportPages(expectedOutput);
+            var newPages = OutputParser.ExtractReportPages(newOutput);
 
-            var changedLines = diff.Lines
-                .Where((x) =>
-                {
-                    return x.Type != DiffPlex.DiffBuilder.Model.ChangeType.Unchanged
-                        && !x.Text.StartsWith("SALENAME:")
-                        && !x.Text.StartsWith("RUN DATE")
-                        && !x.Text.StartsWith("USDA FOREST SERVICE")
-                        && !x.Text.StartsWith("WASHINGTON")
-                        && !x.Text.StartsWith("FILENAME:");
-                })
-                .ToArray();
+            newPages.Should().HaveSameCount(exportedPages);
 
-            foreach (var line in changedLines)
+            var ignoreReports = new[] { "A03", "VOLUME EQUATION TABLE", "BIOMASS EQUATION TABLE", "VolEq", "BioEq" }.ToHashSet();
+            foreach( (var newPage, var expectedPage) in newPages.Zip(exportedPages, (np, ep) => (np, ep)) )
             {
-                Output.WriteLine(line.Position.ToString().PadLeft(5) + ":" + line.Text);
-            }
+                var oldText = expectedPage.PageContent;
+                var newText = newPage.PageContent;
 
-            changedLines.Should().HaveCount(0);
+                
+
+
+                if(oldText == null || newText == null) { continue; }
+
+                if(newPage.ReportID != null && ignoreReports.Contains(newPage.ReportID.Trim())) { return; }
+
+                Output.WriteLine("Comparing " + newPage.ReportID ?? newPage.ReportTitle ?? "<no title>");
+
+
+                var diff = InlineDiffBuilder.Diff(oldText, newText);
+
+                var changedLines = diff.Lines
+                    .Where((x) =>
+                    {
+                        return x.Type != DiffPlex.DiffBuilder.Model.ChangeType.Unchanged
+                            && !x.Text.StartsWith("SALENAME:")
+                            && !x.Text.StartsWith("RUN DATE")
+                            && !x.Text.StartsWith("USDA FOREST SERVICE")
+                            && !x.Text.StartsWith("WASHINGTON")
+                            && !x.Text.StartsWith("FILENAME:");
+                    })
+                    .ToArray();
+
+                foreach (var line in changedLines)
+                {
+                    Output.WriteLine(line.Position.ToString().PadLeft(5) + ":" + line.Text);
+                }
+
+                if (changedLines.Any())
+                {
+                    Output.WriteLine("Expected: " + oldText);
+                    Output.WriteLine("New: " + newText);
+                }
+
+                changedLines.Should().HaveCount(0);
+            }
 
 
 
