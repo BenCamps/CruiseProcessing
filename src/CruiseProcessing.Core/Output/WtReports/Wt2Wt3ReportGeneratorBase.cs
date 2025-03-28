@@ -331,41 +331,45 @@ namespace CruiseProcessing.Output
                             string region)
         {
             // find FIA for current group
-            int nthRow = bList.FindIndex(
-                delegate (BiomassData b)
-                {
-                    return b.StratumCode == lcdSpecies.Stratum &&
-                            b.SampleGroupCode == lcdSpecies.SampleGroup && b.SpeciesCode == lcdSpecies.Species;
-                });
-            if (nthRow >= 0)
-            {
-                float floatAcres = (float)currAcres;
-                var bioData = bList[nthRow];
-                return CalculateComponentValues(currentData, lcdSpecies, region, floatAcres, bioData);
-            }   //  endif nthRow
-            return 1;
-        }   //  end CalculateComponentValues
+            var bioData = bList.FirstOrDefault(b => b.StratumCode == lcdSpecies.Stratum &&
+                            b.SampleGroupCode == lcdSpecies.SampleGroup && b.SpeciesCode == lcdSpecies.Species);
 
-        protected int CalculateComponentValues(List<TreeCalculatedValuesDO> currentData, LCDDO lcdSpecies, string region, float floatAcres, BiomassData bioData)
+            if(bioData != null)
+            {
+                return CalculateComponentValues(bioData,
+                    currentData, lcdSpecies.PrimaryProduct, region, (float)currAcres);
+            }
+            else { return 1; }
+
+        } 
+
+        protected int CalculateComponentValues(BiomassData bioData, List<TreeCalculatedValuesDO> treeCalculatedValues,
+                 string primaryProduct, string region, double acres)
         {
-            var currFIA = bioData.SpeciesFIA;
-            if (currFIA == 0) return -1;
+            var fiaCode = bioData.SpeciesFIA;
+            if (fiaCode == 0) return -1;
             //  need percent removed to calculate fraction left in the woods
             //  Per K.Cormier, FLIW = 1.0 - percent removed
             //  August 2013
 
-            var percentRemoved = DataLayer.GetPercentRemoved(lcdSpecies.Species, lcdSpecies.PrimaryProduct);
+            float fAcres = (float)acres;
+
+
+            // fliw is only applied to primary volume to get cull chunks
+            // so we only need percent removed for primary product
+            var percentRemoved = DataLayer.GetPercentRemoved(bioData.SpeciesCode, primaryProduct);
             bioData.FractionLeftInWoods = 1.0d - ((double)percentRemoved / 100.0d);
+            float fliw = (float)bioData.FractionLeftInWoods;
 
             //  crown section and damaged small trees
-            foreach (TreeCalculatedValuesDO cd in currentData)
+            foreach (TreeCalculatedValuesDO tcv in treeCalculatedValues)
             {
-                var tree = cd.Tree;
+                var tree = tcv.Tree;
 
-                float currDBH = cd.Tree.DBH;
+                float currDBH = tcv.Tree.DBH;
                 float currHGT = (region == "9" || region == "09") ? tree.TotalHeight : tree.MerchHeightPrimary;
                 float CR = 0;
-                var crfwt = VolLib.BrownCrownFraction(currFIA, currDBH, currHGT, CR);
+                var crfwt = VolLib.BrownCrownFraction(fiaCode, currDBH, currHGT, CR);
                 if (tree.DBH > 6)
                 {
                     //  load crown section
@@ -385,31 +389,34 @@ namespace CruiseProcessing.Output
                     bioData.DSTthreePlus += crfwt.ThreePlus;
                 }
 
-                //  Sum up values for three-inch plus section
-                float grsVol = 0;
-                float netVol = 0;
-                //  Topwood weight
-                grsVol = currentData.Sum(c => c.GrossCUFTSP * c.Tree.ExpansionFactor);
-                grsVol = grsVol * floatAcres;
-                VolLib.BrownTopwood(currFIA, grsVol, out var topwoodWGT);
-                bioData.TopwoodDryWeight = topwoodWGT;
-
-                //  Cull chunk weight
-                grsVol = cd.GrossCUFTPP * tree.ExpansionFactor * floatAcres;
-                netVol = cd.NetCUFTPP * tree.ExpansionFactor * floatAcres;
-                var fliw = (float)bioData.FractionLeftInWoods;
-                VolLib.BrownCullChunk(currFIA, grsVol, netVol, fliw, out var cullChunkWGT);
-                bioData.CullChunkWgt += cullChunkWGT;
-
                 //  Pull grade 9 logs for current group
-                List<LogStockDO> justCullLogs = DataLayer.getCullLogs((long)cd.Tree_CN, "9");
+                List<LogStockDO> justCullLogs = DataLayer.getCullLogs((long)tcv.Tree_CN, "9");
                 foreach (LogStockDO jcl in justCullLogs)
                 {
-                    grsVol = jcl.GrossCubicFoot;
-                    VolLib.BrownCullLog(currFIA, grsVol, out var cullLogWGT);
-                    bioData.CullLogWgt = cullLogWGT * tree.ExpansionFactor * floatAcres;
+                    var logCullVol = jcl.GrossCubicFoot;
+                    VolLib.BrownCullLog(fiaCode, logCullVol, out var cullLogWGT);
+                    bioData.CullLogWgt = cullLogWGT * tree.ExpansionFactor * fAcres;
                 }   //  end foreach loop
             }   //  end foreach loop
+
+            //  Cull chunk weight
+            var sumCullChunckWgt = treeCalculatedValues.Sum(tcv =>
+            {
+                var ef = tcv.Tree.ExpansionFactor;
+                float grsVol = tcv.GrossCUFTPP * ef * fAcres;
+                float netVol = tcv.NetCUFTPP * ef * fAcres;
+
+                VolLib.BrownCullChunk(fiaCode, grsVol, netVol, fliw, out var cullChunkWGT);
+                return cullChunkWGT;
+            });
+            bioData.CullChunkWgt = sumCullChunckWgt;
+
+            //  Sum up values for three-inch plus section
+            float grsVolSecondary = treeCalculatedValues.Sum(c => c.GrossCUFTSP * c.Tree.ExpansionFactor) * fAcres;
+            //  Topwood weight
+
+            VolLib.BrownTopwood(fiaCode, grsVolSecondary, out var topwoodWGT);
+            bioData.TopwoodDryWeight = topwoodWGT;
 
             return 1;
         }
