@@ -962,7 +962,7 @@ namespace CruiseProcessing
                         if (sf.alpha2 == null)                          //  description
                             prtLine.Append(" ".PadRight(25, ' '));
                         else 
-                            prtLine.Append(sf.alpha2.PadRight(25,' ').Substring(0, 25));  
+                            prtLine.Append(sf.alpha2.LimitAndPadRight(25,' '));  
                         
                         prtLine.Append(sf.alpha3.PadRight(3,' '));      //  logging method
                         prtLine.Append(sf.alpha4.PadRight(3,' '));      //  payment unit
@@ -981,7 +981,7 @@ namespace CruiseProcessing
                         prtLine.Append(sf.alpha1.PadRight(6, ' '));     //  cruise method
                         prtLine.Append(sf.alpha2.PadRight(6, ' '));      //  basal area factor
                         prtLine.Append(sf.alpha3.PadRight(4, ' '));      //  fixed plot size
-                        prtLine.Append(sf.alpha4.PadRight(25, ' '));     //  description
+                        prtLine.Append(sf.alpha4.LimitAndPadRight(25, ' '));     //  description
                         prtLine.Append(sf.alpha5.PadLeft(2, '0'));      //  month
                         prtLine.Append(sf.alpha6.PadLeft(4,' '));       //  year
                         prtLine.Append(sf.currRG.PadLeft(2,'0'));       //  region number
