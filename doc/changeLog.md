@@ -1,3 +1,22 @@
+# Version 03.24.2025
+## Changes
+ - Added volume equation for Incense Cedar in Region 6 Willamette NF
+ - Updated Volume Library to version 20250325
+
+## Fixes
+ - Remove TopDIB error check that was giving false positive and was unnecessary
+ - Fix issue with log stratum description causing issue with TIM sum file. 
+ - Fix WT reports using primary product weight factors for secondary product. 
+ - Fix R102 and R103 reports showing incorrect secondary product code on Saw-timber trees
+ - Fix R102 and R103 formatting issue on secondary product lines
+
+## Volume Library 
+### Fixes
+ - Clark profile model (R8&9) top log re-segmentation fix to make sure even log lengths.
+ - Fixes biomass calculation on main stem (primary, secondary and tip) to be its CUFT*WeightFactor.
+
+
+
 # Version 01.24.2025
 
 ## Fixes
