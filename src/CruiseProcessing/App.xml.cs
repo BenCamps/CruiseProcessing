@@ -1,4 +1,5 @@
-﻿using CruiseProcessing.Async;
+﻿using Azure.Monitor.OpenTelemetry.Exporter;
+using CruiseProcessing.Async;
 using CruiseProcessing.Data;
 using CruiseProcessing.Interop;
 using CruiseProcessing.Output;
@@ -13,7 +14,10 @@ using Microsoft.AppCenter;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Resources;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
@@ -79,11 +83,35 @@ namespace CruiseProcessing
 
         private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder builder)
         {
+            // WIP adding otel logging, still need to hook up crash logging
+#if DEBUG
+            builder.AddOpenTelemetry(logging =>
+            {
+                logging.AddAzureMonitorLogExporter(config =>
+                {
+                    config.ConnectionString = Secrets.NCS_APP_INSIGHTS_CONNECTION_STRING;
+                });
+
+                var attributes = new Dictionary<string, object>()
+                {
+                    { "service.instance.id", Environment.UserName.GetHashCode().ToString() },
+                    {"service.name", "CruiseProcessing" },
+                    { "service.namespace", "NationalCruiseSystem" },
+                    { "service.version", Assembly.GetExecutingAssembly().GetName().Version.ToString() },
+                };
+
+                var otelResourceBuilder = ResourceBuilder.CreateDefault()
+                .AddAttributes(attributes);
+                logging.SetResourceBuilder(otelResourceBuilder);
+            });
+#endif
             builder.AddAppCenterLogger();
         }
 
         private static void ConfigureServices(HostBuilderContext context, IServiceCollection services, App appInstance)
         {
+            
+
             // app instance used by dialog service to get the main window
             // dialog service can't directly request the main window because
             // that would create a circular dependency, with the main window

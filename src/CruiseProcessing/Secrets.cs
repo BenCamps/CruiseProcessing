@@ -9,5 +9,6 @@ namespace CruiseProcessing
     public static partial class Secrets
     {
         public static string CRUISEPROCESSING_APPCENTER_KEY_WINDOWS = "";
+        public static string NCS_APP_INSIGHTS_CONNECTION_STRING = "";
     }
 }
