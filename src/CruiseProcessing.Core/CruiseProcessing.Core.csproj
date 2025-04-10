@@ -21,9 +21,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="../libs/NBEL.dll">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
 		<Content Include="../libs/LocalVolume.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
