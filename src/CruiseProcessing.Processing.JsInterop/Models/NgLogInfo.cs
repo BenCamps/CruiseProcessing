@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.JavaScript.NodeApi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace CruiseProcessing.Processing.Models
 {
+    [JSExport]
     public class NgLogInfo
     {
         public string TreeID { get; set; }
