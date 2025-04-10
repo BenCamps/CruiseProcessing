@@ -471,8 +471,8 @@ namespace CruiseProcessing.Processing
 
             if(errorCode > 0)
             {
-                Log?.LogWarning("LookupVolumeEquation returned error code {errorCode}. Regn:{region} Forest:{sForest} District{sDistrict} FiaCode:{iFiaCode} Product:{product}"
-                    , region, sForest, sDistrict, iFiaCode, product);
+                Log?.LogWarning("LookupVolumeEquation returned error code {errorCode}. Regn:{region} Forest:{sForest} District{sDistrict} FiaCode:{iFiaCode} Product:{product}",
+                    errorCode, region, sForest, sDistrict, iFiaCode, product);
             }
 
             return volLibEq;
