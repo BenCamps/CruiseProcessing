@@ -495,7 +495,12 @@ namespace CruiseProcessing.Processing
                 brkht, brkhtd, fiaspcd,
                 cr, cull, decaycd);
 
-            _ = DataLayer.GetWeightFactor(volEq.Species, volEq.PrimaryProduct, tree.LiveDead, VolLib);
+            //_ = DataLayer.GetWeightFactor(volEq.Species, volEq.PrimaryProduct, tree.LiveDead, VolLib);
+
+            var secondaryProduct = tree.SampleGroup.SecondaryProduct;
+            var wf = DataLayer.GetWeightFactor(volEq.Species, volEq.PrimaryProduct, tree.LiveDead, VolLib);
+            var secondaryWf = DataLayer.GetWeightFactor(volEq.Species, secondaryProduct, tree.LiveDead, VolLib)
+                .IfZeroThen(wf);
 
             //  volume library call
             //VolLib.CalculateVolumeNVB(REGN, Forest, volEq.VolumeEquationNumber, MTOPP, MTOPS,
