@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!--<TargetFramework>net481</TargetFramework>-->
     <TargetFrameworks>net8.0</TargetFrameworks>
-    <PlatformTarget>x86</PlatformTarget>
+    <!--<PlatformTarget>x86</PlatformTarget>-->
     <!--<ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 

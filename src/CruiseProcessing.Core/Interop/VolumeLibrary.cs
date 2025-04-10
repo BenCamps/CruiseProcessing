@@ -44,8 +44,18 @@ namespace CruiseProcessing.Interop
         protected ILogger Log { get; }
         VolumeLibraryNativeMethods NativeMethods { get; }
 
-        public VolumeLibrary() : this(CurrentVolLibMethodProvider.GetNativeMethods())
-        { /* do nothing */ }
+        public VolumeLibrary(ILogger<VolumeLibrary> logger = null) 
+        {
+            Log = logger ?? LoggerProvider.CreateLogger<VolumeLibrary>();
+            if (Environment.Is64BitProcess)
+            {
+                NativeMethods = VolLibMethodProvider_x64.GetNativeMethods();
+            }
+            else
+            {
+                NativeMethods = CurrentVolLibMethodProvider.GetNativeMethods();
+            }
+        }
 
         public VolumeLibrary(VolumeLibraryNativeMethods nativeMethods, ILogger<VolumeLibrary> logger = null)
         {

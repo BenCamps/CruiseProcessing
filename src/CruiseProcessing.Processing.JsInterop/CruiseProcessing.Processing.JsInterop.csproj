@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
-    <PlatformTarget>x86</PlatformTarget>
-    <!--<TargetFramework>net481</TargetFramework>-->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>CruiseProcessing.Processing</RootNamespace>
