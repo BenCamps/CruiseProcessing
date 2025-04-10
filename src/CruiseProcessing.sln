@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Build_Installer.cmd = Build_Installer.cmd
+		Build_JsInterop.cmd = Build_JsInterop.cmd
 		Build_Release.cmd = Build_Release.cmd
 		Build_ZipArtifact.cmd = Build_ZipArtifact.cmd
 		..\doc\changeLog.md = ..\doc\changeLog.md

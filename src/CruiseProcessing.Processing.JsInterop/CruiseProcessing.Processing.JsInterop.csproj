@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <PlatformTarget>x86</PlatformTarget>
+    <!--<TargetFramework>net481</TargetFramework>-->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>CruiseProcessing.Processing</RootNamespace>
@@ -18,7 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CruiseProcessing.Core\CruiseProcessing.Core.csproj" />
+    <ProjectReference Include="..\CruiseProcessing.Core\CruiseProcessing.Core.csproj" >
+      <TargetFramework>netstandard2.1</TargetFramework>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

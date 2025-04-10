@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Label="Build Config">
-		<TargetFramework>net472</TargetFramework>
+		<TargetFrameworks>net472</TargetFrameworks>
 		<LangVersion>9.0</LangVersion>
 	</PropertyGroup>
 
