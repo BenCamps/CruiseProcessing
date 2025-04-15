@@ -1,5 +1,5 @@
 #define MsBuildOutputDir ".\CruiseProcessing\bin\Release\net472"
-#define VERSION "03.24.2025"
+#define VERSION "04.15.2025"
 #define APP "Cruise Processing Program"
 #define BASEURL "https://www.fs.fed.us/forestmanagement/products/measurement"
 #define ORGANIZATION "U.S. Forest Service, Forest Management Service Center"
