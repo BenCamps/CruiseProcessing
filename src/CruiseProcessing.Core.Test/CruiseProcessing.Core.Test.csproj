@@ -2,7 +2,6 @@
 
   <PropertyGroup>
 	  <RootNamespace>CruiseProcessing.Test</RootNamespace>
-	  <PlatformTargets>x86;x64</PlatformTargets>
   </PropertyGroup>
 
   <ItemGroup>

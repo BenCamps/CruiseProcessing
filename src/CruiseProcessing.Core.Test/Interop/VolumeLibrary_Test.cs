@@ -11,7 +11,7 @@ namespace CruiseProcessing.Test.Interop
 {
     public class VolumeLibrary_Test : TestBase
     {
-        const int VOLLIB_VERSION = 20250325;
+        const int VOLLIB_VERSION = 20250401;
 
         public VolumeLibrary_Test(ITestOutputHelper output) : base(output)
         {
@@ -20,6 +20,8 @@ namespace CruiseProcessing.Test.Interop
         [Fact]
         public void GetVersionNumber()
         {
+            var platform = Environment.Is64BitProcess ? "x64" : "x86";
+            Output.WriteLine($"Platform {platform}");
             var volumeLibrary = new VolumeLibrary();
 
             var versionNum = volumeLibrary.GetVersionNumber();
