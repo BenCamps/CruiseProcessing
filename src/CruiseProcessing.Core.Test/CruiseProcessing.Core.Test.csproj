@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <RootNamespace>CruiseProcessing.Test</RootNamespace>
+    <RootNamespace>CruiseProcessing.Test</RootNamespace>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,13 +10,13 @@
     <ProjectReference Include="..\CruiseProcessing.ReferenceImplmentation\CruiseProcessing.ReferenceImplmentation.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="CruiseDAL.V2.Models" Version="2.7.4.124" />
-		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.0.4" />
+  <ItemGroup>
+    <PackageReference Include="CruiseDAL.V2.Models" Version="2.7.4.124" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.0.4" />
 
-		<PackageReference Include="DiffPlex" Version="1.7.2" />
-	</ItemGroup>
+    <PackageReference Include="DiffPlex" Version="1.7.2" />
+  </ItemGroup>
 
-	<Import Project="..\CruiseProcessing.Test.Shared\CruiseProcessing.Test.Shared.projitems" Label="Shared" />
+  <Import Project="..\CruiseProcessing.Test.Shared\CruiseProcessing.Test.Shared.projitems" Label="Shared" />
 
 </Project>
