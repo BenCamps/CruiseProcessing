@@ -1,3 +1,10 @@
+# Version 04.15.2025
+## Changes 
+ - Updated Volume Library to version 20250401
+## Fixes
+ - Fix issue where trees with no total height can cause program to crash while processing
+
+
 # Version 03.24.2025
 ## Changes
  - Added volume equation for Incense Cedar in Region 6 Willamette NF
